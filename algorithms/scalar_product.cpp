@@ -16,5 +16,5 @@ double scalar_product_std(const vector<double>& a, const vector<double>& b){
     if(a.size()!=b.size()){
         throw std::length_error(std::string("Not equal lengths: " + std::to_string(a.size()) + " and " + std::to_string(b.size())));
     }
-    return std::inner_product(a.begin(), a.end(), b.begin(), 0);
+    return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
 }

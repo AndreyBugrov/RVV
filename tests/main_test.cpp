@@ -3,7 +3,16 @@
 #include "test_runner.hpp"
 
 int main(){
-    std::vector<TestTask> tasks{TestTask(std::string("my mult"), std::function<bool(TestFunctionInput)>(test_scalar_product_std_empty_vectors)), TestTask("not my mult", test_scalar_product_simple_empty_vectors)};
+    std::vector<TestTask> tasks{
+        TestTask("test scalar product empty vectors", test_scalar_product_simple_empty_vectors),
+        TestTask("test inner product empty vectors", test_scalar_product_std_empty_vectors),
+        TestTask("test scalar product zero vectors", test_scalar_product_simple_empty_vectors), 
+        //TestTask("test inner product zero vectors", test_scalar_product_std_zero_vectors),
+        TestTask("test scalar product one", test_scalar_product_simple_one),
+        TestTask("test inner product one", test_scalar_product_std_one),
+        TestTask("test scalar product universal", test_scalar_product_universal),
+        TestTask("assert test", exception_test)
+        };
     TestRunner test_runner(&tasks);
     test_runner.run_all(std::cout);
     return 0;

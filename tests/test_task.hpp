@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../tasks/base_task.hpp"
+#include "../tasks/base_task.hpp"  // inheritance
+#include "../common/exception.hpp"  // AssertionError
 
 
 struct TestFunctionInput{
@@ -42,6 +43,9 @@ public:
             ended = true;
         }
         /////////////////////////////// will be better to add time limit exception catcher
+        catch(AssertionError ass_error){
+            error_msg = ass_error.what();
+        }
         catch(std::exception ex){
             error_msg = ex.what();
         }

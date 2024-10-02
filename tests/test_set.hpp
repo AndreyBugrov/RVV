@@ -1,8 +1,19 @@
 #pragma once
 
 #include "test_task.hpp" // TestFunctionInput class
+#include "assert.hpp"  // Assert
 #include "../algorithms/scalar_product.hpp"  // scalar products
 #include "../common/generators.hpp"  // vector and length generating
 
 bool test_scalar_product_std_empty_vectors(TestFunctionInput input);
 bool test_scalar_product_simple_empty_vectors(TestFunctionInput input);
+
+bool test_scalar_product_std_zero_vectors(TestFunctionInput input);
+bool test_scalar_product_simple_zero_vectors(TestFunctionInput input);
+
+bool test_scalar_product_simple_one(TestFunctionInput input);
+bool test_scalar_product_std_one(TestFunctionInput input);
+
+bool test_scalar_product_universal(TestFunctionInput input);
+
+bool exception_test(TestFunctionInput input);
