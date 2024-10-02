@@ -3,7 +3,7 @@
 #include "test_runner.hpp"
 
 int main(){
-    BaseTaskRunner* test_runner = new TestRunner;
-    test_runner->run_all();
+    TestRunner test_runner;
+    test_runner.run_all(std::cout);
     return 0;
 }

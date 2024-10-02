@@ -2,18 +2,31 @@
 
 #include "../tasks/base_task.hpp"
 
-class TestOutput: public TaskOutput{
+
+struct TestFunctionInput{
+public:
+    double min_value;
+    double max_value;
+    size_t min_length;
+    size_t max_length;
+    TestFunctionInput(double input_min_value, double input_max_value, size_t input_min_length, size_t input_max_length):
+    min_value(input_min_value), max_value(input_max_value), min_length(input_min_length), max_length(input_max_length)
+    {}
+};
+
+
+class TestOutput: public BaseTaskOutput{
 protected:
     bool passed_;
     
 public:
-    TestOutput(bool ended, std::string error_msg, double seconds, bool passed): TaskOutput(ended, error_msg, seconds), passed_(passed){}
+    TestOutput(std::string error_msg, double seconds, bool passed): BaseTaskOutput(error_msg, seconds), passed_(passed){}
     bool passed() const{return passed_;}
 };
 
-class TestTask: public BaseTask<bool>{
+class TestTask: public BaseTask<TestFunctionInput, bool, TestOutput>{
 public:
-    TestOutput run(TaskInput input) const{
+    TestOutput run(TestFunctionInput input) const{
         bool ended = false;
         std::string error_msg;
         double seconds = 0.0;
