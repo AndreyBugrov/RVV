@@ -26,6 +26,7 @@ public:
 
 class TestTask: public BaseTask<TestFunctionInput, bool, TestOutput>{
 public:
+    TestTask(std::string name, std::function<bool(TestFunctionInput)> task=dumb_task<TestFunctionInput, bool>): BaseTask(name, task){}
     TestOutput run(TestFunctionInput input) const{
         bool ended = false;
         std::string error_msg;
@@ -33,9 +34,9 @@ public:
         bool passed = false;
         try{
             ///////////////////////// will be better to add time limits
-            const std::chrono::duration<double> start_test{std::chrono::steady_clock::now()};
+            const auto start_test{std::chrono::steady_clock::now()};
             passed = task_(input);
-            const std::chrono::duration<double> end_test{std::chrono::steady_clock::now()};
+            const auto end_test{std::chrono::steady_clock::now()};
             std::chrono::duration<double> test_seconds = end_test - start_test;
             seconds = test_seconds.count();
             ended = true;
@@ -44,6 +45,6 @@ public:
         catch(std::exception ex){
             error_msg = ex.what();
         }
-        return TestOutput(ended, error_msg, seconds, passed);
+        return TestOutput(error_msg, seconds, passed);
     }
 };

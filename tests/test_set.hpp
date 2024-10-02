@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../tasks/base_task.hpp" // TestFunctionInput class
+#include "test_task.hpp" // TestFunctionInput class
 #include "../algorithms/scalar_product.hpp"  // scalar products
 #include "../common/generators.hpp"  // vector and length generating
 

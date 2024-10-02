@@ -13,10 +13,9 @@
 
 class TestRunner: public BaseTaskRunner{
 protected:
-    std::vector<TestTask>* test_tasks_;
+    std::vector<TestTask>* test_tasks_; // TaskRunner does not owns its tasks
 public:
-    TestRunner(){}
+    TestRunner(std::vector<TestTask>* test_tasks=nullptr): BaseTaskRunner(), test_tasks_(test_tasks){}
     virtual void run_all(std::ostream& stream);
-    virtual std::string get_report();
-    ~TestRunner() = default;
+    ~TestRunner() = default;  // do not delete test_tasks
 };
