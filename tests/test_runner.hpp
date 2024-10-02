@@ -5,10 +5,11 @@
 #include <string>  // error messages
 #include <random>  // random generator
 
-#include "../common/exception.hpp"  // exceptions 
+#include "../common/exception.hpp"  // exceptions
+#include "../common/base_task_runner.hpp"  // BaseTaskRunner class
 #include "test_input.hpp"  // TestInput class
 #include "test_output.hpp"  // TestOuput class
-#include "test_list.hpp"  // list of all tests
+#include "test_set.hpp"  // list of all tests
 
 template< class T>
 class Test{
@@ -25,8 +26,10 @@ public:
         bool passed = false;
         std::string error_msg;
         try{
+            ///////////////////////// will be better to add time limits
             passed = test_(input);
         }
+        /////////////////////////////// will be better to add time limit exception catcher
         catch(std::exception ex){
             error_msg = ex.what();
         }
@@ -38,10 +41,12 @@ public:
     Test(std::string test_name, std::function<bool(TestInput<T>)> test = dumb_test): test_name_(test_name), test_(test){}
 };
 
-class TestRunner{
+class TestRunner: public BaseTaskRunner{
 protected:
-    std::vector<Test<double>> double_tests_;
+    std::vector<Test<double>>* double_tests_;
 public:
     TestRunner(){}
-    void run_all_tests();
+    virtual void run_all();
+    virtual std::string get_report();
+    ~TestRunner() = default;
 };

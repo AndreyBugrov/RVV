@@ -1,5 +1,5 @@
 #include "test_runner.hpp"
 
-void TestRunner::run_all_tests(){
+void TestRunner::run_all(){
     
 }
