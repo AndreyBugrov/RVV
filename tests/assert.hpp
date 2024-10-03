@@ -7,7 +7,7 @@
 
 namespace assert{
     template <typename F, typename ExcType, typename... Args>
-    bool assert_exception(F foo, ExcType exc, Args... args){
+    bool assert_throw(F foo, ExcType exc, Args... args){
         try{
             foo(args...);
         }catch(ExcType ex){
@@ -27,14 +27,26 @@ namespace assert{
     }
 
     template <typename Foo, typename... Args>
-    bool assert_any_exception(Foo foo, Args... args){
+    bool assert_no_throw(Foo foo, Args... args){
+        try{
+            foo(args...);
+        }catch(...){
+            std::ostringstream error_message;
+            error_message<<"Expected: function does not throw exception. Actual: it does";
+            throw AssertionError(error_message.str());
+        }
+        return true;
+    }
+
+    template <typename Foo, typename... Args>
+    bool assert_any_throw(Foo foo, Args... args){
         try{
             foo(args...);
         }catch(...){
             return true;
         }
         std::ostringstream error_message;
-        error_message<<"Expected: exception. Actual: no exception";
+        error_message<<"Expected: function throws exception. Actual: it does not";
         throw AssertionError(error_message.str());
     }
 

@@ -16,4 +16,6 @@ bool test_scalar_product_std_one(TestFunctionInput input);
 
 bool test_scalar_product_universal(TestFunctionInput input);
 
-bool test_assert_any_exception(TestFunctionInput input);
+bool test_assert_any_throw(TestFunctionInput input);
+bool test_assert_throw(TestFunctionInput input);
+bool test_assert_no_throw(TestFunctionInput input);

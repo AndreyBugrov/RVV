@@ -43,9 +43,29 @@ bool test_scalar_product_universal(TestFunctionInput input){
     return assert::assert_eq(true, scalar_product_std(a, b) == scalar_product_simple(a, b));
 }
 
-bool test_assert_any_exception(TestFunctionInput input){
+bool test_assert_any_throw(TestFunctionInput input){
     try{
-        assert::assert_any_exception(assert::assert_near<double>, 5.0, 2.0*2.0, 0.1);
+        assert::assert_any_throw(assert::assert_near<double>, 5.0, 2.0*2.0, 0.1);
+    }
+    catch(...){
+        return assert::assert_false(true);
+    }
+    return assert::assert_true(true);
+}
+
+bool test_assert_throw(TestFunctionInput input){
+    try{
+        assert::assert_throw(assert::assert_near<double>, AssertionError(""), 5.0, 2.0*2.0, 0.1);
+    }
+    catch(...){
+        return assert::assert_false(true);
+    }
+    return assert::assert_true(true);
+}
+
+bool test_assert_no_throw(TestFunctionInput input){
+    try{
+        assert::assert_no_throw(assert::assert_near<double>, 4.0, 2.0*2.0, 0.1);
     }
     catch(...){
         return assert::assert_false(true);
