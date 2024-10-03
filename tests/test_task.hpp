@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sstream>  // stringstream
+
 #include "../tasks/base_task.hpp"  // inheritance
 #include "../common/exception.hpp"  // AssertionError
 
@@ -30,7 +32,7 @@ public:
     TestTask(std::string name, std::function<bool(TestFunctionInput)> task=dumb_task<TestFunctionInput, bool>): BaseTask(name, task){}
     TestOutput run(TestFunctionInput input) const{
         bool ended = false;
-        std::string error_msg;
+        std::string error_message;
         double seconds = 0.0;
         bool passed = false;
         try{
@@ -42,13 +44,18 @@ public:
             seconds = test_seconds.count();
             ended = true;
         }
-        /////////////////////////////// will be better to add time limit exception catcher
-        catch(AssertionError ass_error){
-            error_msg = ass_error.what();
+        catch(TimeLimitError my_error){
+            error_message = my_error.what();
+        }
+        catch(AssertionError my_error){
+            error_message = my_error.what();
+        }
+        catch(BaseError my_error){
+            error_message = my_error.what();
         }
         catch(std::exception ex){
-            error_msg = ex.what();
+            error_message = ex.what();
         }
-        return TestOutput(error_msg, seconds, passed);
+        return TestOutput(error_message, seconds, passed);
     }
 };

@@ -19,3 +19,5 @@ bool test_scalar_product_universal(TestFunctionInput input);
 bool test_assert_any_throw(TestFunctionInput input);
 bool test_assert_throw(TestFunctionInput input);
 bool test_assert_no_throw(TestFunctionInput input);
+
+bool always_failing_test(TestFunctionInput input);

@@ -72,3 +72,7 @@ bool test_assert_no_throw(TestFunctionInput input){
     }
     return assert::assert_true(true);
 }
+
+bool always_failing_test(TestFunctionInput input){
+    throw AssertionError("Don't pay attention to me");
+}

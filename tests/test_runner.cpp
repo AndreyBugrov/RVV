@@ -24,7 +24,7 @@ void TestRunner::run_all(std::ostream& stream){
             stream<<"FAILED\n";
             ++failed;
             if(test_output.what()!=""){
-                stream<<"ERROR LIST:\n"<<test_output.what()<<"\n";
+                stream<<"ERROR: "<<test_output.what()<<"\n";
             }else{
                 stream<<"TIME: "<<test_output.time()<<" seconds\n";
             }
