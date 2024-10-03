@@ -9,7 +9,6 @@
 #include "../common/exception.hpp"  // exceptions
 #include "../tasks/base_task_runner.hpp"  // BaseTaskRunner class
 #include "test_task.hpp"  // TestTask, TestOuput classes
-#include "test_set.hpp"  // list of all tests
 
 class TestRunner: public BaseTaskRunner{
 protected:
