@@ -9,6 +9,6 @@
 
 using std::vector;
 
-void matrix_prod_base_seq(const vector<double>& a, const vector<double>& b, const vector<double>& c, int a_row_length);
+void matrix_prod_base_seq(const vector<double>& a, const vector<double>& b, vector<double>& c, int a_row_length);
 
-void matrix_prod_row_seq(const vector<double>& a, const vector<double>& b, const vector<double>& c, int row_length);
+void matrix_prod_row_seq(const vector<double>& a, const vector<double>& b, vector<double>& c, int row_length);

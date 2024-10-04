@@ -4,17 +4,13 @@ AssertionResult assert::assert_true(bool expression){
     if(expression){
         return AssertionResult(true);
     }
-    std::ostringstream error_message;
-    error_message<<"Expected: true statement. Actual: "<<expression;
-    return AssertionResult(false, error_message.str());
+    return AssertionResult(false, "Expected: true statement. Actual: false");
 }
 
 AssertionResult assert::assert_false(bool expression){
     if(!expression){
         return AssertionResult(true);
     }
-    std::ostringstream error_message;
-    error_message<<"Expected: false statement. Actual: "<<expression;
-    return AssertionResult(false, error_message.str());
+    return AssertionResult(false, "Expected: false statement. Actual: true");
 }
 

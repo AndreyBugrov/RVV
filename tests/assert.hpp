@@ -4,6 +4,7 @@
 #include <cmath>  // fabs
 
 #include "../common/exception.hpp" // AssertionError
+#include "../common/generators.hpp"  // generate_string
 
 class AssertionResult{
 protected:
@@ -17,30 +18,24 @@ public:
 };
 
 namespace assert{
-    template <typename F, typename ExcType, typename... Args>
-    AssertionResult assert_throw(F foo, ExcType exc, Args... args){
+    template <typename F, typename... Args>
+    AssertionResult assert_throw(F foo, Exception exc, Args... args){
         try{
             foo(args...);
-        }catch(ExcType ex){
+        }catch(Exception ex){
             if (ex.what() == exc.what()){
                 return AssertionResult(true);
             }
             else{
-                return AssertionResult(false, Exception::create_eror_message("Expected: ", exc.what(), ". Actual: ", ex.what()));
+                return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: ", ex.what()));
             }
         }
         catch(std::exception ex){
-            std::ostringstream error_message;
-            error_message<<"Expected: "<<exc.what()<<". Actual: "<<ex.what();
-            return AssertionResult(false, error_message.str());
+            return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: ", ex.what()));
         }catch(...){
-            std::ostringstream error_message;
-            error_message<<"Expected: "<<exc.what()<<". Actual: unknown exception";
-            return AssertionResult(false, error_message.str());
+            return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: unknown exception"));
         }
-        std::ostringstream error_message;
-        error_message<<"Expected: "<<exc.what()<<". Actual: no exception";
-        return AssertionResult(false, error_message.str());
+        return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: no exception"));
     }
 
     template <typename Foo, typename... Args>
@@ -48,9 +43,7 @@ namespace assert{
         try{
             foo(args...);
         }catch(...){
-            std::ostringstream error_message;
-            error_message<<"Expected: function does not throw exception. Actual: it does";
-            return AssertionResult(false, error_message.str());
+            return AssertionResult(false, "Expected: function does not throw exception. Actual: it does");
         }
         return AssertionResult(true);
     }
@@ -62,9 +55,7 @@ namespace assert{
         }catch(...){
             return AssertionResult(true);
         }
-        std::ostringstream error_message;
-        error_message<<"Expected: function throws exception. Actual: it does not";
-        return AssertionResult(false, error_message.str());
+        return AssertionResult(false, "Expected: function throws exception. Actual: it does not");
     }
 
     template<typename T>
@@ -72,9 +63,7 @@ namespace assert{
         if(expected == actual){
             return AssertionResult(true);
         }
-        std::ostringstream error_message;
-        error_message<<"Expected: equality to "<<expected<<". Actual: "<<actual;
-        return AssertionResult(false, error_message.str());
+        return AssertionResult(false, generate_string("Expected: equality to ", expected, ". Actual: ", actual));
     }
 
     template<typename T>
@@ -82,9 +71,7 @@ namespace assert{
         if(expected != actual){
             return AssertionResult(true);
         }
-        std::ostringstream error_message;
-        error_message<<"Expected: inequality to "<<expected<<". Actual: "<<actual;
-        return AssertionResult(false, error_message.str());
+        return AssertionResult(false, generate_string("Expected: inequality to ", expected, ". Actual: ", actual));
     }
 
     template<typename T>
@@ -92,9 +79,7 @@ namespace assert{
         if(std::fabs(expected-actual) <= abs_error){
             return AssertionResult(true);
         }
-        std::ostringstream error_message;
-        error_message<<"Expected: equality to "<<expected<<" near "<<abs_error<<". Actual: "<<actual;
-        return AssertionResult(false, error_message.str());
+        return AssertionResult(false, generate_string("Expected: equality to ", expected, " near ", abs_error, ". Actual: ", actual));
     }
 
     AssertionResult assert_true(bool expression);

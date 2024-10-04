@@ -8,6 +8,7 @@
 // #include "../third_party/boost_1_86_0/boost/numeric/ublas/io.hpp"
 
 #include "../common/exception.hpp"  // Exception
+#include "../common/generators.hpp"  // generate_string
 
 using std::vector;
 
