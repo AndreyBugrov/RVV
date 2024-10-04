@@ -6,13 +6,17 @@
 
 class BaseTaskOutput{
 protected:
-    std::string error_msg_;
+    bool ended_;
+    std::string error_type_;
+    std::string error_message_;
     double seconds_;
-    BaseTaskOutput(): error_msg_(""), seconds_(0.0){}
+    BaseTaskOutput(): error_message_(""), seconds_(0.0){}
 public:
-    BaseTaskOutput(std::string error_msg, double seconds): seconds_(seconds), error_msg_(error_msg){}
-    std::string what() const{ return error_msg_;}
-    double time() const {return seconds_;}
+    BaseTaskOutput(bool ended, std::string error_type, std::string error_msg, double seconds): ended_(ended), error_type_(error_type), seconds_(seconds), error_message_(error_msg){}
+    std::string what() const noexcept{ return error_type_;}
+    std::string error_message() const noexcept{return error_message_;}
+    double time() const noexcept{return seconds_;}
+    bool ended() const noexcept{return ended_;}
 };
 
 template<class FunctionInput, class FunctionOutput> FunctionOutput dumb_task(FunctionInput input){return FunctionOutput{};}

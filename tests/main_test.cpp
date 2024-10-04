@@ -7,7 +7,7 @@ using namespace assert;
 
 int main(){
     std::vector<TestTask> tasks{
-        TestTask("always failing", always_failing_test),
+        TestTask("always failing", test_always_failing),
         TestTask("assert any exception", test_assert_any_throw),
         TestTask("assert no exception", test_assert_no_throw),
         TestTask("assert specified exception", test_assert_throw),

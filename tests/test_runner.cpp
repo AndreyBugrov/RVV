@@ -23,10 +23,12 @@ void TestRunner::run_all(std::ostream& stream){
         else{
             stream<<"FAILED\n";
             ++failed;
-            if(test_output.what()!=""){
-                stream<<"ERROR: "<<test_output.what()<<"\n";
-            }else{
+            if(test_output.ended()){
                 stream<<"TIME: "<<test_output.time()<<" seconds\n";
+                stream<<"ERROR: "<<test_output.error_message()<<"\n";
+            }else{
+                stream<<"EXCEPTION TYPE: "<<test_output.what()<<"\n";
+                stream<<"EXCEPTION MESSAGE: "<<test_output.error_message()<<"\n";
             }
         }
     }

@@ -3,7 +3,8 @@
 #include <sstream>  // stringstream
 
 #include "../tasks/base_task.hpp"  // inheritance
-#include "../common/exception.hpp"  // AssertionError
+#include "../common/exception.hpp"  // Exception
+#include "assert.hpp"  // AssertionResult
 
 
 struct TestFunctionInput{
@@ -23,39 +24,43 @@ protected:
     bool passed_;
     
 public:
-    TestOutput(std::string error_msg, double seconds, bool passed): BaseTaskOutput(error_msg, seconds), passed_(passed){}
+    TestOutput(bool ended, std::string error_type, std::string error_msg, double seconds, bool passed): BaseTaskOutput(ended, error_type, error_msg, seconds), passed_(passed){}
     bool passed() const{return passed_;}
 };
 
-class TestTask: public BaseTask<TestFunctionInput, bool, TestOutput>{
+class TestTask: public BaseTask<TestFunctionInput, AssertionResult, TestOutput>{
 public:
-    TestTask(std::string name, std::function<bool(TestFunctionInput)> task=dumb_task<TestFunctionInput, bool>): BaseTask(name, task){}
+    TestTask(std::string name, std::function<AssertionResult(TestFunctionInput)> task=dumb_task<TestFunctionInput, AssertionResult>): BaseTask(name, task){}
     TestOutput run(TestFunctionInput input) const{
         bool ended = false;
+        std::string error_type;
         std::string error_message;
         double seconds = 0.0;
-        bool passed = false;
+        AssertionResult passed = false;
         try{
-            ///////////////////////// will be better to add time limits
             const auto start_test{std::chrono::steady_clock::now()};
             passed = task_(input);
             const auto end_test{std::chrono::steady_clock::now()};
-            std::chrono::duration<double> test_seconds = end_test - start_test;
-            seconds = test_seconds.count();
             ended = true;
+            std::chrono::duration<double> test_seconds = end_test - start_test;
+            if(!passed){
+                error_type = "";
+                error_message = passed.error_message();
+            }
+            seconds = test_seconds.count();
         }
-        catch(TimeLimitError my_error){
-            error_message = my_error.what();
-        }
-        catch(AssertionError my_error){
-            error_message = my_error.what();
-        }
-        catch(BaseError my_error){
-            error_message = my_error.what();
+        catch(Exception my_error){
+            error_type = my_error.what();
+            error_message = my_error.message();
         }
         catch(std::exception ex){
-            error_message = ex.what();
+            error_type = ex.what();
+            error_message = "Unknown";
         }
-        return TestOutput(error_message, seconds, passed);
+        catch(...){
+            error_type = "Unknown";
+            error_message = "Unknown";
+        }
+        return TestOutput(ended, error_type, error_message, seconds, passed);
     }
 };
