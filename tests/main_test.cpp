@@ -7,6 +7,7 @@ using namespace assert;
 
 int main(){
     std::vector<TestTask> tasks{
+        TestTask("smth", test_scalar_product_simple_diffrent_length_of_vectors),
         TestTask("always failing", test_always_failing),
         TestTask("assert any exception", test_assert_any_throw),
         TestTask("assert no exception", test_assert_no_throw),
@@ -21,5 +22,6 @@ int main(){
         };
     TestRunner test_runner(&tasks);
     test_runner.run_all(std::cout);
+    // std::cout<<Exception::create_eror_message("f", 5, 2.0);
     return 0;
 }

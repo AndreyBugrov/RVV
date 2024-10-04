@@ -22,11 +22,12 @@ namespace assert{
         try{
             foo(args...);
         }catch(ExcType ex){
-            return AssertionResult(true);
-        }catch(Exception ex){
-            std::ostringstream error_message;
-            error_message<<"Expected: "<<exc.what()<<". Actual: "<<ex.what();
-            return AssertionResult(false, error_message.str());
+            if (ex.what() == exc.what()){
+                return AssertionResult(true);
+            }
+            else{
+                return AssertionResult(false, Exception::create_eror_message("Expected: ", exc.what(), ". Actual: ", ex.what()));
+            }
         }
         catch(std::exception ex){
             std::ostringstream error_message;

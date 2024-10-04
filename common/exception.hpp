@@ -2,31 +2,18 @@
 
 #include <stdexcept>  // std::length_error
 #include <string> // std::string, std::to_string in error messages
-
-// class BaseError: public std::exception{
-// protected:
-//     std::string msg_;
-// public:
-//     BaseError(std::string message): std::exception(), msg_(message){}
-//     const char* what() const noexcept override{
-//         return msg_.c_str();     // std::string to const char*
-//     }
-// };
-
-// class AssertionError: public BaseError{
-// public:
-//     AssertionError(std::string message): BaseError(message){}
-// };
-
-// class TimeLimitError: public BaseError{
-// public:
-//     TimeLimitError(std::string message): BaseError(message){}
-// };
+#include <sstream>  // error message generation
+#include <utility>  // std::forward
 
 enum class ErrorType{
     kUnknownError = 0,
-    kTimeLimitError = 1,
+    kUnequalLengthError = 1,
 };
+
+
+
+
+
 
 class Exception{
 protected:
@@ -35,12 +22,25 @@ protected:
     static std::string get_eror_type(ErrorType enum_type){
         switch (enum_type)
         {
-        case ErrorType::kTimeLimitError:
-            return "TimeLimitError";
+        case ErrorType::kUnequalLengthError:
+            return "UnequalLengthError";
             break;
         default:
             return "UnknownError";
         }
+    }
+
+    template <typename T>
+    static void MagicLog(std::ostream& o, T t)
+    {
+        o << t << std::endl;
+    }
+
+    template<typename T, typename... Args>
+    static void MagicLog(std::ostream& o, T t, Args... args) // recursive variadic function
+    {
+        MagicLog(o, t);
+        MagicLog(o, args...);
     }
 public:
     Exception(ErrorType error_type, std::string error_message): error_type_(get_eror_type(error_type)), error_message_(error_message){}
@@ -50,5 +50,13 @@ public:
     }
     std::string message() const noexcept{
         return error_message_;
+    }
+
+    template<typename... Args>
+    static std::string create_eror_message(Args... args)
+    {
+        std::ostringstream oss;
+        MagicLog(oss, args...);
+        return oss.str();
     }
 };

@@ -1,10 +1,10 @@
-#include "matr_mult.hpp"
+#include "matrix_product.hpp"
 
-void matr_mult_row(const vector<double>& a, const vector<double>& b, const vector<double>& c, int row_length){
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            for(int k=0;k<n;k++){
-                c[i*n+k]+=a[i*n+j]*b[j*n+k];
+void matrix_prod_row_seq(const vector<double>& a, const vector<double>& b, const vector<double>& c, int row_length){
+    for(int i=0;i<row_length;i++){
+        for(int j=0;j<row_length;j++){
+            for(int k=0;k<row_length;k++){
+                c[i*row_length+k]+=a[i*row_length+j]*b[j*row_length+k];
             }
         }
     }

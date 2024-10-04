@@ -81,3 +81,11 @@ AssertionResult test_assert_no_throw(TestFunctionInput input){
 AssertionResult test_always_failing(TestFunctionInput input){
     return AssertionResult(false, "Don't pay attention to me");
 }
+
+AssertionResult test_scalar_product_simple_diffrent_length_of_vectors(TestFunctionInput input){
+    size_t vector_length = generate_rand_number(input.min_length, input.max_length)*generate_rand_number(input.min_length, input.max_length);
+    vector<double> a(vector_length), b(vector_length+1);
+    generate_rand_array(a.data(), vector_length, input.min_value, input.max_value);
+    generate_rand_array(b.data(), vector_length, input.min_value, input.max_value);
+    return assert::assert_throw(scalar_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b);
+}
