@@ -6,10 +6,9 @@
 
 class BaseTaskRunner{
 protected:
-    std::string report_;
     size_t task_num_;
 public:
-    BaseTaskRunner(): task_num_(0), report_(""){}
+    BaseTaskRunner(): task_num_(0){}
     BaseTaskRunner(BaseTaskRunner&& task_runner) = default;
     BaseTaskRunner(const BaseTaskRunner& task_runner) = delete; // to prevent copying pointer from inner scope
     void run_all(std::ostream& stream){};

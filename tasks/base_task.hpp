@@ -4,6 +4,8 @@
 #include <functional>  // task function
 #include <chrono>  // time measurement
 
+#include "../common/exception.hpp"  // Exception
+
 class BaseTaskOutput{
 protected:
     bool ended_;
@@ -33,20 +35,30 @@ public:
     std::function<FunctionOutput(FunctionInput)>& task() const {return task_;}
     std::string name() const {return name_;}
     TaskOutput run(FunctionInput input) const{
-        std::string error_msg;
+        bool ended = false;
+        std::string error_type = "";
+        std::string error_message = "";
         double seconds = 0.0;
         try{
-            ///////////////////////// will be better to add time limits
-            const std::chrono::duration<double> start_task{std::chrono::steady_clock::now()};
+            const auto start_test{std::chrono::steady_clock::now()};
             task_(input);
-            const std::chrono::duration<double> end_task{std::chrono::steady_clock::now()};
-            std::chrono::duration<double> task_seconds = end_task - start_task;
-            seconds = task_seconds.count();
+            const auto end_test{std::chrono::steady_clock::now()};
+            ended = true;
+            std::chrono::duration<double> test_seconds = end_test - start_test;
+            seconds = test_seconds.count();
         }
-        /////////////////////////////// will be better to add time limit exception catcher
+        catch(Exception my_error){
+            error_type = my_error.what();
+            error_message = my_error.message();
+        }
         catch(std::exception ex){
-            error_msg = ex.what();
+            error_type = ex.what();
+            error_message = "Unknown";
         }
-        return TaskOutput(error_msg, seconds);
+        catch(...){
+            error_type = "Unknown";
+            error_message = "Unknown";
+        }
+        return TaskOutput(ended, error_type, error_message, seconds);
     }
 };
