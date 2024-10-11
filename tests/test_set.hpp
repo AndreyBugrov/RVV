@@ -11,7 +11,7 @@ AssertionResult test_scalar_product_simple_empty_vectors(TestFunctionInput input
 AssertionResult test_scalar_product_std_zero_vectors(TestFunctionInput input);
 AssertionResult test_scalar_product_simple_zero_vectors(TestFunctionInput input);
 
-AssertionResult test_scalar_product_simple_diffrent_length_of_vectors(TestFunctionInput input);
+AssertionResult test_scalar_product_simple_different_length_of_vectors(TestFunctionInput input);
 
 AssertionResult test_scalar_product_simple_one(TestFunctionInput input);
 AssertionResult test_scalar_product_std_one(TestFunctionInput input);

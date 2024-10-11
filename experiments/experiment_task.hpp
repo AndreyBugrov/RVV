@@ -50,6 +50,19 @@ struct QRInput{
     ~QRInput() = default;
 };
 
+template<typename FunctionInput, typename FunctionOutput>
+class ExperimentTask: public BaseTask<FunctionInput, FunctionOutput, BaseTaskOutput>{
+protected:
+    std::function<FunctionOutput(FunctionInput)> open_blas_task_;
+    std::function<FunctionOutput(FunctionInput)> boost_task_;
+    std::function<FunctionOutput(FunctionInput)> eigen_task_;
+
+public:
+    ExperimentTask(std::string name, std::function<FunctionOutput(FunctionInput)> task=dumb_task): 
+    BaseTask<ExperimentFunctionInput, ExperimentFunctionOutput, BaseTaskOutput>(name, task),
+    open_blas_task_(dumb_task), boost_task_(dumb_task), eigen_task_(dumb_task){}
+};
+
 class VectorTask: BaseTask<VectorProdInput, double, BaseTaskOutput>{
 public:
     VectorTask(std::string name, std::function<double(VectorProdInput)> task=dumb_task<VectorProdInput, double>): BaseTask(name, task){}

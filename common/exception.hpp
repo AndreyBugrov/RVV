@@ -5,8 +5,9 @@
 #include <utility>  // std::forward
 
 enum class ErrorType{
-    kUnknownError = 0,
-    kUnequalLengthError = 1,
+    kUnknownError,
+    kUnequalLengthError,
+    kValueError,
 };
 
 class Exception{
@@ -19,13 +20,16 @@ protected:
         case ErrorType::kUnequalLengthError:
             return "UnequalLengthError";
             break;
+        case ErrorType::kValueError:
+            return "ValueError";
+            break;
         default:
             return "UnknownError";
         }
     }
 public:
     Exception(ErrorType error_type, std::string error_message): error_type_(get_eror_type(error_type)), error_message_(error_message){}
-    ~Exception() = default;
+    virtual ~Exception() = default;
     std::string what() const noexcept{
         return error_type_;
     }
