@@ -11,8 +11,8 @@ public:
     BaseTaskRunner(): task_num_(0){}
     BaseTaskRunner(BaseTaskRunner&& task_runner) = default;
     BaseTaskRunner(const BaseTaskRunner& task_runner) = delete; // to prevent copying pointer from inner scope
-    void run_all(std::ostream& stream = std::cout){};
-    void run_by_name(const std::string& name, std::ostream& stream = std::cout){};
+    virtual void run_all(std::ostream& stream = std::cout) const = 0;
+    virtual void run_by_name(const std::string& name, std::ostream& stream = std::cout) const = 0;
     void resize(size_t new_task_num){task_num_ = new_task_num;}
     size_t task_num() const{return task_num_;}
     virtual ~BaseTaskRunner() = default;

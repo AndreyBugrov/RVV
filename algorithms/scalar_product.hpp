@@ -12,10 +12,22 @@
 
 using std::vector;
 
-double scalar_product_simple(const vector<double>& a, const vector<double>& b);
+struct VectorProdInput{
+    vector<double> a;
+    vector<double> b;
+    size_t length;
 
-double scalar_product_std(const vector<double>& a, const vector<double>& b);
+    VectorProdInput(const vector<double>& vec_1, const vector<double>& vec_2, size_t length_input): a(vec_1), b(vec_2), length(length_input){}
+    VectorProdInput(const VectorProdInput& other): a(other.a), b(other.b), length(other.length){}
+    ~VectorProdInput() = default;
+};
 
-double scalar_product_boost(const vector<double>& a, const vector<double>& b);
+inline void check_lengths_are_equal(size_t a_size, size_t b_size);
 
-double scalar_product_intrinsic(const vector<double>& a, const vector<double>& b);
+double scalar_product_simple(const VectorProdInput& input);
+
+double scalar_product_std(const VectorProdInput& input);
+
+double scalar_product_boost(const VectorProdInput& input);
+
+double scalar_product_intrinsic(const VectorProdInput& input);

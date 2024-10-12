@@ -2,11 +2,11 @@
 
 const std::string TestRunner::delimiter = "--------------------------------------------------------------------------------\n";
 
-TestFunctionInput TestRunner::get_test_function_input(double min_value = -50.0, double max_value = 50.0, size_t min_length = 128, size_t max_length = 256) const{
+TestFunctionInput TestRunner::get_test_function_input(double min_value, double max_value, size_t min_length, size_t max_length) const{
     return TestFunctionInput{min_value, max_value, min_length, max_length};
 }
 
-void TestRunner::run_all(std::ostream& stream){
+void TestRunner::run_all(std::ostream& stream) const{
     double min_value = -50.0, max_value = 50.0;
     size_t min_length = 128, max_length = 256;
     auto current_date = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -43,7 +43,7 @@ void TestRunner::run_all(std::ostream& stream){
     stream<<delimiter<<"TEST TOTAL\n"<<"RUN:    "<<task_num_<<"\nPASSED: "<<passed<<"\nFAILED: "<<failed<<"\nTIME:   "<<total_seconds<<"\n";
 }
 
-void TestRunner::run_by_name(const std::string& name, std::ostream& stream = std::cout){
+void TestRunner::run_by_name(const std::string& name, std::ostream& stream) const{
     double min_value = -50.0, max_value = 50.0;
     size_t min_length = 128, max_length = 256;
     TestFunctionInput input = get_test_function_input(min_value, max_value, min_length, max_length);

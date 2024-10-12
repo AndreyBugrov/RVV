@@ -22,7 +22,7 @@ public:
             task_num_ = test_tasks_->size();
         }
     }
-    void run_all(std::ostream& stream = std::cout) override;
-    void run_by_name(const std::string& name, std::ostream& stream = std::cout) override;
+    virtual void run_all(std::ostream& stream = std::cout) const override;
+    virtual void run_by_name(const std::string& name, std::ostream& stream = std::cout) const override;
     ~TestRunner() = default;  // do not delete test_tasks
 };
