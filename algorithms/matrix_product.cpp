@@ -12,7 +12,21 @@ static void check_length(size_t a_size, size_t b_size, size_t c_size, size_t a_r
     }
 }
 
-void matrix_prod_base_seq(MatrixProdInput& input){
+void matrix_prod_base_simple(MatrixProdInput& input){
+    check_length(input.a.size(), input.b.size(), input.c.size(), input.a_row_num, input.a_column_num, input.b_column_num);
+    const double* a = input.a.data();
+    const double* b = input.b.data();
+    double* c = input.c.data();
+    for(size_t i=0;i<input.a_row_num;++i){
+        for(size_t j=0;j<input.b_column_num;++j){
+            for(size_t k=0;k<input.a_column_num;++k){
+                c[i*input.b_column_num+j]+=a[i*input.a_column_num+k]*b[j*input.a_column_num+k];
+            }
+        }
+    }
+}
+
+void matrix_prod_base_std(MatrixProdInput& input){
     check_length(input.a.size(), input.b.size(), input.c.size(), input.a_row_num, input.a_column_num, input.b_column_num);
     for(size_t i=0;i<input.a_row_num;++i){
         for(size_t j=0;j<input.a_column_num;++j){
@@ -23,13 +37,13 @@ void matrix_prod_base_seq(MatrixProdInput& input){
     }
 }
 
-void matrix_prod_row_seq(MatrixProdInput& input){
+void matrix_prod_row_simple(MatrixProdInput& input){
     check_length(input.a.size(), input.b.size(), input.c.size(), input.a_row_num, input.a_column_num, input.b_column_num);
-    for(int i=0;i<row_length;i++){
-        for(int j=0;j<row_length;j++){
-            for(int k=0;k<row_length;k++){
-                c[i*row_length+k]+=a[i*row_length+j]*b[j*row_length+k];
-            }
-        }
-    }
+    // for(int i=0;i<row_length;i++){
+    //     for(int j=0;j<row_length;j++){
+    //         for(int k=0;k<row_length;k++){
+    //             c[i*row_length+k]+=a[i*row_length+j]*b[j*row_length+k];
+    //         }
+    //     }
+    // }
 }

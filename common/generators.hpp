@@ -5,14 +5,15 @@
 #include <string>  // string generator
 #include <sstream>  // ostringstream
 
-void generate_rand_array(double* arr, int n, double min, double max);
-int generate_rand_number(int min, int max);
-void generate_zero_array(double* arr, int n);
+void generate_rand_array(double* arr, size_t n, double min, double max);
+int generate_rand_number(int min, size_t max);
+void generate_zero_array(double* arr, size_t n);
+void generate_identity_matrix(double* matrix, size_t row_num, size_t column_num);
 
 template <typename T>
 static void inner_string_generator(std::ostream& o, T t)
 {
-    o << t << std::endl;
+    o << t;
 }
 
 template<typename T, typename... Args>

@@ -67,6 +67,16 @@ namespace assert{
     }
 
     template<typename T>
+    AssertionResult assert_array_eq(T expected, T actual, size_t length){
+        for(size_t i; i<length;++i){
+            if(expected[i]!=actual[i]){
+                return AssertionResult(false, generate_string("Expected: equality to ", expected[i], ". Actual: ", actual[i], ". Position: ", i));
+            }
+        }
+        return AssertionResult(true);
+    }
+
+    template<typename T>
     AssertionResult assert_neq(T expected, T actual){
         if(expected != actual){
             return AssertionResult(true);

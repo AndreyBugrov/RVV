@@ -99,7 +99,7 @@ void ExperimentRunner::run_by_name_unsafe(const std::string& name, int task_type
             std::vector<double> c(row_num_*column_num2_);
             generate_rand_array(a.data(), row_num_*column_num_, min_value_, max_value_);
             generate_rand_array(b.data(), column_num_*column_num2_, min_value_, max_value_);
-            task_output = matrix_tasks_->at(name).run();
+            task_output = matrix_tasks_->at(name).run(MatrixProdInput(a, b, c, row_num_, column_num_, column_num2_));
             break;
         }
         

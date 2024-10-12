@@ -25,6 +25,9 @@ struct MatrixProdInput{
     ~MatrixProdInput() = default;
 };
 
-void matrix_prod_base_seq(MatrixProdInput& input);
+void matrix_prod_base_simple(MatrixProdInput& input);
+void matrix_prod_base_std(MatrixProdInput& input);
 
-void matrix_prod_row_seq(MatrixProdInput& input);
+void matrix_prod_row_simple(MatrixProdInput& input);
+void matrix_prod_row_std(MatrixProdInput& input);
+void matrix_prod_row_intrinsic(MatrixProdInput& input);

@@ -18,6 +18,32 @@ public:
     {}
 };
 
+enum class FunctionOptimizationType{
+    kNoType = -1,
+    kSimple,
+    kSimpleStd,
+    kRow,
+    kRowStd,
+    kSimpleIntrinsic,
+    kRowIntrinsic
+};
+
+enum class VerificationType{
+    kEmpty = -1,
+    kZero,
+    kIdentity, // one matrix is identity, another one is random
+    kRandom
+};
+
+struct TestFunctionInputExtended: TestFunctionInput{
+public:
+    FunctionOptimizationType function_type;
+    VerificationType verification_type;
+    TestFunctionInputExtended(const TestFunctionInput& base, FunctionOptimizationType input_function_type, VerificationType input_verification_type):
+    TestFunctionInput(base), function_type(input_function_type), verification_type(input_verification_type)
+    {}
+};
+
 
 class TestOutput: public BaseTaskOutput{
 protected:
@@ -28,9 +54,17 @@ public:
     bool passed() const{return passed_;}
 };
 
-class TestTask: public BaseTask<TestFunctionInput, AssertionResult, TestOutput>{
+template<class FunctionInput, class FunctionOutput> 
+FunctionOutput dumb_test_task(FunctionInput input, FunctionOptimizationType function_type, VerificationType verification_type){return FunctionOutput{};}
+
+class TestTask: public BaseTask<TestFunctionInputExtended, AssertionResult, TestOutput>{
+    FunctionOptimizationType function_type_;
+    VerificationType verification_type_;
 public:
-    TestTask(std::string name, std::function<AssertionResult(TestFunctionInput)> task=dumb_task<TestFunctionInput, AssertionResult>): BaseTask(name, task){}
+    TestTask(std::string name, FunctionOptimizationType function_type, VerificationType verification_type, 
+    std::function<AssertionResult(TestFunctionInputExtended)> task=dumb_task<TestFunctionInputExtended, AssertionResult>): 
+    BaseTask(name, task), function_type_(function_type), verification_type_(verification_type)
+    {}
     TestOutput run(TestFunctionInput input) const{
         bool ended = false;
         std::string error_type;
@@ -39,7 +73,7 @@ public:
         AssertionResult passed = false;
         try{
             const auto start_test{std::chrono::steady_clock::now()};
-            passed = task_(input);
+            passed = task_(TestFunctionInputExtended(input, function_type_, verification_type_));
             const auto end_test{std::chrono::steady_clock::now()};
             ended = true;
             std::chrono::duration<double> test_seconds = end_test - start_test;
