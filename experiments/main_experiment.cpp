@@ -13,9 +13,14 @@ int main(){
     //map<string name, enum class function_index>
     //switch by function_index
     //run task
-    NormalExperimentTask task(std::string("good task"));
-    BaseTaskOutput output = task.run(abobus, 7.5, -3.2, false, 5);
-    std::cout<<"ended: "<<output.ended()<<"\n";
+    BaseTaskOutput output = run_experiment(abobus, 7.5, -3.2, false, 5);
+    std::cout<<"ended: ";
+    if(output.ended()){
+        std::cout<<"true";
+    }else{
+        std::cout<<"false";
+    }
+    std::cout<<"\n";
     std::cout<<"seconds: "<<output.time()<<"\n";
     std::cout<<"what: "<<output.what()<<"\n";
     std::cout<<"error message: "<<output.error_message()<<"\n";

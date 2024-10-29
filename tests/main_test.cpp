@@ -31,9 +31,9 @@ int main(){
         // TestTask("inner product one", test_scalar_product_std_one),
         // TestTask("scalar product universal", test_scalar_product_universal),
         // TestTask("throws when lengths of vectors are unequal", test_scalar_product_simple_different_length_of_vectors),
-        TestTask(function_names[0]+" "+verification_names[0]+" "+test_types[1], FunctionOptimizationType::kSimple, VerificationType::kEmpty, test_matrix_prod),
-        TestTask(function_names[0]+" "+verification_names[1]+" "+test_types[1], FunctionOptimizationType::kSimple, VerificationType::kZero, test_matrix_prod),
-        TestTask(function_names[0]+" "+verification_names[2]+" "+test_types[1], FunctionOptimizationType::kSimple, VerificationType::kIdentity, test_matrix_prod),
+        TestTask(function_names[0]+" "+verification_names[0]+" "+test_types[1], FunctionOptimizationType::kSimple, AlgebraObjectVersion::kEmpty, test_matrix_prod),
+        TestTask(function_names[0]+" "+verification_names[1]+" "+test_types[1], FunctionOptimizationType::kSimple, AlgebraObjectVersion::kZero, test_matrix_prod),
+        TestTask(function_names[0]+" "+verification_names[2]+" "+test_types[1], FunctionOptimizationType::kSimple, AlgebraObjectVersion::kIdentity, test_matrix_prod),
         };
     TestRunner test_runner(&tasks);
     test_runner.run_all(std::cout);

@@ -19,7 +19,7 @@ public:
 
 namespace assert{
     template <typename F, typename... Args>
-    AssertionResult assert_throw(F foo, Exception exc, Args... args){
+    AssertionResult assert_throw(F foo, Exception exc, Args... args) noexcept {
         try{
             foo(args...);
         }catch(Exception ex){
@@ -39,7 +39,7 @@ namespace assert{
     }
 
     template <typename Foo, typename... Args>
-    AssertionResult assert_no_throw(Foo foo, Args... args){
+    AssertionResult assert_no_throw(Foo foo, Args... args) noexcept {
         try{
             foo(args...);
         }catch(...){
@@ -49,7 +49,7 @@ namespace assert{
     }
 
     template <typename Foo, typename... Args>
-    AssertionResult assert_any_throw(Foo foo, Args... args){
+    AssertionResult assert_any_throw(Foo foo, Args... args) noexcept {
         try{
             foo(args...);
         }catch(...){
@@ -59,7 +59,7 @@ namespace assert{
     }
 
     template<typename T>
-    AssertionResult assert_eq(T expected, T actual){
+    AssertionResult assert_eq(T expected, T actual) noexcept {
         if(expected == actual){
             return AssertionResult(true);
         }
@@ -67,7 +67,7 @@ namespace assert{
     }
 
     template<typename T>
-    AssertionResult assert_array_eq(T expected, T actual, size_t length){
+    AssertionResult assert_iterable_containers_eq(T expected, T actual, size_t length) noexcept {
         for(size_t i; i<length;++i){
             if(expected[i]!=actual[i]){
                 return AssertionResult(false, generate_string("Expected: equality to ", expected[i], ". Actual: ", actual[i], ". Position: ", i));
@@ -77,7 +77,7 @@ namespace assert{
     }
 
     template<typename T>
-    AssertionResult assert_neq(T expected, T actual){
+    AssertionResult assert_neq(T expected, T actual) noexcept {
         if(expected != actual){
             return AssertionResult(true);
         }
@@ -85,14 +85,20 @@ namespace assert{
     }
 
     template<typename T>
-    AssertionResult assert_near(T expected, T actual, T abs_error){
+    AssertionResult assert_near(T expected, T actual, T abs_error) noexcept {
+        try{
+            std::fabs(expected-actual);
+        }
+        catch(...){
+            return AssertionResult(false, generate_string("Can't calculate modulus from ", expected, " and ", actual));
+        }
         if(std::fabs(expected-actual) <= abs_error){
             return AssertionResult(true);
         }
         return AssertionResult(false, generate_string("Expected: equality to ", expected, " near ", abs_error, ". Actual: ", actual));
     }
 
-    AssertionResult assert_true(bool expression);
-    AssertionResult assert_false(bool expression);
+    AssertionResult assert_true(bool expression) noexcept;
+    AssertionResult assert_false(bool expression) noexcept;
 }
 

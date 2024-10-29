@@ -9,7 +9,7 @@ void generate_rand_array(double* arr, size_t n, double min, double max){
     }
 }
 
-int generate_rand_number(int min, size_t max){
+int generate_rand_number(int min, int max){
     std::random_device rd;
     std::mt19937 engine(rd());
     std::uniform_int_distribution<> gen(min, max);
@@ -25,7 +25,7 @@ void generate_identity_matrix(double* matrix, size_t row_num, size_t column_num)
     if(row_num > column_num){
         diag_length = column_num;
     }
-    // no zero generation because of default generation
+    generate_zero_array(matrix, row_num*column_num);
     for(size_t i=0;i<diag_length;++i){
         matrix[i*column_num+i]=1.0;
     }

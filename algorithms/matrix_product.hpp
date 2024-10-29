@@ -2,9 +2,6 @@
 
 #include <vector>  // matrices based on vector
 
-// #include "../third_party/boost_1_86_0/boost/numeric/ublas/matrix.hpp"
-// #include "../third_party/boost_1_86_0/boost/numeric/ublas/io.hpp"
-
 #include "../common/exception.hpp"  // Exception
 #include "../common/generators.hpp"  // generate_string
 
@@ -25,9 +22,11 @@ struct MatrixProdInput{
     ~MatrixProdInput() = default;
 };
 
+static void check_length(size_t a_size, size_t b_size, size_t c_size, size_t a_row_num, size_t a_column_num, size_t b_column_num);
+
 void matrix_prod_base_simple(MatrixProdInput& input);
 void matrix_prod_base_std(MatrixProdInput& input);
 
 void matrix_prod_row_simple(MatrixProdInput& input);
-void matrix_prod_row_std(MatrixProdInput& input);
-void matrix_prod_row_intrinsic(MatrixProdInput& input);
+// void matrix_prod_row_std(MatrixProdInput& input);
+// void matrix_prod_row_intrinsic(MatrixProdInput& input);

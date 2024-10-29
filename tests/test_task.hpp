@@ -13,9 +13,11 @@ public:
     double max_value;
     size_t min_length;
     size_t max_length;
-    TestFunctionInput(double input_min_value, double input_max_value, size_t input_min_length, size_t input_max_length):
+    TestFunctionInput(double input_min_value=0.0, double input_max_value=0.0, size_t input_min_length=0, size_t input_max_length=0):
     min_value(input_min_value), max_value(input_max_value), min_length(input_min_length), max_length(input_max_length)
     {}
+    TestFunctionInput(const TestFunctionInput& input): min_value(input.min_value), max_value(input.max_value),
+    min_length(input.min_length), max_length(input.max_length){}
 };
 
 enum class FunctionOptimizationType{
@@ -28,7 +30,7 @@ enum class FunctionOptimizationType{
     kRowIntrinsic
 };
 
-enum class VerificationType{
+enum class AlgebraObjectVersion{
     kEmpty = -1,
     kZero,
     kIdentity, // one matrix is identity, another one is random
@@ -38,9 +40,9 @@ enum class VerificationType{
 struct TestFunctionInputExtended: TestFunctionInput{
 public:
     FunctionOptimizationType function_type;
-    VerificationType verification_type;
-    TestFunctionInputExtended(const TestFunctionInput& base, FunctionOptimizationType input_function_type, VerificationType input_verification_type):
-    TestFunctionInput(base), function_type(input_function_type), verification_type(input_verification_type)
+    AlgebraObjectVersion algebra_object_version;
+    TestFunctionInputExtended(const TestFunctionInput& base, FunctionOptimizationType input_function_type, AlgebraObjectVersion input_version):
+    TestFunctionInput(base), function_type(input_function_type), algebra_object_version(input_version)
     {}
 };
 
@@ -54,16 +56,16 @@ public:
     bool passed() const{return passed_;}
 };
 
-template<class FunctionInput, class FunctionOutput> 
-FunctionOutput dumb_test_task(FunctionInput input, FunctionOptimizationType function_type, VerificationType verification_type){return FunctionOutput{};}
+// template<class FunctionInput, class FunctionOutput> 
+// FunctionOutput dumb_test_task(FunctionInput input, FunctionOptimizationType function_type, AlgebraObjectVersion verification_type){return FunctionOutput{};}
 
 class TestTask: public BaseTask<TestFunctionInputExtended, AssertionResult, TestOutput>{
     FunctionOptimizationType function_type_;
-    VerificationType verification_type_;
+    AlgebraObjectVersion version_;
 public:
-    TestTask(std::string name, FunctionOptimizationType function_type, VerificationType verification_type, 
+    TestTask(std::string name, FunctionOptimizationType function_type, AlgebraObjectVersion version, 
     std::function<AssertionResult(TestFunctionInputExtended)> task=dumb_task<TestFunctionInputExtended, AssertionResult>): 
-    BaseTask(name, task), function_type_(function_type), verification_type_(verification_type)
+    BaseTask(name, task), function_type_(function_type), version_(version)
     {}
     TestOutput run(TestFunctionInput input) const{
         bool ended = false;
@@ -73,7 +75,7 @@ public:
         AssertionResult passed = false;
         try{
             const auto start_test{std::chrono::steady_clock::now()};
-            passed = task_(TestFunctionInputExtended(input, function_type_, verification_type_));
+            passed = task_(TestFunctionInputExtended(input, function_type_, version_));
             const auto end_test{std::chrono::steady_clock::now()};
             ended = true;
             std::chrono::duration<double> test_seconds = end_test - start_test;
@@ -87,8 +89,8 @@ public:
             error_type = my_error.what();
             error_message = my_error.message();
         }
-        catch(std::exception ex){
-            error_type = ex.what();
+        catch(std::exception* ex){
+            error_type = ex->what();
             error_message = "Unknown";
         }
         catch(...){

@@ -6,7 +6,7 @@
 #include <sstream>  // ostringstream
 
 void generate_rand_array(double* arr, size_t n, double min, double max);
-int generate_rand_number(int min, size_t max);
+int generate_rand_number(int min, int max);
 void generate_zero_array(double* arr, size_t n);
 void generate_identity_matrix(double* matrix, size_t row_num, size_t column_num);
 

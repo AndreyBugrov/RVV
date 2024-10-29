@@ -6,6 +6,8 @@
 #include "../algorithms/scalar_product.hpp"  // scalar products
 #include "../algorithms/matrix_product.hpp"  // matrix products
 
+#include <iostream> //debug
+
 bool always_throwing_function(int input);
 
 

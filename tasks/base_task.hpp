@@ -35,7 +35,7 @@ public:
     ~BaseTask() = default;
     std::function<FunctionOutput(FunctionInput)>& task() const {return task_;}
     std::string name() const {return name_;}
-    TaskOutput run(FunctionInput input) const{
+    TaskOutput run(FunctionInput input) const noexcept{
         bool ended = false;
         std::string error_type = "";
         std::string error_message = "";
