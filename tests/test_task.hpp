@@ -56,9 +56,6 @@ public:
     bool passed() const{return passed_;}
 };
 
-// template<class FunctionInput, class FunctionOutput> 
-// FunctionOutput dumb_test_task(FunctionInput input, FunctionOptimizationType function_type, AlgebraObjectVersion verification_type){return FunctionOutput{};}
-
 class TestTask: public BaseTask<TestFunctionInputExtended, AssertionResult, TestOutput>{
     FunctionOptimizationType function_type_;
     AlgebraObjectVersion version_;

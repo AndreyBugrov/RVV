@@ -49,7 +49,7 @@ public:
     void set_log_level(LoggerLevel level);
     string get_log_level() const noexcept;
     void set_log_format(const string& format);
-    string get_log_format() const noexcept;
+    string get_log_format() const;
     void set_terminate_level(LoggerLevel level);
     void unset_terminate_level();
     string get_terminate_level() const noexcept;
@@ -71,7 +71,7 @@ private:
     size_t terminate_level_;
     std::vector<string> log_format_;
 
-    SingleLogger(): stream_(&std::cout), log_level_(kNoLevel), terminate_level_(kNoLevel), log_format_{"%l", "%m"}{}
+    SingleLogger(): stream_(&std::cout), log_level_(kNoLevel), terminate_level_(kNoLevel), log_format_{"%l", ": ", "%m"}{}
     virtual ~SingleLogger(){}
     SingleLogger(const SingleLogger& logger) = delete;
     SingleLogger& operator=(const SingleLogger& logger) = delete;

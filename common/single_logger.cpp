@@ -97,20 +97,17 @@ string SingleLogger::get_terminate_level() const noexcept{
         return "DEBUG";
     case InnerLoggerLevel::kInfo:
         return "INFO";
-        break;
     case InnerLoggerLevel::kWarning:
         return "WARNING";
-        break;
     case InnerLoggerLevel::kError:
         return "ERROR";
-        break;
     case InnerLoggerLevel::kCritical:
         return "CRITICAL";
     case InnerLoggerLevel::kNoLevel:
         return "NO LEVEL";
     default:
         Exception exception(ErrorType::kValueError, generate_string("Unsupported number of InnerLoggerLevel variable value: ", log_level_));
-        break;
+        throw exception;
     }
 }
 
@@ -132,30 +129,27 @@ void SingleLogger::destroy_instance(){
 }
 
 void SingleLogger::set_log_format(const string& format){
-
+    // aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 }
 
-string SingleLogger::get_log_format() const noexcept{
+string SingleLogger::get_log_format() const{
     switch (log_level_)
     {
     case InnerLoggerLevel::kDebug:
         return "DEBUG";
     case InnerLoggerLevel::kInfo:
         return "INFO";
-        break;
     case InnerLoggerLevel::kWarning:
         return "WARNING";
-        break;
     case InnerLoggerLevel::kError:
         return "ERROR";
-        break;
     case InnerLoggerLevel::kCritical:
         return "CRITICAL";
     case InnerLoggerLevel::kNoLevel:
         return "NO LEVEL";
     default:
         Exception exception(ErrorType::kValueError, generate_string("Unsupported number of InnerLoggerLevel variable value: ", log_level_));
-        break;
+        throw exception;
     }
 }
 
@@ -170,10 +164,13 @@ string SingleLogger::get_log_level() const noexcept{
 void SingleLogger::print_log(const string& message, const source_location& location) const noexcept{
     for(std::string lexem: log_format_){
         if(lexem == "%m"){
-            stream_->operator<<(message.data());
+            const string msg(message);
+            for(auto c: msg){
+                stream_->operator<<(c);
+            }
         }
         if(lexem == "%f"){
-            stream_<<location.function_name();
+            stream_->operator<<(location.function_name());
             continue;
         }
         if(lexem == "%u"){

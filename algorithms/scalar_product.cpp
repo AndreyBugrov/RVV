@@ -9,23 +9,16 @@ inline void check_length(size_t a_size, size_t b_size, size_t length){
     }
 }
 
-double scalar_product_simple(const VectorProdInput& input){
-    check_length(input.a.size(), input.b.size(), input.length);
+num_type scalar_product_simple(vector<num_type> a, vector<num_type> b, size_t length){
+    check_length(a.size(), b.size(), length);
     double prod = 0.0;
-    const double* a = input.a.data();
-    const double* b = input.b.data();
-    for(size_t i =0; i < input.length; ++i){
+    for(size_t i =0; i < length; ++i){
         prod += a[i]*b[i];
     }
     return prod;
 }
 
-double scalar_product_std(const VectorProdInput& input){
-    check_length(input.a.size(), input.b.size(), input.length);
-    return std::inner_product(input.a.begin(), input.a.end(), input.b.begin(), 0.);
-}
-
-double scalar_product_std(vector<double> a, vector<double> b, size_t length){
+num_type scalar_product_std(vector<num_type> a, vector<num_type> b, size_t length){
     check_length(a.size(), b.size(), length);
     return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
 }

@@ -68,7 +68,7 @@ namespace assert{
 
     template<typename T>
     AssertionResult assert_iterable_containers_eq(T expected, T actual, size_t length) noexcept {
-        for(size_t i; i<length;++i){
+        for(size_t i = 0; i<length;++i){
             if(expected[i]!=actual[i]){
                 return AssertionResult(false, generate_string("Expected: equality to ", expected[i], ". Actual: ", actual[i], ". Position: ", i));
             }

@@ -24,5 +24,5 @@ void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_typ
     //////////////////////// should we transpose Q_matrix? It can be better for optimization do not do it
     //matrix product
     // R = Q^T * A => R = base_prod(Q_Transposed, A)
-    matrix_prod_base_simple(Q_matrix_transposed, matrix, R_matrix, vec_system_size, column_num, vec_system_vec_length);
+    matrix_prod_base_simple(Q_matrix_transposed, matrix, R_matrix, column_num, row_num, column_num);
 }
