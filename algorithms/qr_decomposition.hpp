@@ -18,4 +18,4 @@ struct QRInput{
     ~QRInput() = default;
 };
 
-void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_type>& Q_matrix_transposed, vector<num_type>& R_matrix);
+void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_type>& Q_matrix_transposed, vector<num_type>& R_matrix, size_t row_num, size_t column_num);

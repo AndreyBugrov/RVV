@@ -1,26 +1,13 @@
 #include "gram_schmidt.hpp"
 
-num_type get_vector_norm(const vector<num_type>& vec){
-    double square_norm = scalar_product_std_unsafe(vec, vec, vec.size());
-    return sqrt(square_norm);
+
+vector<num_type> proj(const vector<num_type>& projected, const vector<num_type>& mapped_vec){
+    num_type a_b = scalar_product_std_unsafe(projected, mapped_vec, projected.size());
+    num_type b_b = scalar_product_std_unsafe(mapped_vec, mapped_vec, mapped_vec.size());
+    return multiply_vector_by_number(mapped_vec, a_b/b_b);
 }
 
-void normalize_vector(vector<num_type>& vec, num_type norm){
-    if(norm==0){
-        return;
-    }
-    for(size_t coord_num=0;coord_num<vec.size();++coord_num){
-        vec[coord_num] /= norm;
-    }
-}
-
-void sub_vector_from_vector_inplace(vector<num_type>& minuend, const vector<num_type>& subtrahend){
-    for(size_t i=0;i<minuend.size();++i){
-        minuend[i]-=subtrahend[i];
-    }
-}
-
-vector<vector<num_type>> gram_shmidt_base_simple(vector<vector<num_type>>& vec_system){
+vector<vector<num_type>> gram_schmidt_base_simple(vector<vector<num_type>>& vec_system){
     size_t vec_system_size = vec_system.size();
     vector<vector<num_type>> orthogonal_system(vec_system.size());
     for(size_t vec_num=0;vec_num<vec_system_size;++vec_num){

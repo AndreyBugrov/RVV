@@ -13,8 +13,8 @@ protected:
     std::string error_message_;
     double seconds_;
 public:
-    BaseTaskOutput(): error_message_(""), seconds_(0.0){}
-    BaseTaskOutput(bool ended, std::string error_type, std::string error_msg, double seconds): ended_(ended), error_type_(error_type), seconds_(seconds), error_message_(error_msg){}
+    //BaseTaskOutput(): ended_(false), error_message_(""), seconds_(0.0){}
+    BaseTaskOutput(bool ended, std::string error_type, std::string error_msg, double seconds): ended_(ended), error_type_(error_type), error_message_(error_msg), seconds_(seconds){}
     BaseTaskOutput(const BaseTaskOutput& other): ended_(other.ended_), error_type_(other.error_type_), error_message_(other.error_message_), seconds_(other.seconds_){}
     std::string what() const noexcept{ return error_type_;}
     std::string error_message() const noexcept{return error_message_;}

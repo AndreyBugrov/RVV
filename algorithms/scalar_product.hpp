@@ -4,12 +4,11 @@
 #include <numeric> // std::inner_product
 #include <asm/unistd.h> // intrinsics
 
+#include "../common/defines.hpp"  // num_type
 #include "../common/exception.hpp"  // Exception
 #include "../common/generators.hpp"  // generate_string
 
 using std::vector;
-
-typedef double num_type;  // to replace by int_64t or other
 
 struct VectorProdInput{
     vector<double> a;
@@ -21,16 +20,12 @@ struct VectorProdInput{
     ~VectorProdInput() = default;
 };
 
-inline void check_lengths_are_equal(size_t a_size, size_t b_size);
-
 double scalar_product_simple(const VectorProdInput& input);
 
 double scalar_product_std(const VectorProdInput& input);
 
 double scalar_product_std(vector<double> a, vector<double> b, size_t length);
 
-double scalar_product_std_unsafe(vector<double> a, vector<double> b, size_t length);
+num_type scalar_product_std_unsafe(vector<num_type> a, vector<num_type> b, size_t length);
 
-double scalar_product_boost(const VectorProdInput& input);
-
-double scalar_product_intrinsic(const VectorProdInput& input);
+num_type scalar_product_intrinsic(vector<num_type> a, vector<num_type> b, size_t length);

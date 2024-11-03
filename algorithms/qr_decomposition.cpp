@@ -9,9 +9,9 @@ void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_typ
         }
     }
     // gram_schmidt process
-    vec_system = gram_shmidt_base_simple(vec_system);
+    vec_system = gram_schmidt_base_simple(vec_system);
     for(size_t vec_num =0;vec_num<vec_system.size();++vec_num){
-        normalize_vector(vec_system[vec_num], get_vector_norm(vec_system[vec_num]));
+        normalize_vector_inplace(vec_system[vec_num], get_vector_norm(vec_system[vec_num]));
     }
     // Q_Transposed initialization
     size_t vec_system_size = vec_system.size();
@@ -21,8 +21,8 @@ void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_typ
             Q_matrix_transposed[vec_num*vec_system_vec_length+coord_num] = vec_system[vec_num][coord_num];
         }
     }
-    //////////////////////// should we transpose Q_matrix? It can be better for optimization to don't do it
+    //////////////////////// should we transpose Q_matrix? It can be better for optimization do not do it
     //matrix product
     // R = Q^T * A => R = base_prod(Q_Transposed, A)
-    matrix_prod_base_simple(Q_matrix_transposed, matrix, R_matrix, vec_system.size(), column_num, vec_system[0].size());
+    matrix_prod_base_simple(Q_matrix_transposed, matrix, R_matrix, vec_system_size, column_num, vec_system_vec_length);
 }

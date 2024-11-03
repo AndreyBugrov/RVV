@@ -1,6 +1,6 @@
 #include "scalar_product.hpp"
 
-static inline void check_length(size_t a_size, size_t b_size, size_t length){
+inline void check_length(size_t a_size, size_t b_size, size_t length){
     if(a_size!=b_size){
         throw Exception(ErrorType::kUnequalLengthError, generate_string("Not equal lengths: ", a_size, " and ", b_size));
     }
@@ -14,7 +14,7 @@ double scalar_product_simple(const VectorProdInput& input){
     double prod = 0.0;
     const double* a = input.a.data();
     const double* b = input.b.data();
-    for(int i =0; i < input.length; ++i){
+    for(size_t i =0; i < input.length; ++i){
         prod += a[i]*b[i];
     }
     return prod;
@@ -30,11 +30,10 @@ double scalar_product_std(vector<double> a, vector<double> b, size_t length){
     return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
 }
 
-double scalar_product_std_unsafe(vector<double> a, vector<double> b, size_t length){
+num_type scalar_product_std_unsafe(vector<num_type> a, vector<num_type> b, size_t length){
     return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
 }
 
-double scalar_product_boost(const VectorProdInput& input){
-    check_length(input.a.size(), input.b.size(), input.length);
-    return 0.;
+num_type scalar_product_intrinsic(vector<num_type> a, vector<num_type> b, size_t length){
+    return num_type(0);
 }

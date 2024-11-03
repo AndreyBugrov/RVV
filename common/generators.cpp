@@ -1,10 +1,10 @@
 #include "generators.hpp"
 
-void generate_rand_array(double* arr, size_t n, double min, double max){
+void generate_rand_array(num_type* arr, size_t n, num_type min, num_type max){
     std::random_device rd;
     std::mt19937 engine(rd());
     std::uniform_real_distribution<double> gen(min, max);
-    for(int i=0;i<n;i++){
+    for(size_t i=0;i<n;++i){
         arr[i] = gen(engine);
     }
 }
@@ -16,11 +16,11 @@ int generate_rand_number(int min, int max){
     return gen(engine);
 }
 
-void generate_zero_array(double* arr, size_t n){
-    memset(arr, 0, sizeof(double)*n);
+void generate_zero_array(num_type* arr, size_t n){
+    memset(arr, num_type(0), sizeof(num_type)*n);
 }
 
-void generate_identity_matrix(double* matrix, size_t row_num, size_t column_num){
+void generate_identity_matrix(num_type* matrix, size_t row_num, size_t column_num){
     size_t diag_length = row_num;
     if(row_num > column_num){
         diag_length = column_num;

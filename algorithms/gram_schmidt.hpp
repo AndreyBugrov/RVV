@@ -1,10 +1,9 @@
 #pragma once
 
 #include <cstddef>  // size_t
-#include <cmath>  // sqrt for norm
 #include <vector>  // matrices
 
-#include "scalar_product.hpp"  // vector multiplication
+#include "vector_opeations.hpp"  // vector multiplication from scalar product, mult by number, inplace vector minus
 
 using std::vector;
 
@@ -19,12 +18,6 @@ struct GramSchmidtInput{
     ~GramSchmidtInput() = default;
 };
 
-num_type get_vector_norm(const vector<num_type>& vec);
-
-void normalize_vector(vector<num_type>& vec, num_type norm);
-
-void sub_vector_from_vector_inplace(const vector<num_type>& minuend, const vector<num_type>& subtrahend);
-
 vector<num_type> proj(const vector<num_type>& projected, const vector<num_type>& mapped_vec);
 
-vector<vector<num_type>> gram_shmidt_base_simple(vector<vector<num_type>>& vec_system);
+vector<vector<num_type>> gram_schmidt_base_simple(vector<vector<num_type>>& vec_system);
