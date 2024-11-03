@@ -36,8 +36,8 @@ enum class FormatItem{
 
 class SingleLogger{
 public:
-    static SingleLogger* get_instance();
-    static void destroy_instance();
+    static SingleLogger* get_instance() noexcept;
+    static void destroy_instance() noexcept;
     static std::unordered_map<FormatItem, string> format_converter;
 
     void debug(const string& message, const source_location& location) const noexcept;
@@ -46,14 +46,14 @@ public:
     void error(const string& message, const source_location& location) const noexcept;
     void critical(const string& message, const source_location& location) const noexcept;
 
-    void set_log_level(LoggerLevel level);
+    void set_log_level(LoggerLevel level) noexcept;
     string get_log_level() const noexcept;
     void set_log_format(const string& format);
-    string get_log_format() const;
-    void set_terminate_level(LoggerLevel level);
-    void unset_terminate_level();
+    string get_log_format() const noexcept;
+    void set_terminate_level(LoggerLevel level) noexcept;
+    void unset_terminate_level() noexcept;
     string get_terminate_level() const noexcept;
-    void set_output_stream(std::ostream& stream);
+    void set_output_stream(std::ostream& stream) noexcept;
 
 
 private:
@@ -75,6 +75,8 @@ private:
     virtual ~SingleLogger(){}
     SingleLogger(const SingleLogger& logger) = delete;
     SingleLogger& operator=(const SingleLogger& logger) = delete;
+    SingleLogger(SingleLogger&& logger) = delete;
+    SingleLogger& operator=(SingleLogger&& logger) = delete;
 
     void print_log(const string& message, const source_location& location) const noexcept;
     void log(InnerLoggerLevel level, const string& message, const source_location& location) const noexcept;

@@ -37,7 +37,7 @@ void SingleLogger::critical(const string& message, const source_location& locati
     log(InnerLoggerLevel::kCritical, message, location);
 }
 
-void SingleLogger::set_log_level(LoggerLevel level){
+void SingleLogger::set_log_level(LoggerLevel level) noexcept{
     switch (level)
     {
     case LoggerLevel::kDebug:
@@ -55,13 +55,9 @@ void SingleLogger::set_log_level(LoggerLevel level){
     case LoggerLevel::kCritical:
         log_level_ = InnerLoggerLevel::kCritical;
         break;
-    default:
-        Exception exception(ErrorType::kValueError, generate_string("Unknown number of LoggerLevel variable value: ", static_cast<int>(level)));
-        throw exception;
-        break;
     }
 }
-void SingleLogger::set_terminate_level(LoggerLevel level){
+void SingleLogger::set_terminate_level(LoggerLevel level) noexcept{
     switch (level)
     {
     case LoggerLevel::kDebug:
@@ -79,14 +75,10 @@ void SingleLogger::set_terminate_level(LoggerLevel level){
     case LoggerLevel::kCritical:
         terminate_level_ = InnerLoggerLevel::kCritical;
         break;
-    default:
-        Exception exception(ErrorType::kValueError, generate_string("Unknown number of LoggerLevel variable value: ", static_cast<int>(level)));
-        throw exception;
-        break;
     }
 }
 
-void SingleLogger::unset_terminate_level(){
+void SingleLogger::unset_terminate_level() noexcept{
     terminate_level_ = InnerLoggerLevel::kNoLevel;
 }
 
@@ -106,23 +98,22 @@ string SingleLogger::get_terminate_level() const noexcept{
     case InnerLoggerLevel::kNoLevel:
         return "NO LEVEL";
     default:
-        Exception exception(ErrorType::kValueError, generate_string("Unsupported number of InnerLoggerLevel variable value: ", log_level_));
-        throw exception;
+        return "NO LEVEL";
     }
 }
 
-void SingleLogger::set_output_stream(std::ostream& stream){
+void SingleLogger::set_output_stream(std::ostream& stream) noexcept{
     stream_ = &stream;
 }
 
-SingleLogger* SingleLogger::get_instance(){
+SingleLogger* SingleLogger::get_instance() noexcept{
     if(!self_){
         self_ = new SingleLogger();
     }
     return self_;
 }
 
-void SingleLogger::destroy_instance(){
+void SingleLogger::destroy_instance() noexcept{
     if(self_){
         delete self_;
     }
@@ -132,7 +123,15 @@ void SingleLogger::set_log_format(const string& format){
     // aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 }
 
-string SingleLogger::get_log_format() const{
+string SingleLogger::get_log_format() const noexcept{
+    string output = "";
+    for(string lexem : log_format_){
+        output.append(lexem);
+    }
+    return output;
+}
+
+string SingleLogger::get_log_level() const noexcept{
     switch (log_level_)
     {
     case InnerLoggerLevel::kDebug:
@@ -145,20 +144,9 @@ string SingleLogger::get_log_format() const{
         return "ERROR";
     case InnerLoggerLevel::kCritical:
         return "CRITICAL";
-    case InnerLoggerLevel::kNoLevel:
-        return "NO LEVEL";
     default:
-        Exception exception(ErrorType::kValueError, generate_string("Unsupported number of InnerLoggerLevel variable value: ", log_level_));
-        throw exception;
+        return "NO LEVEL";
     }
-}
-
-string SingleLogger::get_log_level() const noexcept{
-    string output = "";
-    for(string lexem : log_format_){
-        output.append(lexem);
-    }
-    return output;
 }
 
 void SingleLogger::print_log(const string& message, const source_location& location) const noexcept{

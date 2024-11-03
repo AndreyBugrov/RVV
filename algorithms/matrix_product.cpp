@@ -2,8 +2,6 @@
 
 void check_length(size_t a_size, size_t b_size, size_t c_size, size_t a_row_num, size_t a_column_num, size_t b_column_num){
     if(a_size != a_row_num * a_column_num){
-        SingleLogger* logger = SingleLogger::get_instance();
-        logger->critical(generate_string("1st matrix size (", a_size, ") is not equal to given length (", a_row_num * a_column_num, ")"), std::source_location::current());
         throw Exception(ErrorType::kUnequalLengthError, generate_string("1st matrix size (", a_size, ") is not equal to given length (", a_row_num * a_column_num, ")"));
     }
     if(b_size != a_column_num*b_column_num){

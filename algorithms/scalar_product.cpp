@@ -28,5 +28,5 @@ num_type scalar_product_std_unsafe(vector<num_type> a, vector<num_type> b, size_
 }
 
 num_type scalar_product_intrinsic(vector<num_type> a, vector<num_type> b, size_t length){
-    return num_type(0);
+    return num_type(0.);
 }

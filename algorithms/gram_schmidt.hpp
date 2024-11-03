@@ -3,6 +3,7 @@
 #include <vector>  // matrices
 
 #include "vector_opeations.hpp"  // vector multiplication from scalar product, mult by number, inplace vector minus
+#include "scalar_product.hpp"  // unsafe scalar product
 
 using std::vector;
 

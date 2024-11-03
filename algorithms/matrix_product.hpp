@@ -4,9 +4,6 @@
 
 #include "../common/exception.hpp"  // Exception
 #include "../common/generators.hpp"  // generate_string
-#include "scalar_product.hpp"  // scalar products
-
-#include "../common/single_logger.hpp" // logger
 
 using std::vector;
 

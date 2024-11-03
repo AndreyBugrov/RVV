@@ -16,7 +16,7 @@ BaseTaskOutput run_experiment(Foo task, Args... args){
         std::chrono::duration<double> test_seconds = end_test - start_test;
         seconds = test_seconds.count();
     }
-    catch(Exception my_error){
+    catch(const Exception& my_error){
         error_type = my_error.what();
         error_message = my_error.message();
     }

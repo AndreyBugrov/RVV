@@ -10,9 +10,9 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
     vector<double> etalon;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
-        a_row_number = generate_rand_number(input.min_length, input.max_length);
-        a_column_number = generate_rand_number(input.min_length, input.max_length);
-        b_column_number = generate_rand_number(input.min_length, input.max_length);
+        a_row_number = generate_rand_integer_number(input.min_length, input.max_length);
+        a_column_number = generate_rand_integer_number(input.min_length, input.max_length);
+        b_column_number = generate_rand_integer_number(input.min_length, input.max_length);
         a.resize(a_row_number*a_column_number);
         b.resize(a_column_number*b_column_number);
         c.resize(a_row_number*b_column_number);
@@ -91,29 +91,29 @@ AssertionResult test_scalar_product_simple_empty_vectors(TestFunctionInput input
 }
 
 AssertionResult test_scalar_product_simple_zero_vectors(TestFunctionInput input){
-    size_t vector_length = generate_rand_number(input.min_length, input.max_length)*generate_rand_number(input.min_length, input.max_length);
+    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
     vector<double> a(vector_length, 0.0), b(vector_length, 0.0);
     return assert::assert_eq(0.0, scalar_product_simple(VectorProdInput(a, b, vector_length)));
 }
 AssertionResult test_scalar_product_std_zero_vectors(TestFunctionInput input){
-    size_t vector_length = generate_rand_number(input.min_length, input.max_length)*generate_rand_number(input.min_length, input.max_length);
+    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
     vector<double> a(vector_length, 0.0), b(vector_length, 0.0);
     return assert::assert_eq(0.0, scalar_product_std(VectorProdInput(a, b, vector_length)));
 }
 
 AssertionResult test_scalar_product_simple_one(TestFunctionInput input){
-    size_t vector_length = generate_rand_number(input.min_length, input.max_length)*generate_rand_number(input.min_length, input.max_length);
+    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
     vector<double> a(vector_length, 1.0), b(vector_length, 1.0);
     return assert::assert_eq(double(vector_length), scalar_product_simple(VectorProdInput(a, b, vector_length)));
 }
 AssertionResult test_scalar_product_std_one(TestFunctionInput input){
-    size_t vector_length = generate_rand_number(input.min_length, input.max_length)*generate_rand_number(input.min_length, input.max_length);
+    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
     vector<double> a(vector_length, 1.0), b(vector_length, 1.0);
     return assert::assert_eq(double(vector_length), scalar_product_std(VectorProdInput(a, b, vector_length)));
 }
 
 AssertionResult test_scalar_product_universal(TestFunctionInput input){
-    size_t vector_length = generate_rand_number(input.min_length, input.max_length)*generate_rand_number(input.min_length, input.max_length);
+    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
     vector<double> a(vector_length), b(vector_length);
     generate_rand_array(a.data(), vector_length, input.min_value, input.max_value);
     generate_rand_array(b.data(), vector_length, input.min_value, input.max_value);
@@ -122,7 +122,7 @@ AssertionResult test_scalar_product_universal(TestFunctionInput input){
 }
 
 AssertionResult test_scalar_product_simple_different_length_of_vectors(TestFunctionInput input){
-    size_t vector_length = generate_rand_number(input.min_length, input.max_length)*generate_rand_number(input.min_length, input.max_length);
+    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
     vector<double> a(vector_length), b(vector_length+1);
     generate_rand_array(a.data(), vector_length, input.min_value, input.max_value);
     generate_rand_array(b.data(), vector_length, input.min_value, input.max_value);
