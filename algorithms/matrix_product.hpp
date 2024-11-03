@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>  // matrices
+#include <vector>  // matrix representation
 
 #include "../common/exception.hpp"  // Exception
-#include "../common/generators.hpp"  // generate_string
+#include "../common/generators.hpp"  // generate_string, num_type
 
 using std::vector;
 

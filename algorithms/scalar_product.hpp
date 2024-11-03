@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector> // std::vector
+#include <vector> // std::vector as math vector
 #include <numeric> // std::inner_product
 #include <asm/unistd.h> // intrinsics
 

@@ -1,6 +1,6 @@
 #include "scalar_product.hpp"
 
-inline void check_length(size_t a_size, size_t b_size, size_t length){
+static void check_length(size_t a_size, size_t b_size, size_t length){
     if(a_size!=b_size){
         throw Exception(ErrorType::kUnequalLengthError, generate_string("Not equal lengths: ", a_size, " and ", b_size));
     }

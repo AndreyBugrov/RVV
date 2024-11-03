@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gram_schmidt.hpp"  // Gram-Schmidt process
+#include "gram_schmidt.hpp"  // Gram-Schmidt process, normalize_vector, vector_norm
 #include "matrix_product.hpp" // matrix product
 
 using std::vector;

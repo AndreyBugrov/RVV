@@ -1,5 +1,7 @@
 #include "qr_decomposition.hpp"
 
+#include <iostream>
+
 void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_type>& Q_matrix_transposed, vector<num_type>& R_matrix, size_t row_num, size_t column_num){
     // initialization
     vector<vector<num_type>> vec_system(column_num);
@@ -25,4 +27,7 @@ void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_typ
     //matrix product
     // R = Q^T * A => R = base_prod(Q_Transposed, A)
     matrix_prod_base_simple(Q_matrix_transposed, matrix, R_matrix, column_num, row_num, column_num);
+    for(size_t i=0;i<row_num;++i){
+            std::cout<<Q_matrix_transposed[i*column_num];
+    }
 }

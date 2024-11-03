@@ -2,7 +2,7 @@
 
 #include <cmath>  // sqrt for norm
 
-#include "scalar_product.hpp" // scalar_product_unsafe
+#include "scalar_product.hpp" // scalar_product_unsafe + std::vector
 
 using std::vector;
 

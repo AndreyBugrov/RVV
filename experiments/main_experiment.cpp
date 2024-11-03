@@ -24,10 +24,10 @@ int main(){
     vector<num_type> A(row_num*column_num);
     vector<num_type> Q_transposed(column_num*row_num);
     vector<num_type> R(column_num*column_num);
-    generate_rand_array(A.data(), row_num*column_num, -100.0, 100.0);
+    generate_rand_array(A.data(), row_num*column_num, num_type(-100.0), num_type(100.0));
     SingleLogger* logger = SingleLogger::get_instance();
     logger->set_log_level(LoggerLevel::kDebug);
-    BaseTaskOutput output = run_experiment(QR_decomposition_base_simple, A, Q_transposed, R, row_num, column_num);
+    BaseTaskOutput output = run_experiment(QR_decomposition_base_simple, std::ref(A), std::ref(Q_transposed), std::ref(R), row_num, column_num);
     std::cout<<"ended: ";
     if(output.ended()){
         std::cout<<"true\n";
@@ -40,6 +40,9 @@ int main(){
     vector<num_type> Q = transpose_matrix(Q_transposed, column_num, row_num);
     vector<num_type> result_A(row_num*column_num);
     matrix_prod_base_simple(Q, R, result_A, row_num, column_num, column_num);
+    // for(size_t i=0;i<row_num;++i){
+    //         std::cout<<Q_transposed[i*column_num];
+    // }
     AssertionResult result = assert::assert_iterable_containers_eq(A, result_A, row_num*column_num);
     std::cout<<"result is: ";
     if(result){
@@ -48,5 +51,6 @@ int main(){
         std::cout<<"false\n";
     }
     std::cout<<result.error_message()<<"\n";
+    SingleLogger::destroy_instance();
     return 0;
 }

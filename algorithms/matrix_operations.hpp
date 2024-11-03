@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
-#include <cstddef>  // size_t
+#include <vector> // matrix representation
+#include <cstddef> // size_t
+#include <utility> // std::swap
 
 #include "../common/defines.hpp" // num_type
 
