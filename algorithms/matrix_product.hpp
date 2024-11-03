@@ -1,9 +1,10 @@
 #pragma once
 
-#include <vector>  // matrices based on vector
+#include <vector>  // matrices
 
 #include "../common/exception.hpp"  // Exception
 #include "../common/generators.hpp"  // generate_string
+#include "scalar_product.hpp"  // scalar products + num_type
 
 using std::vector;
 
@@ -25,7 +26,10 @@ struct MatrixProdInput{
 static void check_length(size_t a_size, size_t b_size, size_t c_size, size_t a_row_num, size_t a_column_num, size_t b_column_num);
 
 void matrix_prod_base_simple(MatrixProdInput& input);
+void matrix_prod_base_simple(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_num, size_t a_column_num, size_t b_column_num);
 void matrix_prod_base_std(MatrixProdInput& input);
+
+void matrix_prod_second_transposed_simple(const vector<num_type>& a, const vector<num_type>& b_T, vector<num_type>& c, size_t a_row_num, size_t a_column_num, size_t b_column_num);
 
 void matrix_prod_row_simple(MatrixProdInput& input);
 // void matrix_prod_row_std(MatrixProdInput& input);

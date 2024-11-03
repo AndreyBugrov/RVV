@@ -25,6 +25,15 @@ double scalar_product_std(const VectorProdInput& input){
     return std::inner_product(input.a.begin(), input.a.end(), input.b.begin(), 0.);
 }
 
+double scalar_product_std(vector<double> a, vector<double> b, size_t length){
+    check_length(a.size(), b.size(), length);
+    return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
+}
+
+double scalar_product_std_unsafe(vector<double> a, vector<double> b, size_t length){
+    return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
+}
+
 double scalar_product_boost(const VectorProdInput& input){
     check_length(input.a.size(), input.b.size(), input.length);
     return 0.;

@@ -1,6 +1,9 @@
 #pragma once
 
-#include <cstddef>  // size_t
+#include "gram_schmidt.hpp"  // Gram-Schmidt process
+#include "matrix_product.hpp" // matrix product
+
+using std::vector;
 
 struct QRInput{
     const double* base_matrix;
@@ -14,3 +17,5 @@ struct QRInput{
     {}
     ~QRInput() = default;
 };
+
+void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_type>& Q_matrix_transposed, vector<num_type>& R_matrix);
