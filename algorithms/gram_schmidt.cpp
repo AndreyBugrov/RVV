@@ -8,6 +8,9 @@ vector<num_type> proj(const vector<num_type>& projected, const vector<num_type>&
 }
 
 vector<vector<num_type>> gram_schmidt_base_simple(vector<vector<num_type>>& vec_system){
+    if(vec_system.size()==0){
+        return vec_system;
+    }
     size_t vec_system_size = vec_system.size();
     vector<vector<num_type>> orthogonal_system(vec_system.size());
     for(size_t vec_num=0;vec_num<vec_system_size;++vec_num){

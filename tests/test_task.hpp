@@ -21,7 +21,6 @@ public:
 };
 
 enum class FunctionOptimizationType{
-    kNoType = -1,
     kSimple,
     kSimpleStd,
     kRow,
@@ -34,7 +33,7 @@ enum class AlgebraObjectVersion{
     kEmpty = -1,
     kZero,
     kIdentity, // one matrix is identity, another one is random
-    kRandom
+    kGeneral
 };
 
 struct TestFunctionInputExtended: TestFunctionInput{
@@ -61,7 +60,7 @@ class TestTask: public BaseTask<TestFunctionInputExtended, AssertionResult, Test
     AlgebraObjectVersion version_;
 public:
     TestTask(std::string name, FunctionOptimizationType function_type, AlgebraObjectVersion version, 
-    std::function<AssertionResult(TestFunctionInputExtended)> task=dumb_task<TestFunctionInputExtended, AssertionResult>): 
+    std::function<AssertionResult(TestFunctionInputExtended)> task): 
     BaseTask(name, task), function_type_(function_type), version_(version)
     {}
     TestOutput run(TestFunctionInput input) const{

@@ -31,7 +31,7 @@ protected:
     std::function<FunctionOutput(FunctionInput)> task_;
 public:
     BaseTask() = delete;
-    BaseTask(std::string name, std::function<FunctionOutput(FunctionInput)> task=dumb_task): name_(name), task_(task){}
+    BaseTask(std::string name, std::function<FunctionOutput(FunctionInput)> task): name_(name), task_(task){}
     ~BaseTask() = default;
     std::function<FunctionOutput(FunctionInput)>& task() const noexcept {return task_;}
     std::string name() const {return name_;}

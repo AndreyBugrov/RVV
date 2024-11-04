@@ -6,8 +6,8 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
     size_t a_row_number = 0;
     size_t a_column_number = 0;
     size_t b_column_number = 0;
-    vector<double> a, b, c;
-    vector<double> etalon;
+    vector<num_type> a, b, c;
+    vector<num_type> etalon;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
         a_row_number = generate_rand_integer_number(input.min_length, input.max_length);
@@ -17,6 +17,8 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
         b.resize(a_column_number*b_column_number);
         c.resize(a_row_number*b_column_number);
         etalon.resize(a_row_number*b_column_number);
+
+        generate_zero_array(c.data(), a_row_number*b_column_number);
     }
 
     switch (input.algebra_object_version)
@@ -24,6 +26,8 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
     case AlgebraObjectVersion::kEmpty:
         break;
     case AlgebraObjectVersion::kZero:
+        generate_zero_array(a.data(), a_row_number*a_column_number);
+        generate_zero_array(b.data(), a_column_number*b_column_number);
         break;
     case AlgebraObjectVersion::kIdentity:
         {
@@ -33,14 +37,23 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
             size_t max_i = std::min(a_row_number, a_column_number); // number of rows in a and in b
             for(size_t i=0;i<max_i;++i){
                 for(size_t j=0;j<b_column_number;++j){
-                    etalon.at(i*b_column_number+j) = a.at(i*a_column_number+i)*b.at(i*b_column_number+j);
+                    etalon[i*b_column_number+j] = a[i*a_column_number+i]*b[i*b_column_number+j];
                 }
             }
         }
         break;
-    case AlgebraObjectVersion::kRandom:
-        generate_rand_array(a.data(), a_row_number*a_column_number, input.min_value, input.max_value);
-        generate_rand_array(b.data(), a_column_number*b_column_number, input.min_value, input.max_value);
+    case AlgebraObjectVersion::kGeneral:
+        a_row_number = 3;
+        a_column_number = 2;
+        b_column_number = 4;
+        etalon={    
+            5, -1, 4, -1, 
+            -1, 2, 1, 2, 
+            3, 0, 3, 0
+        };
+        a = {1, 2, 1, -1, 1, 1};
+        b = {1, 1, 2, 1, 2, -1, 1, -1};
+        c.resize(a_row_number*b_column_number);
         break;
     default:
         throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
@@ -72,21 +85,79 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
     return assert::assert_iterable_containers_eq(etalon, c, etalon.size());
 }
 
-AssertionResult mini_matrix_test(TestFunctionInput input){
-    const size_t element_num = 12;
-    const size_t a_row_num = 3;
-    const size_t a_column_num = 2;
-    const size_t b_column_num = 4;
-    const vector<num_type> etalon={    
-        5, -1, 4, -1, 
-        -1, 2, 1, 2, 
-        3, 0, 3, 0
-    };
-    const vector<num_type> a = {1, 2, 1, -1, 1, 1};
-    const vector<num_type> b = {1, 1, 2, 1, 2, -1, 1, -1};
-    vector<num_type> c(element_num);
-    matrix_prod_base_simple(a, b, c, a_row_num, a_column_num, b_column_num);
-    return assert::assert_iterable_containers_eq(etalon, c, etalon.size());
+AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
+    size_t vector_system_size = 0;
+    size_t vector_length = 0;
+    vector<vector<num_type>> vector_system;
+    vector<vector<num_type>> orthogonal_system;
+
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+        vector_system_size = generate_rand_integer_number(input.min_length, input.max_length);
+        vector_length = generate_rand_integer_number(vector_system_size, input.max_length); // to prevent linear dependence of vectors
+        vector_system.resize(vector_system_size);
+        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            vector_system[vec_index].resize(vector_length);
+        }
+    }
+
+    switch (input.algebra_object_version)
+    {
+    case AlgebraObjectVersion::kEmpty:
+        break;
+    case AlgebraObjectVersion::kZero:
+        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            generate_zero_array(vector_system[vec_index].data(), vector_length);
+        }
+        break;
+    case AlgebraObjectVersion::kIdentity:
+        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            generate_zero_array(vector_system[vec_index].data(), vector_length);
+            vector_system[vec_index][vec_index]=num_type(1.);
+        }
+        break;
+    case AlgebraObjectVersion::kGeneral:
+       for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            generate_rand_array(vector_system[vec_index].data(), vector_length, input.min_value, input.max_value);
+        }
+        break;
+    default:
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        break;
+    }
+    switch (input.function_type)
+    {
+    case FunctionOptimizationType::kSimple:
+        orthogonal_system = gram_schmidt_base_simple(vector_system);
+        break;
+    default:
+        orthogonal_system.resize(vector_system_size);
+        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            vector_system[vec_index].resize(vector_length);
+            generate_rand_array(vector_system[vec_index].data(), vector_length, input.min_value, input.max_value); // to make bad test result for not implemented functions
+        }
+        break;
+    }
+    if(input.algebra_object_version==AlgebraObjectVersion::kZero){ // the presence of zero vectors leads to nan in the proj calculation 
+        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
+                num_type res = scalar_product_std_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
+                if(res == res){
+                    return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
+                }
+            }
+        }
+    }else{
+        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
+                num_type res = scalar_product_std_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
+                if(0. != res){
+                    //return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
+                    return assert::assert_near(0., res, 0.00001);  
+                }
+            }
+        }
+    }
+    return assert::assert_true(true);
 }
 
 AssertionResult test_scalar_product_std_empty_vectors(TestFunctionInput input){

@@ -20,7 +20,7 @@ num_type scalar_product_simple(vector<num_type> a, vector<num_type> b, size_t le
 
 num_type scalar_product_std(vector<num_type> a, vector<num_type> b, size_t length){
     check_length(a.size(), b.size(), length);
-    return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
+    return scalar_product_std_unsafe(a, b, length);
 }
 
 num_type scalar_product_std_unsafe(vector<num_type> a, vector<num_type> b, size_t length){

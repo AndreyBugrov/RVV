@@ -18,6 +18,9 @@ public:
 };
 
 namespace assert{
+
+    // WARNING: Any function is not noexcept if you pass non-writable type to it
+
     template <typename F, typename... Args>
     AssertionResult assert_throw(F foo, Exception exc, Args... args) noexcept {
         try{
@@ -87,15 +90,15 @@ namespace assert{
     template<typename T>
     AssertionResult assert_near(T expected, T actual, T abs_error) noexcept {
         try{
-            std::fabs(expected-actual);
+            T result = std::fabs(expected-actual);
+            if(result <= abs_error){
+                return AssertionResult(true);
+            }
+            return AssertionResult(false, generate_string("Expected: equality to ", expected, " near ", abs_error, ". Actual: ", actual));
         }
         catch(...){
-            return AssertionResult(false, generate_string("Can't calculate modulus from ", expected, " and ", actual));
+            return AssertionResult(false, generate_string("Can't calculate modulus of difference between ", expected, " and ", actual));
         }
-        if(std::fabs(expected-actual) <= abs_error){
-            return AssertionResult(true);
-        }
-        return AssertionResult(false, generate_string("Expected: equality to ", expected, " near ", abs_error, ". Actual: ", actual));
     }
 
     AssertionResult assert_true(bool expression) noexcept;
