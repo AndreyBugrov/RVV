@@ -34,6 +34,7 @@ int main(){
         TestTask(function_names[0]+" "+verification_names[0]+" "+test_types[1], FunctionOptimizationType::kSimple, AlgebraObjectVersion::kEmpty, test_matrix_prod),
         TestTask(function_names[0]+" "+verification_names[1]+" "+test_types[1], FunctionOptimizationType::kSimple, AlgebraObjectVersion::kZero, test_matrix_prod),
         TestTask(function_names[0]+" "+verification_names[2]+" "+test_types[1], FunctionOptimizationType::kSimple, AlgebraObjectVersion::kIdentity, test_matrix_prod),
+        TestTask("mini matrix", FunctionOptimizationType::kSimple, AlgebraObjectVersion::kEmpty, mini_matrix_test),
         };
     TestRunner test_runner(&tasks);
     test_runner.run_all(std::cout);

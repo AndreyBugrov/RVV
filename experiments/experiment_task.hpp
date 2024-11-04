@@ -20,9 +20,9 @@ BaseTaskOutput run_experiment(Foo task, Args... args){
         error_type = my_error.what();
         error_message = my_error.message();
     }
-    catch(std::exception* ex){
-        error_type = ex->what();
-        error_message = "Unknown";
+    catch(const std::exception& ex){
+        error_type = "std::exception";
+        error_message = ex.what();
     }
     catch(...){
         error_type = "Unknown";

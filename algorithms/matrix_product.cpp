@@ -17,7 +17,7 @@ void matrix_prod_base_simple(const vector<num_type>& a, const vector<num_type>& 
     for(size_t i=0;i<a_row_num;++i){
         for(size_t j=0;j<b_column_num;++j){
             for(size_t k=0;k<a_column_num;++k){
-                c[i*b_column_num+j]+=a[i*a_column_num+k]*b[j*a_column_num+k];
+                c.at(i*b_column_num+j)+=a.at(i*a_column_num+k)*b.at(k*b_column_num+j);
             }
         }
     }

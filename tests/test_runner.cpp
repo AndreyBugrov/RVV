@@ -45,12 +45,14 @@ void TestRunner::run_all(std::ostream& stream) {
             stream<<"TIME: "<<test_output.time()<<" seconds\n";
         }
         else{
-            stream<<"FAILED\n";
+            stream<<"FAILED DUE TO ";
             ++failed;
             if(test_output.ended()){
+                stream<<"ERROR\n";
                 stream<<"TIME: "<<test_output.time()<<" seconds\n";
                 stream<<"ERROR: "<<test_output.error_message()<<"\n";
             }else{
+                stream<<"EXCEPTION\n";
                 stream<<"EXCEPTION TYPE: "<<test_output.what()<<"\n";
                 stream<<"EXCEPTION MESSAGE: "<<test_output.error_message()<<"\n";
             }
@@ -65,7 +67,7 @@ void TestRunner::run_all(std::ostream& stream) {
 
 void TestRunner::run_by_name(const std::string& name, std::ostream& stream) {
     int index = -1;
-    for(int i = 0; i<task_num_; i++){
+    for(size_t i = 0; i<task_num_; i++){
         if(test_tasks_->at(i).name() == name){
             index = i;
             break;

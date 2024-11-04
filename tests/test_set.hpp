@@ -10,7 +10,7 @@
 
 bool always_throwing_function(int input);
 
-
+AssertionResult mini_matrix_test(TestFunctionInput input);
 
 AssertionResult test_assert_any_throw(TestFunctionInput input);
 AssertionResult test_assert_throw(TestFunctionInput input);

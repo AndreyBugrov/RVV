@@ -21,12 +21,9 @@ void generate_zero_array(num_type* arr, size_t n){
 }
 
 void generate_identity_matrix(num_type* matrix, size_t row_num, size_t column_num){
-    size_t diag_length = row_num;
-    if(row_num > column_num){
-        diag_length = column_num;
-    }
+    size_t diag_length = std::min(row_num, column_num);
     generate_zero_array(matrix, row_num*column_num);
     for(size_t i=0;i<diag_length;++i){
-        matrix[i*column_num+i]=1.0;
+        matrix[i*column_num+i]=num_type(1.0);
     }
 }

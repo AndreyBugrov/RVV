@@ -22,7 +22,7 @@ namespace assert{
     AssertionResult assert_throw(F foo, Exception exc, Args... args) noexcept {
         try{
             foo(args...);
-        }catch(Exception ex){
+        }catch(const Exception& ex){
             if (ex.what() == exc.what()){
                 return AssertionResult(true);
             }
@@ -30,8 +30,8 @@ namespace assert{
                 return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: ", ex.what()));
             }
         }
-        catch(std::exception ex){
-            return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: ", ex.what()));
+        catch(std::exception* ex){
+            return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: ", ex->what()));
         }catch(...){
             return AssertionResult(false, generate_string("Expected: ", exc.what(), ". Actual: unknown exception"));
         }
