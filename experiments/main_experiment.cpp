@@ -27,16 +27,16 @@ int main(){
     generate_rand_array(A.data(), row_num*column_num, num_type(-100.0), num_type(100.0));
     SingleLogger* logger = SingleLogger::get_instance();
     logger->set_log_level(LoggerLevel::kDebug);
-    BaseTaskOutput output = run_experiment(QR_decomposition_base_simple, std::ref(A), std::ref(Q_transposed), std::ref(R), row_num, column_num);
+    BaseTaskOutput output = run_experiment(QR_decomposition_base_simple, std::cref(A), std::ref(Q_transposed), std::ref(R), row_num, column_num);
     std::cout<<"ended: ";
     if(output.ended()){
         std::cout<<"true\n";
+        std::cout<<"seconds: "<<output.time()<<"\n";
     }else{
         std::cout<<"false\n";
+        std::cout<<"what: "<<output.what()<<"\n";
+        std::cout<<"error message: "<<output.error_message()<<"\n";
     }
-    std::cout<<"seconds: "<<output.time()<<"\n";
-    std::cout<<"what: "<<output.what()<<"\n";
-    std::cout<<"error message: "<<output.error_message()<<"\n";
     vector<num_type> Q = transpose_matrix(Q_transposed, column_num, row_num);
     vector<num_type> result_A(row_num*column_num);
     matrix_prod_base_simple(Q, R, result_A, row_num, column_num, column_num);

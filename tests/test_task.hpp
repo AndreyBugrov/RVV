@@ -9,8 +9,8 @@
 
 struct TestFunctionInput{
 public:
-    double min_value;
-    double max_value;
+    num_type min_value;
+    num_type max_value;
     size_t min_length;
     size_t max_length;
     TestFunctionInput(double input_min_value=0.0, double input_max_value=0.0, size_t input_min_length=0, size_t input_max_length=0):
@@ -26,14 +26,16 @@ enum class FunctionOptimizationType{
     kRow,
     kRowStd,
     kSimpleIntrinsic,
-    kRowIntrinsic
+    kRowIntrinsic,
+    kUnsafe,
 };
 
 enum class AlgebraObjectVersion{
     kEmpty = -1,
     kZero,
-    kIdentity, // one matrix is identity, another one is random
-    kGeneral
+    kIdentity, // one object is identity
+    kGeneral,
+    kWrong, // check throws or not in wrong input case
 };
 
 struct TestFunctionInputExtended: TestFunctionInput{

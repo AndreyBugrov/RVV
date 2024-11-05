@@ -2,6 +2,7 @@
 
 #include <sstream>  // stringstream
 #include <cmath>  // fabs
+#include <limits> // max double value
 
 #include "../common/exception.hpp" // AssertionError
 #include "../common/generators.hpp"  // generate_string
@@ -71,12 +72,27 @@ namespace assert{
 
     template<typename T>
     AssertionResult assert_iterable_containers_eq(T expected, T actual, size_t length) noexcept {
+        num_type max_difference = 0.0;
+        num_type min_difference = std::numeric_limits<num_type>::max();
+        size_t wrong_value_number = 0;
         for(size_t i = 0; i<length;++i){
             if(expected[i]!=actual[i]){
-                return AssertionResult(false, generate_string("Expected: equality to ", expected[i], ". Actual: ", actual[i], ". Position: ", i, ". Container length: ", length));
+                ++wrong_value_number;
+                num_type difference = std::fabs(expected[i]-actual[i]);
+                if(difference>max_difference){
+                    max_difference = difference;
+                }
+                if(difference<min_difference){
+                    min_difference = difference;
+                }
             }
         }
-        return AssertionResult(true);
+        if(wrong_value_number){
+            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0;
+            return AssertionResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Min difference: ", min_difference ,". Max difference: ", max_difference, ". Container length: ", length));
+        }else{
+            return AssertionResult(true);
+        }
     }
 
     template<typename T>

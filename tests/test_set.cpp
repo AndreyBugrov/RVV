@@ -2,6 +2,97 @@
 
 using std::string;
 
+AssertionResult test_scalar_prod(TestFunctionInputExtended input){
+    size_t length = 0;
+    vector<num_type> a, b;
+    
+    num_type etalon;
+
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+        length = generate_rand_integer_number(input.min_length, input.max_length);
+        a.resize(length);
+        b.resize(length);
+    }
+    if(input.algebra_object_version == AlgebraObjectVersion::kWrong){
+        if(generate_rand_integer_number(input.min_length, input.max_length)){
+            b.resize(length+1);
+        }else{
+            a.resize(length+1);
+        }
+    }
+
+    switch (input.algebra_object_version)
+    {
+    case AlgebraObjectVersion::kEmpty:
+        etalon = 0.;
+        break;
+    case AlgebraObjectVersion::kZero:
+        generate_zero_array(a.data(), length);
+        generate_zero_array(b.data(), length);
+        etalon = 0.;
+        break;
+    case AlgebraObjectVersion::kIdentity:
+        {
+            generate_zero_array(b.data(), length);
+            size_t rand_pos = generate_rand_integer_number(0, length-1);
+            b[rand_pos] = 1.0;
+            generate_rand_array(a.data(), length, input.min_value, input.max_value);
+            etalon = a[rand_pos];
+        }
+        break;
+    case AlgebraObjectVersion::kGeneral:
+    {
+        num_type rand_val = generate_rand_integer_number(input.min_value, input.max_value);
+        for(size_t i=0;i<length;++i){
+            if(i%2){
+                a[i] = rand_val;
+                b[i] = -1;
+            }else{
+                a[i] = rand_val;
+                b[i] = 1;
+            }
+        }
+        if(length%2){
+            etalon = rand_val;
+        }else{
+            etalon = 0.;
+        }
+    }
+        break;
+    case AlgebraObjectVersion::kWrong:
+        switch (input.function_type)
+        {
+        case FunctionOptimizationType::kSimple:
+            return assert::assert_throw(scalar_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
+        case FunctionOptimizationType::kSimpleStd:
+            return assert::assert_throw(scalar_product_std, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
+        default:
+            return assert::assert_false(true);
+        }
+        break;
+    default:
+        return assert::assert_false(true);
+        break;
+    }
+    num_type test_result;
+    switch (input.function_type)
+    {
+    case FunctionOptimizationType::kSimple:
+        test_result = scalar_product_simple(a, b, length);
+        break;
+    case FunctionOptimizationType::kSimpleStd:
+        test_result = scalar_product_std(a, b, length);
+        break;
+    case FunctionOptimizationType::kUnsafe:
+        test_result = scalar_product_std_unsafe(a, b, length);
+        break;
+    default:
+        return assert::assert_false(true);
+        break;
+    }
+    return assert::assert_eq(etalon, test_result);
+}
+
 AssertionResult test_matrix_prod(TestFunctionInputExtended input){
     size_t a_row_number = 0;
     size_t a_column_number = 0;
@@ -55,6 +146,29 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
         b = {1, 1, 2, 1, 2, -1, 1, -1};
         c.resize(a_row_number*b_column_number);
         break;
+    case AlgebraObjectVersion::kWrong:
+        {
+            std::function<void(const std::vector<double> &, const std::vector<double> &, std::vector<double> &, size_t, size_t, size_t)> foo;
+            switch (input.function_type)
+            {
+            case FunctionOptimizationType::kSimple:
+                foo = matrix_prod_base_simple;
+                break;
+            default:
+                return assert::assert_false(true);
+                break;
+            }
+            a.resize(a_row_number*a_column_number+1);
+            bool wrong_a = assert::assert_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
+            a.resize(a_row_number*a_column_number);
+            b.resize(a_column_number*b_column_number+1);
+            bool wrong_b = assert::assert_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
+            b.resize(a_column_number*b_column_number);
+            c.resize(a_row_number*b_column_number+1);
+            bool wrong_c = assert::assert_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
+            return assert::assert_true(wrong_a&&wrong_b&&wrong_c);
+        }
+        break;
     default:
         throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
         break;
@@ -64,22 +178,8 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
     case FunctionOptimizationType::kSimple:
         matrix_prod_base_simple(a, b, c, a_row_number, a_column_number, b_column_number);
         break;
-    case FunctionOptimizationType::kSimpleStd:
-        //matrix_prod_base_std(function_input);
-        break;
-    case FunctionOptimizationType::kSimpleIntrinsic:
-        //
-        break;
-    case FunctionOptimizationType::kRow:
-        //matrix_prod_row_simple(function_input);
-        break;
-    case FunctionOptimizationType::kRowStd:
-        //matrix_prod_row_std(function_input);
-        break;
-    case FunctionOptimizationType::kRowIntrinsic:
-        //matrix_prod_row_intrinsic(function_input);
-        break;
     default:
+        return assert::assert_false(true);
         break;
     }
     return assert::assert_iterable_containers_eq(etalon, c, etalon.size());
@@ -126,7 +226,7 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
     }
     switch (input.function_type)
     {
-    case FunctionOptimizationType::kSimple:
+    case FunctionOptimizationType::kUnsafe:
         orthogonal_system = gram_schmidt_base_simple(vector_system);
         break;
     default:
@@ -160,51 +260,67 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
     return assert::assert_true(true);
 }
 
-AssertionResult test_scalar_product_std_empty_vectors(TestFunctionInput input){
-    size_t vector_length = 0;
-    vector<double> a(vector_length), b(vector_length);
-    return assert::assert_eq(0.0, scalar_product_std(a, b, vector_length));
-}
-AssertionResult test_scalar_product_simple_empty_vectors(TestFunctionInput input){
-    size_t vector_length = 0;
-    vector<double> a(vector_length), b(vector_length);
-    return assert::assert_eq(0.0, scalar_product_simple(a, b, vector_length));
-}
-
-AssertionResult test_scalar_product_simple_zero_vectors(TestFunctionInput input){
-    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
-    vector<double> a(vector_length, 0.0), b(vector_length, 0.0);
-    return assert::assert_eq(0.0, scalar_product_simple(a, b, vector_length));
-}
-AssertionResult test_scalar_product_std_zero_vectors(TestFunctionInput input){
-    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
-    vector<double> a(vector_length, 0.0), b(vector_length, 0.0);
-    return assert::assert_eq(0.0, scalar_product_std(a, b, vector_length));
-}
-
-AssertionResult test_scalar_product_simple_one(TestFunctionInput input){
-    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
-    vector<double> a(vector_length, 1.0), b(vector_length, 1.0);
-    return assert::assert_eq(double(vector_length), scalar_product_simple(a, b, vector_length));
-}
-AssertionResult test_scalar_product_std_one(TestFunctionInput input){
-    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
-    vector<double> a(vector_length, 1.0), b(vector_length, 1.0);
-    return assert::assert_eq(double(vector_length), scalar_product_std(a, b, vector_length));
-}
-
-AssertionResult test_scalar_product_universal(TestFunctionInput input){
-    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
-    vector<double> a(vector_length), b(vector_length);
-    generate_rand_array(a.data(), vector_length, input.min_value, input.max_value);
-    generate_rand_array(b.data(), vector_length, input.min_value, input.max_value);
-    return assert::assert_eq(true, scalar_product_std(a, b, vector_length) == scalar_product_simple(a, b, vector_length));
-}
-
 AssertionResult test_scalar_product_simple_different_length_of_vectors(TestFunctionInput input){
     size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
     vector<double> a(vector_length), b(vector_length+1);
     generate_rand_array(a.data(), vector_length, input.min_value, input.max_value);
     generate_rand_array(b.data(), vector_length, input.min_value, input.max_value);
     return assert::assert_throw(scalar_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b, vector_length);
+}
+
+AssertionResult test_vector_norm(TestFunctionInputExtended input){
+    size_t length = 0;
+    vector<num_type> vec;
+    
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+        length = generate_rand_integer_number(input.min_length, input.max_length);
+        vec.resize(length);
+    }
+
+    switch (input.algebra_object_version)
+    {
+    case AlgebraObjectVersion::kEmpty:
+        break;
+    case AlgebraObjectVersion::kZero:
+        generate_zero_array(vec.data(), length);
+        break;
+    case AlgebraObjectVersion::kIdentity:
+        {
+            generate_zero_array(vec.data(), length);
+            size_t rand_pos = generate_rand_integer_number(0, length-1);
+            vec[rand_pos] = 1.0;
+        }
+        break;
+    case AlgebraObjectVersion::kGeneral:
+        generate_rand_array(vec.data(), length, input.min_value, input.max_value);
+        break;
+    default:
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        break;
+    }
+    num_type test_norm;
+    switch (input.function_type)
+    {
+    case FunctionOptimizationType::kUnsafe:
+        test_norm = get_vector_norm(vec);
+        break;
+    default:
+        return assert::assert_false(true);
+        break;
+    }
+    num_type base_norm = 0.0;
+    for(size_t i=0;i<length;++i){
+        base_norm+=vec[i]*vec[i];
+    }
+    base_norm = sqrt(base_norm);
+    return assert::assert_eq(base_norm, test_norm);
+}
+
+AssertionResult test_normalize_vector(TestFunctionInputExtended input){
+    size_t length = generate_rand_integer_number(input.min_length, input.max_length);
+    vector<num_type> vec(length);
+    generate_rand_array(vec.data(), length, input.min_value, input.max_value);
+    num_type norm = get_vector_norm(vec);
+    normalize_vector_inplace(vec, norm);
+    return assert::assert_eq(num_type(1.0), get_vector_norm(vec));
 }
