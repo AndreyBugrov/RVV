@@ -28,6 +28,7 @@ enum class FunctionOptimizationType{
     kSimpleIntrinsic,
     kRowIntrinsic,
     kUnsafe,
+    kNoThrowing,
 };
 
 enum class AlgebraObjectVersion{
