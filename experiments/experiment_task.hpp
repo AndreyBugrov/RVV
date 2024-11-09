@@ -3,7 +3,7 @@
 #include "../tasks/base_task.hpp"  // BaseTaskOutput
 
 template<typename Foo, typename... Args>
-BaseTaskOutput run_experiment(Foo task, Args... args){
+BaseTaskOutput run_experiment_task(Foo task, Args... args){
     bool ended = false;
     std::string error_type = "NoError";
     std::string error_message = "Congratulations!";
