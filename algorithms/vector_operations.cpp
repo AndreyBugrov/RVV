@@ -14,6 +14,15 @@ void normalize_vector_inplace(vector<num_type>& vec, num_type norm){
     }
 }
 
+bool is_vector_zero(const vector<num_type>& vec){
+    for(size_t i=0;i<vec.size();++i){
+        if(vec[i]!=0){
+            return false;
+        }
+    }
+    return true;
+}
+
 void sub_vector_from_vector_inplace(vector<num_type>& minuend, const vector<num_type>& subtrahend){
     for(size_t i=0;i<minuend.size();++i){
         minuend[i]-=subtrahend[i];

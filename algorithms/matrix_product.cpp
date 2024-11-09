@@ -2,13 +2,13 @@
 
 static void check_length(size_t a_size, size_t b_size, size_t c_size, size_t a_row_num, size_t a_column_num, size_t b_column_num){
     if(a_size != a_row_num * a_column_num){
-        throw Exception(ErrorType::kUnequalLengthError, generate_string("1st matrix size (", a_size, ") is not equal to given length (", a_row_num * a_column_num, ")"));
+        throw Exception(ErrorType::kUnequalLengthError, generate_string("1st matrix size (", a_size, ") is not equal to given length (", a_row_num, " * ", a_column_num, ")"));
     }
     if(b_size != a_column_num*b_column_num){
-        throw Exception(ErrorType::kUnequalLengthError, generate_string("2nd matrix size (", b_size, ") is not equal to given length (", a_column_num*b_column_num, ")"));
+        throw Exception(ErrorType::kUnequalLengthError, generate_string("2nd matrix size (", b_size, ") is not equal to given length (", a_column_num, " * ", b_column_num, ")"));
     }
     if(c_size != a_row_num*b_column_num){
-        throw Exception(ErrorType::kUnequalLengthError, generate_string("Result matrix size (", c_size, ") is not equal to given length (", a_row_num*b_column_num, ")"));
+        throw Exception(ErrorType::kUnequalLengthError, generate_string("Result matrix size (", c_size, ") is not equal to given length (", a_row_num, " * ", b_column_num, ")"));
     }
 }
 
