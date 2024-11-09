@@ -12,6 +12,7 @@ using std::function;
 enum object_indexes{
     kScalarMultiplication,
     kVectorNormCalculation,
+    kVectorNormalization,
     kMatrixProduct,
     kMatrixTransposition,
     kGramSchmidtProcess,
@@ -21,6 +22,7 @@ enum object_indexes{
 void fill_tasks(std::vector<TestTask>& tasks){
     const string object_names[] ={
         "vectors)",
+        "vector)",
         "vector)",
         "matrices)",
         "matrix)",
@@ -41,6 +43,12 @@ void fill_tasks(std::vector<TestTask>& tasks){
             object_indexes::kVectorNormCalculation,
             map<FunctionOptimizationType, string>{
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kNoThrowing, "STD-based vector norm calculaion"),
+            }
+        ),
+        pair<object_indexes, map<FunctionOptimizationType, string>>(
+            object_indexes::kVectorNormalization,
+            map<FunctionOptimizationType, string>{
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kNoThrowing, "inplace vector normalization"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -78,6 +86,7 @@ void fill_tasks(std::vector<TestTask>& tasks){
     const map<object_indexes, function<AssertionResult(TestFunctionInputExtended)>> object_types={
         pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kScalarMultiplication, test_scalar_prod),
         pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormCalculation, test_vector_norm),
+        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormalization, test_normalize_vector),
         pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kMatrixProduct, test_matrix_prod),
         pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kMatrixTransposition, test_matrix_transposition),
         pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kGramSchmidtProcess, test_qram_schmidt),
@@ -97,9 +106,7 @@ void fill_tasks(std::vector<TestTask>& tasks){
 
 int main(){
 
-    std::vector<TestTask> tasks{
-        TestTask("normalize vector", FunctionOptimizationType::kRow, AlgebraObjectVersion::kEmpty, test_normalize_vector),
-    };
+    std::vector<TestTask> tasks;
     fill_tasks(tasks);
     TestRunner test_runner(&tasks);
     test_runner.run_all(std::cout);

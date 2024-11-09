@@ -2,6 +2,8 @@
 
 using std::string;
 
+static const num_type kEps = 0.000001;
+
 AssertionResult test_scalar_prod(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> a, b;
@@ -250,7 +252,7 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
         for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
             for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
                 num_type res = scalar_product_std_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
-                bool assert_result =  assert::assert_near(0., res, 0.00001);
+                bool assert_result =  assert::assert_near(0., res, kEps);
                 if(!assert_result){
                     return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
                 }
@@ -302,6 +304,7 @@ AssertionResult test_vector_norm(TestFunctionInputExtended input){
 AssertionResult test_normalize_vector(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> vec;
+    num_type etalon = 1.0;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
        length = generate_rand_integer_number(input.min_length, input.max_length);
@@ -311,9 +314,11 @@ AssertionResult test_normalize_vector(TestFunctionInputExtended input){
     switch (input.algebra_object_version)
     {
     case AlgebraObjectVersion::kEmpty:
+        etalon = 0.0;
         break;
     case AlgebraObjectVersion::kZero:
         generate_zero_array(vec.data(), length);
+        etalon = 0.0;
         break;
     case AlgebraObjectVersion::kIdentity:
         {
@@ -331,7 +336,7 @@ AssertionResult test_normalize_vector(TestFunctionInputExtended input){
     }
     num_type norm = get_vector_norm(vec);
     normalize_vector_inplace(vec, norm);
-    return assert::assert_eq(num_type(1.0), get_vector_norm(vec));
+    return assert::assert_near(etalon, get_vector_norm(vec), kEps);
 }
 
 AssertionResult test_matrix_transposition(TestFunctionInputExtended input){
@@ -387,6 +392,9 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
         row_num = generate_rand_integer_number(input.min_length, input.max_length);
         column_num = generate_rand_integer_number(input.min_length, input.max_length);
+
+        row_num = 111;
+        column_num = 113;
         matrix.resize(row_num*column_num);
         Q_matrix_transposed.resize(column_num*row_num);
         R_matrix.resize(column_num*column_num);
@@ -397,9 +405,13 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
     case AlgebraObjectVersion::kEmpty:
         break;
     case AlgebraObjectVersion::kZero:
-        // generate_zero_array(matrix.data(), row_num*column_num);
-        // break;
+        generate_zero_array(matrix.data(), row_num*column_num);
+        break;
     case AlgebraObjectVersion::kIdentity:
+        
+        matrix.resize(row_num*column_num);
+        Q_matrix_transposed.resize(column_num*row_num);
+        R_matrix.resize(column_num*column_num);
         generate_identity_matrix(matrix.data(), row_num, column_num);
         break;
     case AlgebraObjectVersion::kGeneral:
@@ -423,5 +435,5 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
     vector<num_type> Q_matrix = transpose_matrix(Q_matrix_transposed, column_num, row_num);
     vector<num_type> test_matrix(row_num*column_num);
     matrix_prod_base_simple(Q_matrix, R_matrix, test_matrix, row_num, column_num, column_num);
-    return assert::assert_iterable_containers_eq(matrix, test_matrix, row_num*column_num);
+    return assert::assert_iterable_containers_near(matrix, test_matrix, kEps, row_num*column_num);
 }

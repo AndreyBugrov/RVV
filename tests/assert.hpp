@@ -7,6 +7,8 @@
 #include "../common/exception.hpp" // AssertionError
 #include "../common/generators.hpp"  // generate_string
 
+#include <iostream>
+
 class AssertionResult{
 protected:
     bool passed_;
@@ -70,15 +72,42 @@ namespace assert{
         return AssertionResult(false, generate_string("Expected: equality to ", expected, ". Actual: ", actual));
     }
 
-    template<typename T>
-    AssertionResult assert_iterable_containers_eq(T expected, T actual, size_t length) noexcept {
+    template<typename Container>
+    AssertionResult assert_iterable_containers_eq(Container expected, Container actual, size_t length) noexcept {
         num_type max_difference = 0.0;
         num_type min_difference = std::numeric_limits<num_type>::max();
         size_t wrong_value_number = 0;
         for(size_t i = 0; i<length;++i){
-            if(expected[i]!=actual[i]){
+            num_type difference = std::fabs(expected[i]-actual[i]);
+            if(difference){
+                // std::cout<<difference<<"\n";
                 ++wrong_value_number;
-                num_type difference = std::fabs(expected[i]-actual[i]);
+                if(difference>max_difference){
+                    max_difference = difference;
+                }
+                if(difference<min_difference){
+                    min_difference = difference;
+                }
+            }
+        }
+        if(wrong_value_number){
+            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0;
+            return AssertionResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Min difference: ", min_difference ,". Max difference: ", max_difference, ". Container length: ", length));
+        }else{
+            return AssertionResult(true);
+        }
+    }
+
+    template<typename Container, typename T>
+    AssertionResult assert_iterable_containers_near(Container expected, Container actual, T eps, size_t length) noexcept {
+        T max_difference = 0.0;
+        T min_difference = std::numeric_limits<num_type>::max();
+        size_t wrong_value_number = 0;
+        for(size_t i = 0; i<length;++i){
+            T difference = std::fabs(expected[i]-actual[i]);
+            if(difference > eps){
+                // std::cout<<difference<<"\n";
+                ++wrong_value_number;
                 if(difference>max_difference){
                     max_difference = difference;
                 }
