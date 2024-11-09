@@ -22,10 +22,10 @@ private:
     void init_run(std::ostream& stream);
 protected:
     static const std::string delimiter;
-    std::vector<TestTask>* test_tasks_; // TaskRunner does not owns its tasks
+    const std::vector<TestTask>* test_tasks_; // TaskRunner does not owns its tasks
     std::vector<TestFunctionInput> task_inputs_;
 public:
-    TestRunner(std::vector<TestTask>* test_tasks=nullptr): BaseTaskRunner(), test_tasks_(test_tasks), task_inputs_(0){
+    TestRunner(const std::vector<TestTask>* test_tasks): BaseTaskRunner(), test_tasks_(test_tasks), task_inputs_(0){
         if(test_tasks_ == nullptr){
             task_num_ = 0;
         }else{

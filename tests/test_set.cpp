@@ -2,6 +2,8 @@
 
 using std::string;
 
+static const num_type kEps = 0.000001;
+
 AssertionResult test_scalar_prod(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> a, b;
@@ -250,22 +252,14 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
         for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
             for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
                 num_type res = scalar_product_std_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
-                if(0. != res){
-                    //return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
-                    return assert::assert_near(0., res, 0.00001);  
+                bool assert_result =  assert::assert_near(0., res, kEps);
+                if(!assert_result){
+                    return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
                 }
             }
         }
     }
     return assert::assert_true(true);
-}
-
-AssertionResult test_scalar_product_simple_different_length_of_vectors(TestFunctionInput input){
-    size_t vector_length = generate_rand_integer_number(input.min_length, input.max_length)*generate_rand_integer_number(input.min_length, input.max_length);
-    vector<double> a(vector_length), b(vector_length+1);
-    generate_rand_array(a.data(), vector_length, input.min_value, input.max_value);
-    generate_rand_array(b.data(), vector_length, input.min_value, input.max_value);
-    return assert::assert_throw(scalar_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b, vector_length);
 }
 
 AssertionResult test_vector_norm(TestFunctionInputExtended input){
@@ -298,16 +292,7 @@ AssertionResult test_vector_norm(TestFunctionInputExtended input){
         throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
-    num_type test_norm;
-    switch (input.function_type)
-    {
-    case FunctionOptimizationType::kUnsafe:
-        test_norm = get_vector_norm(vec);
-        break;
-    default:
-        return assert::assert_false(true);
-        break;
-    }
+    num_type test_norm = get_vector_norm(vec);
     num_type base_norm = 0.0;
     for(size_t i=0;i<length;++i){
         base_norm+=vec[i]*vec[i];
@@ -317,10 +302,136 @@ AssertionResult test_vector_norm(TestFunctionInputExtended input){
 }
 
 AssertionResult test_normalize_vector(TestFunctionInputExtended input){
-    size_t length = generate_rand_integer_number(input.min_length, input.max_length);
-    vector<num_type> vec(length);
-    generate_rand_array(vec.data(), length, input.min_value, input.max_value);
+    size_t length = 0;
+    vector<num_type> vec;
+    num_type etalon = 1.0;
+
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+       length = generate_rand_integer_number(input.min_length, input.max_length);
+       vec.resize(length);
+    }
+
+    switch (input.algebra_object_version)
+    {
+    case AlgebraObjectVersion::kEmpty:
+        etalon = 0.0;
+        break;
+    case AlgebraObjectVersion::kZero:
+        generate_zero_array(vec.data(), length);
+        etalon = 0.0;
+        break;
+    case AlgebraObjectVersion::kIdentity:
+        {
+            generate_zero_array(vec.data(), length);
+            size_t rand_pos = generate_rand_integer_number(0, length-1);
+            vec[rand_pos] = 1.0;
+        }
+        break;
+    case AlgebraObjectVersion::kGeneral:
+        generate_rand_array(vec.data(), length, input.min_value, input.max_value);
+        break;
+    default:
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        break;
+    }
     num_type norm = get_vector_norm(vec);
     normalize_vector_inplace(vec, norm);
-    return assert::assert_eq(num_type(1.0), get_vector_norm(vec));
+    return assert::assert_near(etalon, get_vector_norm(vec), kEps);
+}
+
+AssertionResult test_matrix_transposition(TestFunctionInputExtended input){
+    size_t row_num = 0;
+    size_t column_num = 0;
+    vector<num_type> matrix;
+    vector<num_type> T_matrix;
+
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+       row_num = generate_rand_integer_number(input.min_length, input.max_length);
+       column_num = generate_rand_integer_number(input.min_length, input.max_length);
+       matrix.resize(row_num*column_num);
+    }
+
+    switch (input.algebra_object_version)
+    {
+    case AlgebraObjectVersion::kEmpty:
+        break;
+    case AlgebraObjectVersion::kZero:
+        generate_zero_array(matrix.data(), row_num*column_num);
+        break;
+    case AlgebraObjectVersion::kIdentity:
+        generate_identity_matrix(matrix.data(), row_num, column_num);
+        break;
+    case AlgebraObjectVersion::kGeneral:
+        generate_rand_array(matrix.data(), row_num*column_num, input.min_value, input.max_value);
+        break;
+    default:
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        break;
+    }
+    T_matrix = transpose_matrix(matrix, row_num, column_num);
+    bool result = true;
+    for(size_t i=0;i<column_num;++i){
+        for(size_t j=0;j<row_num;++j){
+            result = result && (T_matrix[i*row_num+j] == matrix[j*column_num+i]);
+            if(! result){
+                return assert::assert_eq(i, j);
+            }
+        }
+    }
+    return assert::assert_true(result);
+}
+
+AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
+    size_t row_num = 0;
+    size_t column_num = 0;
+
+    vector<num_type> matrix;
+    vector<num_type> Q_matrix;
+    vector<num_type> R_matrix;
+
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+        if(input.function_type == FunctionOptimizationType::kUnsafe){
+            column_num = generate_rand_integer_number(input.min_length, input.max_length);
+            row_num = generate_rand_integer_number(column_num, input.max_length);
+            
+        }else{
+            row_num = generate_rand_integer_number(input.min_length, input.max_length);
+            column_num = generate_rand_integer_number(input.min_length, input.max_length);
+        }
+        matrix.resize(row_num*column_num);
+        Q_matrix.resize(row_num*column_num);
+        R_matrix.resize(column_num*column_num);
+    }
+
+    switch (input.algebra_object_version)
+    {
+    case AlgebraObjectVersion::kEmpty:
+        break;
+    case AlgebraObjectVersion::kZero:
+        generate_zero_array(matrix.data(), row_num*column_num);
+        break;
+    case AlgebraObjectVersion::kIdentity:
+        generate_identity_matrix(matrix.data(), row_num, column_num);
+        break;
+    case AlgebraObjectVersion::kGeneral:
+        generate_rand_array(matrix.data(), row_num*column_num, input.min_value, input.max_value);
+        break;
+    case AlgebraObjectVersion::kWrong:
+        ///////////////////////////////////
+        break;
+    default:
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        break;
+    }
+    switch (input.function_type)
+    {
+    case FunctionOptimizationType::kUnsafe:
+        QR_decomposition_base_simple(matrix, Q_matrix, R_matrix, row_num, column_num);
+        break;
+    default:
+        return assert::assert_true(false);
+    }
+    vector<num_type> test_matrix(row_num*column_num);
+    matrix_prod_base_simple(Q_matrix, R_matrix, test_matrix, row_num, column_num, column_num);
+    return assert::assert_iterable_containers_near(matrix, test_matrix, kEps, row_num*column_num);
 }

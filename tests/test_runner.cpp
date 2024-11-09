@@ -34,6 +34,7 @@ void TestRunner::run_all(std::ostream& stream) {
     init_run(stream);
     size_t passed = 0;
     size_t failed = 0;
+    std::vector<std::string> wrong_test_names;
     const auto start_task{std::chrono::steady_clock::now()};
     for(TestTask task : (*test_tasks_)){
         stream<<"TEST "<<task.name()<<": ";
@@ -45,8 +46,9 @@ void TestRunner::run_all(std::ostream& stream) {
             stream<<"TIME: "<<test_output.time()<<" seconds\n";
         }
         else{
-            stream<<"FAILED DUE TO ";
+            wrong_test_names.push_back(task.name());
             ++failed;
+            stream<<"FAILED DUE TO ";
             if(test_output.ended()){
                 stream<<"ERROR\n";
                 stream<<"TIME: "<<test_output.time()<<" seconds\n";
@@ -63,6 +65,14 @@ void TestRunner::run_all(std::ostream& stream) {
     std::chrono::duration<double> all_task_seconds = end_task - start_task;
     double total_seconds = all_task_seconds.count();
     stream<<"TOTAL:\n"<<"RUN:    "<<task_num_<<"\nPASSED: "<<passed<<"\nFAILED: "<<failed<<"\nTIME:   "<<total_seconds<<"\n";
+    if(wrong_test_names.size()){
+        stream << delimiter;
+        stream<<"FAILED TESTS: \n";
+        for(std::string test_name : wrong_test_names){
+            stream<<"\""<< test_name<<"\" ";
+        }
+        stream<<"\n";
+    }
 }
 
 void TestRunner::run_by_name(const std::string& name, std::ostream& stream) {
