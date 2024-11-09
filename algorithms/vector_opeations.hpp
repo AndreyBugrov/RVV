@@ -10,6 +10,8 @@ num_type get_vector_norm(const vector<num_type>& vec);
 
 void normalize_vector_inplace(vector<num_type>& vec, num_type norm);
 
+bool is_vector_zero(const vector<num_type>& vec);
+
 void sub_vector_from_vector_inplace(vector<num_type>& minuend, const vector<num_type>& subtrahend);
 
 vector<num_type> multiply_vector_by_number(const vector<num_type>& vec, num_type number);
