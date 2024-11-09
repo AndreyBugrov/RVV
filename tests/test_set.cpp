@@ -390,11 +390,14 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
     vector<num_type> R_matrix;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
-        row_num = generate_rand_integer_number(input.min_length, input.max_length);
-        column_num = generate_rand_integer_number(input.min_length, input.max_length);
-
-        row_num = 111;
-        column_num = 113;
+        if(input.function_type == FunctionOptimizationType::kUnsafe){
+            column_num = generate_rand_integer_number(input.min_length, input.max_length);
+            row_num = generate_rand_integer_number(column_num, input.max_length);
+            
+        }else{
+            row_num = generate_rand_integer_number(input.min_length, input.max_length);
+            column_num = generate_rand_integer_number(input.min_length, input.max_length);
+        }
         matrix.resize(row_num*column_num);
         Q_matrix_transposed.resize(column_num*row_num);
         R_matrix.resize(column_num*column_num);
