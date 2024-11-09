@@ -386,7 +386,7 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
     size_t column_num = 0;
 
     vector<num_type> matrix;
-    vector<num_type> Q_matrix_transposed;
+    vector<num_type> Q_matrix;
     vector<num_type> R_matrix;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
@@ -399,7 +399,7 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
             column_num = generate_rand_integer_number(input.min_length, input.max_length);
         }
         matrix.resize(row_num*column_num);
-        Q_matrix_transposed.resize(column_num*row_num);
+        Q_matrix.resize(row_num*column_num);
         R_matrix.resize(column_num*column_num);
     }
 
@@ -411,10 +411,6 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
         generate_zero_array(matrix.data(), row_num*column_num);
         break;
     case AlgebraObjectVersion::kIdentity:
-        
-        matrix.resize(row_num*column_num);
-        Q_matrix_transposed.resize(column_num*row_num);
-        R_matrix.resize(column_num*column_num);
         generate_identity_matrix(matrix.data(), row_num, column_num);
         break;
     case AlgebraObjectVersion::kGeneral:
@@ -430,12 +426,11 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
     switch (input.function_type)
     {
     case FunctionOptimizationType::kUnsafe:
-        QR_decomposition_base_simple(matrix, Q_matrix_transposed, R_matrix, row_num, column_num);
+        QR_decomposition_base_simple(matrix, Q_matrix, R_matrix, row_num, column_num);
         break;
     default:
         return assert::assert_true(false);
     }
-    vector<num_type> Q_matrix = transpose_matrix(Q_matrix_transposed, column_num, row_num);
     vector<num_type> test_matrix(row_num*column_num);
     matrix_prod_base_simple(Q_matrix, R_matrix, test_matrix, row_num, column_num, column_num);
     return assert::assert_iterable_containers_near(matrix, test_matrix, kEps, row_num*column_num);
