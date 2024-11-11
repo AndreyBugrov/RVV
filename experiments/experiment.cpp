@@ -4,12 +4,32 @@ using std::vector;
 
 void print_experiment_result(const BaseTaskOutput& output, std::ostream& stream){
     if(!output.ended()){
-        std::cerr<<output.what()<<"\n"<<output.error_message()<<"\n";
+        std::cerr<<output.what()<<"\n";
+        std::cerr<<output.error_message()<<"\n";
     }
     stream<<output.time()<<"\n";
 }
 
-BaseTaskOutput run_experiment(std::string function_name, std::vector<size_t> function_arguments){
+double count_seconds(std::vector<double>& seconds){
+    double result_seconds = 0.0;
+    double max_seconds = 0.0;
+    size_t max_seconds_index = 0;
+    for(size_t i=0;i<seconds.size();++i){
+        if(max_seconds< seconds[i]){
+            max_seconds = seconds[i];
+            max_seconds_index = i;
+        }
+    }
+    for(size_t i=0;i<seconds.size();++i){
+        if(i!=max_seconds_index){
+           result_seconds += seconds[i];
+        }
+    }
+    result_seconds /= (seconds.size()-1);
+    return result_seconds;
+}
+
+BaseTaskOutput run_experiment(int experiment_count, std::string function_name, std::vector<size_t> function_arguments){
     const num_type min_value = -100.0;
     const num_type max_value = 100.0;
     const std::map<std::string, FunctionIndex> function_name_to_index={
@@ -43,10 +63,10 @@ BaseTaskOutput run_experiment(std::string function_name, std::vector<size_t> fun
         switch (function_index)
         {
         case FunctionIndex::kScalarProductSimple:
-            output = run_experiment_task(scalar_product_simple, a, b, vector_length);
+            output = run_experiment_task(experiment_count, scalar_product_simple, a, b, vector_length);
             break;
         case FunctionIndex::kScalarProductStd:
-            output = run_experiment_task(scalar_product_std, a, b, vector_length);
+            output = run_experiment_task(experiment_count, scalar_product_std, a, b, vector_length);
             break;
         default:
             break;
@@ -69,7 +89,7 @@ BaseTaskOutput run_experiment(std::string function_name, std::vector<size_t> fun
         switch (function_index)
         {
         case FunctionIndex::kMatrixProductSimple:
-            output = run_experiment_task(matrix_prod_base_simple, a, b, c, a_row_num, a_column_num, b_column_num);
+            output = run_experiment_task(experiment_count, matrix_prod_base_simple, a, b, c, a_row_num, a_column_num, b_column_num);
             break;
         default:
             break;
@@ -90,7 +110,7 @@ BaseTaskOutput run_experiment(std::string function_name, std::vector<size_t> fun
         switch (function_index)
         {
         case FunctionIndex::kGramSchmidtSimple:
-            output = run_experiment_task(gram_schmidt_base_simple, vec_system);
+            output = run_experiment_task(experiment_count, gram_schmidt_base_simple, vec_system);
             break;
         default:
             break;
@@ -110,7 +130,7 @@ BaseTaskOutput run_experiment(std::string function_name, std::vector<size_t> fun
         switch (function_index)
         {
         case FunctionIndex::kQRSimple:
-            output = run_experiment_task(QR_decomposition_base_simple, matrix, Q, R, row_num, column_num);
+            output = run_experiment_task(experiment_count, QR_decomposition_base_simple, matrix, Q, R, row_num, column_num);
             break;
         default:
             break;
