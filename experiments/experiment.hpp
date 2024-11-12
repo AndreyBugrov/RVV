@@ -32,17 +32,21 @@ void print_experiment_result(const BaseTaskOutput& output, std::ostream& stream)
 
 double count_seconds(std::vector<double>& seconds);
 
-template<typename Foo, typename... Args>
-BaseTaskOutput run_experiment_task(int experiment_num, Foo task, Args... args){
+
+// reset does not return anything so ResetFoo type != Foo type in general
+template<typename Foo, typename ResetFoo, typename... Args>
+BaseTaskOutput run_experiment_task(int experiment_num, Foo task, ResetFoo reset, Args... args){
     bool ended = false;
     std::string error_type = "NoError";
-    std::string error_message = "Congratulations!";
+    std::string error_message = "";
     std::vector<double> seconds(experiment_num);
     for(int i=0;i<experiment_num;++i){
         try{
+            ended = false;
             const auto start_test{std::chrono::steady_clock::now()};
             task(args...);
             const auto end_test{std::chrono::steady_clock::now()};
+            reset(args...);
             ended = true;
             std::chrono::duration<double> experiment_seconds = end_test - start_test;
             seconds.push_back(experiment_seconds.count());
