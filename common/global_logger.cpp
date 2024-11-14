@@ -1,6 +1,6 @@
 #include "single_logger.hpp"
 
-std::unordered_map<FormatItem, string> SingleLogger::format_converter = {
+std::unordered_map<FormatItem, string> GlobalLogger::format_converter = {
     std::pair<FormatItem, string>(FormatItem::kMessage, "%m"),
     std::pair<FormatItem, string>(FormatItem::kFunction, "%f"),
     std::pair<FormatItem, string>(FormatItem::kFile, "%u"), // unit
@@ -10,9 +10,9 @@ std::unordered_map<FormatItem, string> SingleLogger::format_converter = {
     std::pair<FormatItem, string>(FormatItem::kLevel, "%l")
 };
 
-SingleLogger* SingleLogger::self_ = nullptr;
+GlobalLogger* GlobalLogger::self_ = nullptr;
 
-void SingleLogger::log(InnerLoggerLevel level, const string& message, const source_location& location) const noexcept{
+void GlobalLogger::log(InnerLoggerLevel level, const string& message, const source_location& location) const noexcept{
     if(log_level_ <= level){
         print_log(message, location);
     }
@@ -21,23 +21,23 @@ void SingleLogger::log(InnerLoggerLevel level, const string& message, const sour
     }
 }
 
-void SingleLogger::debug(const string& message, const source_location& location) const noexcept{
+void GlobalLogger::debug(const string& message, const source_location& location) const noexcept{
     log(InnerLoggerLevel::kDebug, message, location);
 }
-void SingleLogger::info(const string& message, const source_location& location) const noexcept{
+void GlobalLogger::info(const string& message, const source_location& location) const noexcept{
     log(InnerLoggerLevel::kInfo, message, location);
 }
-void SingleLogger::warning(const string& message, const source_location& location) const noexcept{
+void GlobalLogger::warning(const string& message, const source_location& location) const noexcept{
     log(InnerLoggerLevel::kWarning, message, location);
 }
-void SingleLogger::error(const string& message, const source_location& location) const noexcept{
+void GlobalLogger::error(const string& message, const source_location& location) const noexcept{
     log(InnerLoggerLevel::kError, message, location);
 }
-void SingleLogger::critical(const string& message, const source_location& location) const noexcept{
+void GlobalLogger::critical(const string& message, const source_location& location) const noexcept{
     log(InnerLoggerLevel::kCritical, message, location);
 }
 
-void SingleLogger::set_log_level(LoggerLevel level) noexcept{
+void GlobalLogger::set_log_level(LoggerLevel level) noexcept{
     switch (level)
     {
     case LoggerLevel::kDebug:
@@ -57,7 +57,7 @@ void SingleLogger::set_log_level(LoggerLevel level) noexcept{
         break;
     }
 }
-void SingleLogger::set_terminate_level(LoggerLevel level) noexcept{
+void GlobalLogger::set_terminate_level(LoggerLevel level) noexcept{
     switch (level)
     {
     case LoggerLevel::kDebug:
@@ -78,11 +78,11 @@ void SingleLogger::set_terminate_level(LoggerLevel level) noexcept{
     }
 }
 
-void SingleLogger::unset_terminate_level() noexcept{
+void GlobalLogger::unset_terminate_level() noexcept{
     terminate_level_ = InnerLoggerLevel::kNoLevel;
 }
 
-string SingleLogger::get_terminate_level() const noexcept{
+string GlobalLogger::get_terminate_level() const noexcept{
     switch (terminate_level_)
     {
     case InnerLoggerLevel::kDebug:
@@ -102,28 +102,28 @@ string SingleLogger::get_terminate_level() const noexcept{
     }
 }
 
-void SingleLogger::set_output_stream(std::ostream& stream) noexcept{
+void GlobalLogger::set_output_stream(std::ostream& stream) noexcept{
     stream_ = &stream;
 }
 
-SingleLogger* SingleLogger::get_instance() noexcept{
+GlobalLogger* GlobalLogger::get_instance() noexcept{
     if(!self_){
-        self_ = new SingleLogger();
+        self_ = new GlobalLogger();
     }
     return self_;
 }
 
-void SingleLogger::destroy_instance() noexcept{
+void GlobalLogger::destroy_instance() noexcept{
     if(self_){
         delete self_;
     }
 }
 
-void SingleLogger::set_log_format(const string& format){
+void GlobalLogger::set_log_format(const string& format){
     // aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 }
 
-string SingleLogger::get_log_format() const noexcept{
+string GlobalLogger::get_log_format() const noexcept{
     string output = "";
     for(string lexem : log_format_){
         output.append(lexem);
@@ -131,7 +131,7 @@ string SingleLogger::get_log_format() const noexcept{
     return output;
 }
 
-string SingleLogger::get_log_level() const noexcept{
+string GlobalLogger::get_log_level() const noexcept{
     switch (log_level_)
     {
     case InnerLoggerLevel::kDebug:
@@ -149,7 +149,7 @@ string SingleLogger::get_log_level() const noexcept{
     }
 }
 
-void SingleLogger::print_log(const string& message, const source_location& location) const noexcept{
+void GlobalLogger::print_log(const string& message, const source_location& location) const noexcept{
     for(std::string lexem: log_format_){
         if(lexem == "%m"){
             const string msg(message);
