@@ -6,6 +6,8 @@ import sys # necessary
 import logging # necessary
 
 from pathlib import Path
+from copy import copy
+from itertools import zip_longest
 import glob
 
 logger = logging.getLogger(__name__)
@@ -47,7 +49,7 @@ def critical_message(msg: str):
 def compile_source(source_file_list: list[str], bin_path: str, optimization_flag: str):
     args = 'g++ ' + ' -Wall -Werror -Wsign-compare -std=c++20 ' + optimization_flag + ' ' + ' '.join(source_file_list) + ' -o ' + bin_path
     cmd = shlex.split(args)
-    logger.debug("Compilation arguments:"+" ".join(cmd))
+    logger.debug("Compilation arguments: " + " ".join(cmd))
     compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
     if compiler_errors:
         critical_message('Compilation errors:\n'+compiler_errors.decode('utf-8'))
@@ -85,16 +87,37 @@ def set_min_core_frequency_limit(frequency, core_num):
     subprocess.Popen(line, shell=True).communicate()
 
 
-def run_experiment(bin_path: str, function_class: str, optimization_level: str, sizes: list[int], exp_num: int, device_type: str, frequency: int, is_temporary: bool):
-    sizes_set_number = len(sizes) / 3
-    min_n = []
-    max_n = []
-    step = []
-    for i in range(sizes_set_number):
-        parameter_block_start = sizes_set_number*3
-        min_n.append(sizes[parameter_block_start])
-        max_n.append(sizes[parameter_block_start+1]+1)
-        step.append(sizes[parameter_block_start+2])
+def run_experiment(bin_path: str, function_name: str, sizes: str, exp_num: int) -> list[str]:
+    args = f"{bin_path} {function_name} {exp_num} {sizes} experiments.log"
+    cmd = shlex.split(args)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    output = proc.communicate()
+    stdout = output[0].decode('utf-8')  # we can't catch termination message (it is neither in stderr nor in stdout)
+    stderr = output[1]
+    if stderr:
+        critical_message(f'Errors while running:\n{stderr.decode('utf-8')}')
+    if proc.returncode:
+        critical_message(f'Process has completed with non-zero return code: {proc.returncode}')
+    row = stdout[:-1].split('\n')
+    output = copy(sizes)
+    output.extend(row)
+    return output
+
+def get_current_sizes_by_function_class(i: int, function_class: str):
+    base_current_size = f'{i} '
+    if function_class == 'vector':
+       return base_current_size[:-1]
+    elif function_class == 'matrix':
+        return (base_current_size * 3)[:-1]
+    elif function_class == 'gram_schmidt':
+        return (base_current_size * 2)[:-1]
+    elif function_class == 'qr':
+        return (base_current_size * 2)[:-1]
+
+def prepare_experiment(bin_path: str, function_class: str, optimization_level: str, sizes: list[int], exp_num: int, device_type: str, frequency: int, is_temporary: bool):
+    min_n = sizes[0]
+    max_n = sizes[1] + 1
+    step_n = sizes[2]
     
     csv_file_name = Path(function_class + '_' + optimization_level + '_' + device_type + '_' + str(frequency / (1000*1000)) + 'GHz' + '.csv')
     if is_temporary:
@@ -103,8 +126,6 @@ def run_experiment(bin_path: str, function_class: str, optimization_level: str, 
         csv_file_name = Path('csv_results', csv_file_name)
     header = []
     if function_class == 'vector':
-        if len(sizes) != 3:
-            critical_message(f'Wrong parameter count: {len(sizes)}. It must be 3')
         header.extend(['Length', 'Time'])
     elif function_class == 'matrix':
         header.extend(['1st Row Count', '1st Column Count', '2nd Column Count', 'Time'])
@@ -116,20 +137,9 @@ def run_experiment(bin_path: str, function_class: str, optimization_level: str, 
         writer = csv.writer(f, delimiter=';')
         writer.writerow(header)
 
-    for i in range(min_n, max_n, step):
-        num = str(i)
-        args = f"{bin_path} {function_class}_{optimization_level} {exp_num} {num} experiments.log"
-        cmd = shlex.split(args)
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        output = proc.communicate()
-        stdout = output[0].decode('utf-8')  # we can't catch termination message (it is neither in stderr nor in stdout)
-        stderr = output[1]
-        if stderr:
-            critical_message(f'Errors while running:\n{stderr.decode('utf-8')}')
-        if proc.returncode:
-            critical_message(f'Process has completed with non-zero return code: {proc.returncode}')
-        row = stdout[:-1].split('\n')
-        row.insert(0, num)
+    for i in range(min_n, max_n, step_n):
+        current_sizes = get_current_sizes_by_function_class(i, function_class=function_class)
+        row = run_experiment(bin_path=bin_path, function_name=f'{function_class}_{optimization_level}', sizes=current_sizes, exp_num=exp_num)
         with open(csv_file_name, 'a', encoding='utf-8') as f:
             writer = csv.writer(f, delimiter=';')
             writer.writerow(row)
@@ -141,10 +151,9 @@ def run_experiment(bin_path: str, function_class: str, optimization_level: str, 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization", formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--function-classe', choices=function_classes, nargs='+', help="Experiment function class"
-                        f"\nChoices:\n{function_classes}", required=True)
-    parser.add_argument('--optimization-level', choices=optimization_levels, nargs='+', required=True)
-    parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=('MIN_SIZE_1', 'MAX_SIZE_1', 'STEP', 'OTHER_MIN_SIZES'),type=int, nargs="+", required=True)
+    parser.add_argument('-f', '--function-classes', choices=function_classes, nargs='+', help="Experiment function class", required=True)aaaaaaaaaaaaa
+    parser.add_argument('-o', '--optimization-level', choices=optimization_levels, nargs='+', help="Get functions only from chosen", required=True)
+    parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=('MIN_SIZE', 'MAX_SIZE', 'STEP'), type=int, nargs=3, required=True)
     parser.add_argument('-l', '--opt-level', help="Optimization level in the executable file",
                         choices=['release', 'opt'], default='opt')
     parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", type=int, required=True)
@@ -169,12 +178,10 @@ if __name__ == '__main__':
         logger.warning('Results will be saved to the base directory')
     if int(exp_num) < 1:
         critical_message("Choose at least one experiment!")
-    # if len(sizes) % 3 != 0:
-    #     critical_message("Number of --sizes option should be multiple of 3")
-    # if sizes[2] <= 0:
-    #     critical_message("Step should be more than 0!")
-    # if sizes[0] > sizes[1]:
-    #     critical_message("\"min_n\" should be less or equal \"max_n\"!")
+    if sizes[2] <= 0:
+        critical_message("Step should be more than 0!")
+    if sizes[0] > sizes[1]:
+        critical_message("\"min_n\" should be less or equal \"max_n\"!")
 
     type_handlings = {'release': '-O2', 'opt': '-O3'}
     

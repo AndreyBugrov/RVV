@@ -17,6 +17,8 @@
 #include "../algorithms/gram_schmidt.hpp"
 #include "../algorithms/qr_decomposition.hpp"
 
+#include "reset.hpp"
+
 enum class FunctionIndex{
     kScalarProductSimple,
     kScalarProductStd,
@@ -38,7 +40,7 @@ template<typename Foo, typename ResetFoo, typename... Args>
 BaseTaskOutput run_experiment_task(int experiment_num, Foo task, ResetFoo reset, Args... args){
     bool ended = false;
     std::string error_type = "NoError";
-    std::string error_message = "";
+    std::string error_message = "Something went wrong";
     std::vector<double> seconds(experiment_num);
     for(int i=0;i<experiment_num;++i){
         try{
@@ -49,7 +51,7 @@ BaseTaskOutput run_experiment_task(int experiment_num, Foo task, ResetFoo reset,
             reset(args...);
             ended = true;
             std::chrono::duration<double> experiment_seconds = end_test - start_test;
-            seconds.push_back(experiment_seconds.count());
+            seconds.at(i)=experiment_seconds.count();
         }
         catch(const Exception& my_error){
             error_type = my_error.what();

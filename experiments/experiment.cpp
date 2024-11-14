@@ -11,6 +11,12 @@ void print_experiment_result(const BaseTaskOutput& output, std::ostream& stream)
 }
 
 double count_seconds(std::vector<double>& seconds){
+    if(seconds.size()==0){
+        throw Exception(ErrorType::kValueError, generate_string("Seconds list is empty"));
+    }
+    if(seconds.size()==1){
+        return seconds[0];
+    }
     double result_seconds = 0.0;
     double max_seconds = 0.0;
     size_t max_seconds_index = 0;
@@ -63,10 +69,10 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         switch (function_index)
         {
         case FunctionIndex::kScalarProductSimple:
-            output = run_experiment_task(experiment_count, scalar_product_simple, a, b, vector_length);
+            output = run_experiment_task(experiment_count, scalar_product_simple, reset_scalar_product, a, b, vector_length);
             break;
         case FunctionIndex::kScalarProductStd:
-            output = run_experiment_task(experiment_count, scalar_product_std, a, b, vector_length);
+            output = run_experiment_task(experiment_count, scalar_product_std, reset_scalar_product, a, b, vector_length);
             break;
         default:
             break;
@@ -89,7 +95,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         switch (function_index)
         {
         case FunctionIndex::kMatrixProductSimple:
-            output = run_experiment_task(experiment_count, matrix_prod_base_simple, a, b, c, a_row_num, a_column_num, b_column_num);
+            output = run_experiment_task(experiment_count, matrix_prod_base_simple, reset_matrix_product, a, b, c, a_row_num, a_column_num, b_column_num);
             break;
         default:
             break;
@@ -110,7 +116,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         switch (function_index)
         {
         case FunctionIndex::kGramSchmidtSimple:
-            output = run_experiment_task(experiment_count, gram_schmidt_base_simple, vec_system);
+            output = run_experiment_task(experiment_count, gram_schmidt_base_simple, reset_gram_schmidt, vec_system);
             break;
         default:
             break;
@@ -130,7 +136,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         switch (function_index)
         {
         case FunctionIndex::kQRSimple:
-            output = run_experiment_task(experiment_count, QR_decomposition_base_simple, matrix, Q, R, row_num, column_num);
+            output = run_experiment_task(experiment_count, QR_decomposition_base_simple, reset_qr, matrix, Q, R, row_num, column_num);
             break;
         default:
             break;
