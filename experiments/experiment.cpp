@@ -39,11 +39,11 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
     const num_type min_value = -100.0;
     const num_type max_value = 100.0;
     const std::map<std::string, FunctionIndex> function_name_to_index={
-        std::pair<std::string, FunctionIndex>("vec_simple", FunctionIndex::kScalarProductSimple),
-        std::pair<std::string, FunctionIndex>("vec_std", FunctionIndex::kScalarProductStd),
-        std::pair<std::string, FunctionIndex>("matr_simple", FunctionIndex::kMatrixProductSimple),
-        std::pair<std::string, FunctionIndex>("gram_schmidt_simple", FunctionIndex::kGramSchmidtSimple),
-        std::pair<std::string, FunctionIndex>("qr_simple", FunctionIndex::kQRSimple),
+        std::pair<std::string, FunctionIndex>("vec_p_sim", FunctionIndex::kScalarProductSimple),
+        std::pair<std::string, FunctionIndex>("vec_p_std", FunctionIndex::kScalarProductStd),
+        std::pair<std::string, FunctionIndex>("mat_p_sim", FunctionIndex::kMatrixProductSimple),
+        std::pair<std::string, FunctionIndex>("gs_p_sim", FunctionIndex::kGramSchmidtSimple),
+        std::pair<std::string, FunctionIndex>("qr_d_sim", FunctionIndex::kQRSimple),
     };
     enum ArgumentNumber{
         kScalarProduct = 1,

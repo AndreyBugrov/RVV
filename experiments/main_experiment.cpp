@@ -7,7 +7,7 @@
 using std::vector;
 
 int main(int argc, char* argv[]){
-    // experiment count, function name, function argument, .log file path
+    // experiment count, function name, function arguments, .log file path
     const int argc_min = 5;
     if(argc < argc_min){
         Exception ex(ErrorType::kWrongArgumentNumber, generate_string("Expected at least ", argc_min, " arguments but passed only ", argc));
@@ -32,5 +32,8 @@ int main(int argc, char* argv[]){
     catch(std::exception& ex){
         std::cout<<"std::exception"<<"\n";
         std::cerr<<ex.what()<<"\n";
+    }
+    catch(...){
+        std::cout<<"Unknown Exception"<<"\n";
     }
 }
