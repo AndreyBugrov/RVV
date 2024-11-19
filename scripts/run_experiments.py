@@ -262,9 +262,9 @@ if __name__ == '__main__':
     bin_path = bin_directory / (device_name + '_exp.out')
 
     source_file_list = []
-    source_file_list.extend([item for item in glob.glob("algorithms/*.cpp", root_dir="..")])
+    source_file_list.extend([item for item in glob.glob("algorithms/*.cpp", root_dir=".")])
     source_file_list.extend([item for item in glob.glob("common/*.cpp", root_dir=".")])
-    source_file_list.extend([item for item in glob.glob("experiments/*.cpp", root_dir="..")])
+    source_file_list.extend([item for item in glob.glob("experiments/*.cpp", root_dir=".")])
     LOGGER.debug("Source file list: " + " ".join(source_file_list))
 
     LOGGER.info("Start of preprocessing phase")
