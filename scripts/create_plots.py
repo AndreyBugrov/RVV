@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-COLOR_LIST = ["blue", "red", "green", "darkorange",  "blueviolet", "brown", "pink", "lime", "gold", "deepskyblue", "lightsalmon"]
+COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "darkgreen", "sienna", "lime", "gold", "dodblue", "lightsalmon", "midnightblue", "darkred", "cyan", "deeppink"]
 NAMES_DICT={
     "gs_p_sim_x86_2.1GHz.csv" : "Процесс ортогонализации Грама-Шмидта (базовый)",
     "mat_p_sim_x86_2.1GHz.csv" : "Умножение матриц (базовое)",
@@ -113,3 +113,8 @@ def save_vec_plots(plot_format: str, time_name: str, result_directory: str, vec_
     ax.legend(loc='upper left')
     plt.savefig(os.path.join(result_directory, "vec.png"), bbox_inches="tight", format=plot_format)
     plt.cla()
+
+if __name__ == "__main__":
+    from run_experiments import VEC_NAMES, MAT_NAMES, GS_NAMES, QR_NAMES
+    save_no_vec_plots_and_init_ax("png", VEC_NAMES[-1], "prod_results", MAT_NAMES, GS_NAMES, QR_NAMES)
+    save_vec_plots("png", VEC_NAMES[-1], "prod_results", VEC_NAMES)
