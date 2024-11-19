@@ -1,56 +1,39 @@
-#include <iostream>
 #include <string>
+#include <vector>
+#include <iostream>
 
-#include "experiment_task.hpp"  // run_experiment
-#include "../common/single_logger.hpp"  // logger
-#include "../algorithms/qr_decomposition.hpp"  // qr decomposition
-
-#include "../algorithms/matrix_operations.hpp"  // transpose for check
-#include "../tests/assert.hpp"  // assert namespace for check
+#include "experiment.hpp"  // run_experiment
 
 using std::vector;
 
-int main(){
-    // recognize function type
-    // get arguments
-    //map<string name, enum class function_index>
-    //switch by function_index
-    //run task
-
-
-
-    size_t row_num = 121;
-    size_t column_num = 215;
-    vector<num_type> A(row_num*column_num);
-    vector<num_type> Q_transposed(column_num*row_num);
-    vector<num_type> R(column_num*column_num);
-    generate_rand_array(A.data(), row_num*column_num, num_type(-100.0), num_type(100.0));
-    SingleLogger* logger = SingleLogger::get_instance();
-    logger->set_log_level(LoggerLevel::kDebug);
-    BaseTaskOutput output = run_experiment(QR_decomposition_base_simple, std::cref(A), std::ref(Q_transposed), std::ref(R), row_num, column_num);
-    std::cout<<"ended: ";
-    if(output.ended()){
-        std::cout<<"true\n";
-        std::cout<<"seconds: "<<output.time()<<"\n";
-    }else{
-        std::cout<<"false\n";
-        std::cout<<"what: "<<output.what()<<"\n";
-        std::cout<<"error message: "<<output.error_message()<<"\n";
+int main(int argc, char* argv[]){
+    // experiment count, function name, function arguments, .log file path
+    const int argc_min = 5;
+    if(argc < argc_min){
+        Exception ex(ErrorType::kWrongArgumentNumber, generate_string("Expected at least ", argc_min, " arguments but passed only ", argc));
+        std::cerr<<ex.what()<<"\n";
+        std::cerr<<ex.message()<<"\n";
     }
-    vector<num_type> Q = transpose_matrix(Q_transposed, column_num, row_num);
-    vector<num_type> result_A(row_num*column_num);
-    matrix_prod_base_simple(Q, R, result_A, row_num, column_num, column_num);
-    // for(size_t i=0;i<row_num;++i){
-    //         std::cout<<Q_transposed[i*column_num];
-    // }
-    AssertionResult result = assert::assert_iterable_containers_eq(A, result_A, row_num*column_num);
-    std::cout<<"result is: ";
-    if(result){
-        std::cout<<"true\n";
-    }else{
-        std::cout<<"false\n";
+    try{
+        int experiment_count = std::stoi(argv[1]);
+        std::string function_name = argv[2];
+        std::vector<size_t> function_arguments;
+        for(int i = 3, inc_argc = argc-1;i<inc_argc;++i){
+            function_arguments.push_back(std::stol(argv[i]));
+        }
+        // SingleLogger* logger = SingleLogger::get_instance(); ///////////////////////// GlobalLogger instead of SingleLogger
+        BaseTaskOutput output = run_experiment(experiment_count, function_name, function_arguments);
+        print_experiment_result(output, std::cout);
     }
-    std::cout<<result.error_message()<<"\n";
-    SingleLogger::destroy_instance();
-    return 0;
+    catch(Exception& ex){
+        std::cerr<<ex.what()<<"\n";
+        std::cerr<<ex.message()<<"\n";
+    }
+    catch(std::exception& ex){
+        std::cout<<"std::exception"<<"\n";
+        std::cerr<<ex.what()<<"\n";
+    }
+    catch(...){
+        std::cout<<"Unknown Exception"<<"\n";
+    }
 }
