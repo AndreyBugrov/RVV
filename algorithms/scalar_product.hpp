@@ -13,6 +13,6 @@ using std::vector;
 num_type scalar_product_simple(vector<num_type> a, vector<num_type> b, size_t length);
 num_type scalar_product_std(vector<num_type> a, vector<num_type> b, size_t length);
 
-num_type scalar_product_std_unsafe(vector<num_type> a, vector<num_type> b, size_t length);
+num_type scalar_product_opt_unsafe(vector<num_type> a, vector<num_type> b, size_t length);
 
 num_type scalar_product_intrinsic(vector<num_type> a, vector<num_type> b, size_t length);
