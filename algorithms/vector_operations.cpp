@@ -1,7 +1,7 @@
 #include "vector_opeations.hpp"
 
 num_type get_vector_norm(const vector<num_type>& vec){
-    num_type square_norm = scalar_product_std_unsafe(vec, vec, vec.size());
+    num_type square_norm = scalar_product_opt_unsafe(vec, vec, vec.size());
     return sqrt(square_norm);
 }
 

@@ -2,8 +2,8 @@
 
 
 vector<num_type> proj(const vector<num_type>& projected, const vector<num_type>& mapped_vec){
-    num_type a_b = scalar_product_std_unsafe(projected, mapped_vec, projected.size());
-    num_type b_b = scalar_product_std_unsafe(mapped_vec, mapped_vec, mapped_vec.size());
+    num_type a_b = scalar_product_opt_unsafe(projected, mapped_vec, projected.size());
+    num_type b_b = scalar_product_opt_unsafe(mapped_vec, mapped_vec, mapped_vec.size());
     return multiply_vector_by_number(mapped_vec, a_b/b_b);
 }
 
