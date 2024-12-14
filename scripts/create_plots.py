@@ -17,9 +17,6 @@ NAMES_DICT={
     "vec_p_std_x86_2.1GHz.csv" : "Inner product"
 }
 
-fig, ax = plt.subplots(figsize=(10, 8), dpi=100)
-
-
 def save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_directory: str, mat_names: list[str], gs_names: list[str], qr_names: list[str]):
     for path_item in Path(result_directory).glob("*.csv"):
         file_name = path_item.name
@@ -45,6 +42,7 @@ def save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_direc
         break
     else:
         return
+    fig, ax = plt.subplots(figsize=(10, 8), dpi=100)
     times_dict = {}
     for path_item in Path(result_directory).glob("*.csv"):
         current_names = []
@@ -59,7 +57,6 @@ def save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_direc
             current_names = qr_names
         else:
             raise KeyError(f"Unsupported begin of the file name '{file_name}'")
-        
         types_dict = {}
         for i in range(len(current_names)-1):
             types_dict[current_names[i]] = int
@@ -88,13 +85,13 @@ def save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_direc
 def save_vec_plots(plot_format: str, time_name: str, result_directory: str, vec_names: list[str]):
     if not glob.glob(os.path.join(result_directory, "vec*.csv")):
         return
+    fig, ax = plt.subplots(figsize=(10, 8), dpi=100)
     base_file = glob.glob(os.path.join(result_directory, "vec*.csv"))[0]
     vec_n_list = pd.read_csv(base_file, sep=';', decimal='.', header=0,
                              dtype={vec_names[0]: int, vec_names[1]: int, vec_names[2]: float})[vec_names[1]].to_list()
     times_dict = {}
     for path_item in Path(result_directory).glob("vec*.csv"):
         file_name = path_item.name
-        
         types_dict = {}
         for i in range(len(vec_names)-1):
             types_dict[vec_names[i]] = int
