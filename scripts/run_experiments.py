@@ -26,8 +26,20 @@ def critical_message(msg: str):
     sys.exit(-1)
 
 
-def compile_source(source_file_list: list[str], bin_path: str, optimization_flag: str):
-    args = 'g++ ' + ' -Wall -Werror -Wsign-compare -std=c++20 ' + optimization_flag + ' ' + ' '.join(source_file_list) + ' -o ' + bin_path
+COMPILATION_PROFILE_TO_OPTIONS = {
+    "debug": "-O0", 
+    "release": "-02", 
+    "O3": "-O3",
+    "fast": "-Ofast",
+    "native": "-O3 -march=native",
+    "math": "-O3 -ffast-math",
+    "lto": "", #########################
+    "O3_opt": "-O3 -march=native -ffast-math"
+}
+
+
+def compile_source(source_file_list: list[str], bin_path: str, optimization_profile: str):
+    args = 'g++ ' + ' -Wall -Werror -Wsign-compare -std=c++20 ' + COMPILATION_PROFILE_TO_OPTIONS[optimization_profile] + ' ' + ' '.join(source_file_list) + ' -o ' + bin_path
     cmd = shlex.split(args)
     LOGGER.debug("Compilation arguments: " + " ".join(cmd))
     compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
@@ -100,8 +112,6 @@ def get_current_sizes_by_operation_class(current_size: int, operation_class: str
         output = base_current_size * 2
     return output[:-1]
 
-
-PARENT_DIRECTORY = Path(".").parent.parent
 
 VEC_NAMES = ["Experiments count", "Length", "Time"]
 MAT_NAMES = ["Experiments count", "1st row count", "1st column count", "2nd column count", "Time"]
@@ -201,31 +211,40 @@ def create_plots(plot_format: str, result_directory: str):
     save_vec_plots(plot_format=plot_format, time_name=VEC_NAMES[-1], result_directory=result_directory, vec_names=VEC_NAMES)
 
 
+def complete_experiment():
+    print("Done!")
+    exit(0)
+
+
+PARENT_DIRECTORY = Path(".").parent.parent
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
+    parser.add_argument('--profile', help="Type of experiment run", choices=["dry_run", "normal", "compilation", "smoke_test"], default="normal")
     parser.add_argument('-f', '--function', help="Specific functions", choices=list(FUNCTION_NAMES_DICT['all']) + ['all'], nargs='*')
     parser.add_argument('--optimization-class', help="Optimization classes", choices=list(OPTIMIZATIONS.keys()) + ['all'], nargs='*')
     parser.add_argument('--operation-class', help="Operation classes", choices=list(OPERATIONS.keys()) + ['all'], nargs='*')
     parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=('MIN_SIZE', 'MAX_SIZE', 'STEP'), type=int, nargs=3, required=True)
-    parser.add_argument('-O', '--opt-level', help="Optimization level in the executable file", choices=['release', 'opt'], default='release')
+    parser.add_argument('-O', '--opt-profile', help="Optimization profile for the compilation", choices=COMPILATION_PROFILE_TO_OPTIONS.keys(), default='release')
     parser.add_argument('-l', '--logger-level', help="Level of supported logger messages", choices=['debug', 'info', 'warning', 'error', 'critical'], default='info')
     parser.add_argument('-n', '--exp-count', help="Number of experiments with equal parameters", type=int, required=True)
     parser.add_argument('-d', '--device-name', help="Device name", choices=["kendryte", "x86"], required=True)
-    parser.add_argument('--is-temporary', help="Should the results be saved to temporary directory or not", required=True, choices=['true', 'false'])
-    parser.add_argument('-r', '--recompile', help='Recompile source files', action="store_true")
+    parser.add_argument('--is-temporary', help="Save the results to temporary directory or not", required=True, choices=['true', 'false'])
+    parser.add_argument('-r', '--recompile', help="Recompile source files", action="store_true")
     parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
 
-
     args = parser.parse_args()
+    profile = args.profile
     specific_functions = args.function
     operation_classes = args.operation_class
     optimization_classes = args.optimization_class
     sizes = args.sizes
-    opt_level = args.opt_level
+    opt_profile = args.opt_profile
     logger_level = args.logger_level
     exp_count = args.exp_count
     device_name = args.device_name
-    is_temporary = True if args.is_temporary == 'true' else False
+    is_temporary = args.is_temporary == 'true'
     recompile = args.recompile
     plot_format = args.plot_format
 
@@ -237,7 +256,7 @@ if __name__ == '__main__':
     elif logger_level == 'warning':
         logger_level_paramenter = logging.WARNING
     elif logger_level == 'error':
-        logger_level_paramenter = logging.WARNING
+        logger_level_paramenter = logging.ERROR
     elif logger_level == 'critical':
         logger_level_paramenter = logging.CRITICAL
     logging.basicConfig(level=logger_level_paramenter, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
@@ -254,43 +273,57 @@ if __name__ == '__main__':
     else:
         LOGGER.warning('Results will be saved to the ordinary directory')
 
-    function_names_set = get_function_name_set(specific_functions, operation_classes, optimization_classes)
+    if profile == "smoke_test":
+        function_names_set = get_function_name_set(["all"], [], [])
+    else:
+        function_names_set = get_function_name_set(specific_functions, operation_classes, optimization_classes)
     LOGGER.debug(f'Chosen functions: {function_names_set}')
 
     bin_directory = PARENT_DIRECTORY / 'bin'
     bin_directory.mkdir(parents=True, exist_ok=True)
     bin_path = bin_directory / (device_name + '_exp.out')
 
-    source_file_list = []
-    source_file_list.extend([item for item in glob.glob("algorithms/*.cpp", root_dir=".")])
-    source_file_list.extend([item for item in glob.glob("common/*.cpp", root_dir=".")])
-    source_file_list.extend([item for item in glob.glob("experiments/*.cpp", root_dir=".")])
-    LOGGER.debug("Source file list: " + " ".join(source_file_list))
-
     LOGGER.info("Start of preprocessing phase")
     if recompile:
+        source_file_list = []
+        source_file_list.extend([str(item) for item in Path("algorithms").glob("*.cpp")])
+        source_file_list.extend([str(item) for item in Path("common").glob("*.cpp")])
+        source_file_list.extend([str(item) for item in Path("experiments").glob("*.cpp")])
+        LOGGER.debug("Source file list: " + " ".join(source_file_list))
+        
         LOGGER.info('Compilation')
         # recompilation does not garantees cold start (garanteed only for first function)
-        if opt_level == 'release':
-            compile_source(source_file_list, str(bin_path), '-O2')
-        elif opt_level == 'opt':
-            compile_source(source_file_list, str(bin_path), '-O3')
+        compile_source(source_file_list, str(bin_path), optimization_profile=opt_profile)
     else:
         LOGGER.warning('Compilation is skipped')
+    
+    if profile == "compilation":
+        complete_experiment()
 
-    LOGGER.info("Creating cache list file")
-    create_cache_list_file('cache.txt')
+    # LOGGER.info("Creating cache list file")
+    # create_cache_list_file('cache.txt')
 
     LOGGER.info("Preparing result directory")
     result_directory = copy(PARENT_DIRECTORY)
-    if is_temporary:
+    if is_temporary or profile == "smoke_test":
         result_directory = result_directory / "staging_results"
     else:
         result_directory = result_directory / "prod_results"
     result_directory.mkdir(parents=True, exist_ok=True)
 
+    if profile == "dry_run":
+        LOGGER.info("Experiment execution")
+        for function_item in function_names_set:
+            LOGGER.info(f'Process \"{function_item}\" function')
+        create_plots(plot_format=plot_format, result_directory=result_directory)
+        complete_experiment()
+
     core_nums = get_available_cores()
     frequencies = get_min_max_frequencies()
+    if profile == "smoke_test":
+        sizes = [5, 10, 5]
+        exp_count = 2
+        
     try:
         LOGGER.info('Frequency setting')
         for core in core_nums:  
@@ -306,4 +339,4 @@ if __name__ == '__main__':
             set_min_core_frequency_limit(frequencies[0], core)
     LOGGER.info("Plotting graphs")
     create_plots(plot_format=plot_format, result_directory=result_directory)
-    print("Done!")
+    complete_experiment()
