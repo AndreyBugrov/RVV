@@ -4,9 +4,8 @@ import argparse # necessary
 import shlex # necessary
 import sys # necessary
 import logging # necessary
-from pathlib import Path
+from pathlib import Path # necessary
 from copy import copy
-import glob
 
 from create_plots import save_no_vec_plots_and_init_ax, save_vec_plots
 
@@ -26,20 +25,23 @@ def critical_message(msg: str):
     sys.exit(-1)
 
 
+BASE_OPTIMIZATION_LEVEL = "-O2"
+
+
 COMPILATION_PROFILE_TO_OPTIONS = {
-    "debug": "-O0", 
-    "release": "-02", 
+    "debug": "-O0",
+    "release": "-O2",
     "O3": "-O3",
     "fast": "-Ofast",
-    "native": "-O3 -march=native",
-    "math": "-O3 -ffast-math",
-    "lto": "", #########################
-    "O3_opt": "-O3 -march=native -ffast-math"
+    "native": f"{BASE_OPTIMIZATION_LEVEL} -march=native",
+    "math": f"{BASE_OPTIMIZATION_LEVEL} -ffast-math",
+    "lto": f"{BASE_OPTIMIZATION_LEVEL} -flto -fuse-linker-plugin",
+    "optimal": f"{BASE_OPTIMIZATION_LEVEL} -flto -fuse-linker-plugin -march=native -ffast-math"
 }
 
 
 def compile_source(source_file_list: list[str], bin_path: str, optimization_profile: str):
-    args = 'g++ ' + ' -Wall -Werror -Wsign-compare -std=c++20 ' + COMPILATION_PROFILE_TO_OPTIONS[optimization_profile] + ' ' + ' '.join(source_file_list) + ' -o ' + bin_path
+    args = 'g++ -Wall -Werror -Wsign-compare -std=c++20 ' + COMPILATION_PROFILE_TO_OPTIONS[optimization_profile] + ' ' + ' '.join(source_file_list) + ' -o ' + bin_path
     cmd = shlex.split(args)
     LOGGER.debug("Compilation arguments: " + " ".join(cmd))
     compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
@@ -206,9 +208,19 @@ def get_function_name_set(specific_functions: list[str], operation_classes: list
 
 def create_plots(plot_format: str, result_directory: str):
     LOGGER.debug("Saving not vector plots")
-    save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=VEC_NAMES[-1], result_directory=result_directory, mat_names=MAT_NAMES, gs_names=GS_NAMES, qr_names=QR_NAMES)
+    if LOGGER.level == logging.DEBUG:
+        LOGGER.setLevel(logging.INFO)
+        save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=VEC_NAMES[-1], result_directory=result_directory, mat_names=MAT_NAMES, gs_names=GS_NAMES, qr_names=QR_NAMES)
+        LOGGER.setLevel(logging.DEBUG)
+    else:
+        save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=VEC_NAMES[-1], result_directory=result_directory, mat_names=MAT_NAMES, gs_names=GS_NAMES, qr_names=QR_NAMES)
     LOGGER.debug("Saving vector only plots")
-    save_vec_plots(plot_format=plot_format, time_name=VEC_NAMES[-1], result_directory=result_directory, vec_names=VEC_NAMES)
+    if LOGGER.level == logging.DEBUG:
+        LOGGER.setLevel(logging.INFO)
+        save_vec_plots(plot_format=plot_format, time_name=VEC_NAMES[-1], result_directory=result_directory, vec_names=VEC_NAMES)
+        LOGGER.setLevel(logging.DEBUG)
+    else:
+        save_vec_plots(plot_format=plot_format, time_name=VEC_NAMES[-1], result_directory=result_directory, vec_names=VEC_NAMES)
 
 
 def complete_experiment():
