@@ -10,9 +10,6 @@ from copy import copy
 from create_plots import save_no_vec_plots_and_init_ax, save_vec_plots
 
 
-# there are almost 1806 pure code lines in C++ project part (#includes almost are not included, hpp has only not empty lines)
-
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -272,7 +269,7 @@ if __name__ == '__main__':
     elif logger_level == 'critical':
         logger_level_paramenter = logging.CRITICAL
     logging.basicConfig(level=logger_level_paramenter, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
-    
+
     if int(exp_count) < 1:
         critical_message("Choose at least one experiment!")
     if sizes[2] <= 0:
@@ -302,13 +299,13 @@ if __name__ == '__main__':
         source_file_list.extend([str(item) for item in Path("common").glob("*.cpp")])
         source_file_list.extend([str(item) for item in Path("experiments").glob("*.cpp")])
         LOGGER.debug("Source file list: " + " ".join(source_file_list))
-        
+
         LOGGER.info('Compilation')
         # recompilation does not garantees cold start (garanteed only for first function)
         compile_source(source_file_list, str(bin_path), optimization_profile=opt_profile)
     else:
         LOGGER.warning('Compilation is skipped')
-    
+
     if profile == "compilation":
         complete_experiment()
 
@@ -327,7 +324,7 @@ if __name__ == '__main__':
         LOGGER.info("Experiment execution")
         for function_item in function_names_set:
             LOGGER.info(f'Process \"{function_item}\" function')
-        create_plots(plot_format=plot_format, result_directory=result_directory)
+        create_plots(plot_format=plot_format, result_directory=str(result_directory))
         complete_experiment()
 
     core_nums = get_available_cores()
@@ -335,7 +332,7 @@ if __name__ == '__main__':
     if profile == "smoke_test":
         sizes = [5, 10, 5]
         exp_count = 2
-        
+
     try:
         LOGGER.info('Frequency setting')
         for core in core_nums:  
@@ -350,5 +347,5 @@ if __name__ == '__main__':
         for core in core_nums:
             set_min_core_frequency_limit(frequencies[0], core)
     LOGGER.info("Plotting graphs")
-    create_plots(plot_format=plot_format, result_directory=result_directory)
+    create_plots(plot_format=plot_format, result_directory=str(result_directory))
     complete_experiment()
