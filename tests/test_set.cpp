@@ -86,7 +86,7 @@ AssertionResult test_scalar_prod(TestFunctionInputExtended input){
         test_result = scalar_product_std(a, b, length);
         break;
     case FunctionOptimizationType::kUnsafe:
-        test_result = scalar_product_std_unsafe(a, b, length);
+        test_result = scalar_product_opt_unsafe(a, b, length);
         break;
     default:
         return assert::assert_false(true);
@@ -242,7 +242,7 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
     if(input.algebra_object_version==AlgebraObjectVersion::kZero){ // the presence of zero vectors leads to nan in the proj calculation 
         for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
             for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
-                num_type res = scalar_product_std_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
+                num_type res = scalar_product_opt_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
                 if(res == res){
                     return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
                 }
@@ -251,7 +251,7 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
     }else{
         for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
             for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
-                num_type res = scalar_product_std_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
+                num_type res = scalar_product_opt_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
                 bool assert_result =  assert::assert_near(0., res, kEps);
                 if(!assert_result){
                     return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors

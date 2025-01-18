@@ -114,6 +114,7 @@ def save_vec_plots(plot_format: str, time_name: str, result_directory: str, vec_
     plt.savefig(os.path.join(result_directory, f"vec.{plot_format}"), bbox_inches="tight", format=plot_format)
     plt.cla()
 
+
 def create_plots(plot_format: str, result_directory: str, time_name: str, vec_names: list, mat_names: list, gs_names: list, qr_names: list):
     LOGGER.info("Plotting graphs")
     LOGGER.info("Saving not vector plots")
