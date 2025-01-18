@@ -72,7 +72,10 @@ def full_pass(args, plot_format: str, function_names_set: set, sizes: list[int],
 def compilation(args):
     set_logger_level(args.logger_level)
     bin_path = create_bin_path(PARENT_DIRECTORY, EXPERIMENT_FILE_NAME)
-    compile_source(bin_path=str(bin_path), compilation_profile=args.compilation_profile)
+    if hasattr(args, "flame_graph"):
+        compile_source(bin_path=str(bin_path), compilation_profile=args.compilation_profile, flame_graph=True)
+    else:
+        compile_source(bin_path=str(bin_path), compilation_profile=args.compilation_profile, flame_graph=False)
     return bin_path
 
 
@@ -124,6 +127,7 @@ if __name__ == '__main__':
 
     subparsers = parser.add_subparsers()
     compilation_parser = subparsers.add_parser("compilation", parents=[base_parent_parser, parent_compilation_parser], help="Sourse files compilation")
+    compilation_parser.add_argument("--flame-graph", help="add options to create flame graph", action="store_true")
     compilation_parser.set_defaults(func=compilation)
     smoke_test_parser = subparsers.add_parser("smoke_test", parents=[base_parent_parser, parent_compilation_parser], help="Smoll experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)

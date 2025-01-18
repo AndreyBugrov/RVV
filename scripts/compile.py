@@ -20,7 +20,7 @@ COMPILATION_PROFILE_TO_OPTIONS = {
 }
 
 
-def compile_source(bin_path: str, compilation_profile: str):
+def compile_source(bin_path: str, compilation_profile: str, flame_graph: bool):
     if not compilation_profile:
         LOGGER.warning('Compilation is skipped')
         return
@@ -30,7 +30,11 @@ def compile_source(bin_path: str, compilation_profile: str):
     source_file_list.extend([str(item) for item in Path("experiments").glob("*.cpp")])
     LOGGER.debug("Source file list: " + " ".join(source_file_list))
 
-    args = 'g++ -Wall -Werror -Wsign-compare -std=c++20 ' + COMPILATION_PROFILE_TO_OPTIONS[compilation_profile] + ' ' + ' '.join(source_file_list) + ' -o ' + bin_path
+    if flame_graph:
+        flame_argument = "-fno-omit-frame-pointer"
+    else:
+        flame_argument = ""
+    args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {flame_argument} {COMPILATION_PROFILE_TO_OPTIONS[compilation_profile]} " + " ".join(source_file_list) + f" -o {bin_path}"
     cmd = shlex.split(args)
     LOGGER.debug("Compilation arguments: " + " ".join(cmd))
 
