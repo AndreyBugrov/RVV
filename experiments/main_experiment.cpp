@@ -8,17 +8,19 @@ using std::vector;
 
 int main(int argc, char* argv[]){
     // experiment count, function name, function arguments, .log file path
-    const int argc_min = 5;
-    if(argc < argc_min){
-        Exception ex(ErrorType::kWrongArgumentNumber, generate_string("Expected at least ", argc_min, " arguments but passed only ", argc));
+    const int kMinArgumentsCount = 5;
+    if(argc < kMinArgumentsCount){
+        Exception ex(ErrorType::kWrongArgumentNumber, generate_string("Expected ", kMinArgumentsCount, " arguments but passed ", argc));
         std::cerr<<ex.what()<<"\n";
         std::cerr<<ex.message()<<"\n";
+        return argc;
     }
     try{
         int experiment_count = std::stoi(argv[1]);
         std::string function_name = argv[2];
         std::vector<size_t> function_arguments;
-        for(int i = 3, inc_argc = argc-1;i<inc_argc;++i){
+        size_t function_arguments_count = argc-1;
+        for(size_t i = 3; i<function_arguments_count; ++i){
             function_arguments.push_back(std::stol(argv[i]));
         }
         // SingleLogger* logger = SingleLogger::get_instance(); ///////////////////////// GlobalLogger instead of SingleLogger

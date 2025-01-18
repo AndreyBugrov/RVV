@@ -34,7 +34,6 @@ void print_experiment_result(const BaseTaskOutput& output, std::ostream& stream)
 
 double count_seconds(std::vector<double>& seconds);
 
-
 // reset does not return anything so ResetFoo type != Foo type in general
 template<typename Foo, typename ResetFoo, typename... Args>
 BaseTaskOutput run_experiment_task(int experiment_num, Foo task, ResetFoo reset, Args... args){
