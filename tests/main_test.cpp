@@ -83,17 +83,17 @@ void fill_tasks(std::vector<TestTask>& tasks){
         pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kGeneral, " (general "),
         pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kWrong, " (incorrect "),
     };
-    const map<object_indexes, function<AssertionResult(TestFunctionInputExtended)>> object_types={
-        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kScalarMultiplication, test_scalar_prod),
-        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormCalculation, test_vector_norm),
-        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormalization, test_normalize_vector),
-        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kMatrixProduct, test_matrix_prod),
-        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kMatrixTransposition, test_matrix_transposition),
-        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kGramSchmidtProcess, test_qram_schmidt),
-        pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>>(object_indexes::kQRDecompostion, test_qr_decomposition),
+    const map<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>> object_types={
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kScalarMultiplication, test_scalar_prod),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormCalculation, test_vector_norm),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormalization, test_normalize_vector),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kMatrixProduct, test_matrix_prod),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kMatrixTransposition, test_matrix_transposition),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kGramSchmidtProcess, test_qram_schmidt),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kQRDecompostion, test_qr_decomposition),
     };
 
-    for(const pair<object_indexes, function<AssertionResult(TestFunctionInputExtended)>> object_type_pair : object_types){
+    for(const pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>> object_type_pair : object_types){
         for(const pair<FunctionOptimizationType, string> function_type : function_types.at(object_type_pair.first)){
             for(const pair<AlgebraObjectVersion, string> verification_name_pair: verification_names){
                 if(!((verification_name_pair.first==AlgebraObjectVersion::kWrong)&&(function_type.first==FunctionOptimizationType::kUnsafe || function_type.first == FunctionOptimizationType::kNoThrowing))){
@@ -105,10 +105,8 @@ void fill_tasks(std::vector<TestTask>& tasks){
 }
 
 int main(){
-
     std::vector<TestTask> tasks;
     fill_tasks(tasks);
-    TestRunner test_runner(&tasks);
-    test_runner.run_all(std::cout);
+    run_tests(tasks, tasks.size(), std::cout);
     return 0;
 }
