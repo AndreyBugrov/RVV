@@ -4,7 +4,10 @@ import shlex
 import logging
 from pathlib import Path
 
-from common import critical_message
+from common_defs import critical_message
+from compile import compile_source
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
+from create_plots import create_plots
 
 
 LOGGER = logging.getLogger(__name__)
@@ -85,6 +88,28 @@ def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_cou
             writer.writerow(row)
         LOGGER.debug(f'Experiment with {current_sizes} sizes of {function_name} was carried out\n')
     LOGGER.info(f'Results were saved to {csv_file_name}')
+
+
+def full_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], exp_count: int, device_name: str, is_temporary: bool):
+    LOGGER.info("Start of preprocessing phase")
+    bin_path = compile_source(compilation_profile=compilation_profile, is_test=False, for_perf=False)
+    result_directory = prepare_result_directory(is_temporary=is_temporary)
+    core_nums = get_available_cores()
+    min_frequenciy, max_frequency = get_min_max_frequencies()
+    try:
+        LOGGER.info('Frequency setting')
+        for core in core_nums:  
+            set_min_core_frequency_limit(max_frequency, core)
+        LOGGER.info("Experiment execution")
+        for function_item in function_names_set:
+            LOGGER.info(f'Process \"{function_item}\" function')
+            run_experiment(bin_path, function_item, sizes, exp_count, device_name, max_frequency, result_directory)
+    except KeyboardInterrupt:
+        critical_message('Program has been interrupted')
+    finally:
+        for core in core_nums:
+            set_min_core_frequency_limit(min_frequenciy, core)
+    create_plots(plot_format=plot_format, result_directory=str(result_directory))
 
 
 def _create_function_dict() -> dict[str, set[str]]:

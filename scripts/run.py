@@ -4,10 +4,10 @@ from pathlib import Path
 
 from create_plots import create_plots
 from compile import compile_source, COMPILATION_PROFILE_TO_OPTIONS
-from preprocessing import get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit, prepare_result_directory
-from experiment import run_experiment, get_function_name_set, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
-from my_tests import run_tests
-from common import critical_message
+from preprocessing import prepare_result_directory
+from experiment import get_function_name_set, full_pass, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
+from my_tests import full_test
+from common_defs import critical_message
 
 
 LOGGER = logging.getLogger(__name__)
@@ -28,45 +28,9 @@ def set_logger_level(logger_level):
     logging.basicConfig(level=logger_level_paramenter, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
 
 
-PARENT_DIRECTORY = Path(".").parent.parent
-TEST_FILE_NAME = "test.out"
-
-
-def create_bin_directory(parent_directory: Path) -> Path:
-    bin_directory = parent_directory / 'bin'
-    bin_directory.mkdir(parents=True, exist_ok=True)
-    return bin_directory
-
-
-def full_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], exp_count: int, device_name: str, is_temporary: bool):
-    LOGGER.info("Start of preprocessing phase")
-    bin_directory = create_bin_directory(PARENT_DIRECTORY)
-    bin_path = compile_source(bin_directory=bin_directory, compilation_profile=compilation_profile, is_test=False, for_perf=False)
-    result_directory = prepare_result_directory(parent_directory=PARENT_DIRECTORY, is_temporary=is_temporary)
-    core_nums = get_available_cores()
-    min_frequenciy, max_frequency = get_min_max_frequencies()
-    try:
-        LOGGER.info('Frequency setting')
-        for core in core_nums:  
-            set_min_core_frequency_limit(max_frequency, core)
-        LOGGER.info("Experiment execution")
-        for function_item in function_names_set:
-            LOGGER.info(f'Process \"{function_item}\" function')
-            run_experiment(bin_path, function_item, sizes, exp_count, device_name, max_frequency, result_directory)
-    except KeyboardInterrupt:
-        critical_message('Program has been interrupted')
-    finally:
-        for core in core_nums:
-            set_min_core_frequency_limit(min_frequenciy, core)
-    create_plots(plot_format=plot_format, result_directory=str(result_directory))
-
-
 def compilation(args):
     set_logger_level(args.logger_level)
-    bin_directory = create_bin_directory(PARENT_DIRECTORY)
-    if args.for_perf:
-        compile_source(bin_directory=bin_directory, compilation_profile=args.compilation_profile, is_test=False, for_perf=True)
-    compile_source(bin_directory=bin_directory, compilation_profile=args.compilation_profile, is_test=False, for_perf=False)
+    compile_source(compilation_profile=args.compilation_profile, is_test=False, for_perf=args.for_perf)
 
 
 def smoke_test(args):
@@ -76,6 +40,7 @@ def smoke_test(args):
 
 
 def experiment(args):
+    set_logger_level(args.logger_level)
     if int(args.exp_count) < 1:
         critical_message("Choose at least one experiment!")
     sizes = args.sizes
@@ -84,7 +49,6 @@ def experiment(args):
     if sizes[0] > sizes[1]:
         critical_message("\"min_n\" should be less or equal \"max_n\"!")
     function_names_set = get_function_name_set(args.specific_functions, args.operation_classes, args.optimization_classes)
-    set_logger_level(args.logger_level)
     LOGGER.debug(f"Chosen functions: {function_names_set}")
     is_temporary = args.is_temporary == 'true'
     if is_temporary:
@@ -96,28 +60,18 @@ def experiment(args):
 
 def plotting(args):
     set_logger_level(args.logger_level)
-    result_directory = prepare_result_directory(parent_directory=PARENT_DIRECTORY, is_temporary=args.is_temporary)
+    result_directory = prepare_result_directory(is_temporary=args.is_temporary)
     create_plots(plot_format=args.plot_format, result_directory=str(result_directory))
 
 
 def testing(args):
     set_logger_level(args.logger_level)
-    bin_directory = create_bin_directory(PARENT_DIRECTORY)
-    test_count = 39
     compilation_profiles = []
     if not args.compilation_profile:
         compilation_profiles = list(COMPILATION_PROFILE_TO_OPTIONS.keys())
     else:
         compilation_profiles.append(args.compilation_profile)
-    all_test_count = test_count * len(compilation_profiles)
-    all_failed_test_count = 0
-    for compilation_profile in compilation_profiles:
-        LOGGER.info(f"Compilation_profile: {compilation_profile}")
-        bin_path = compile_source(bin_directory, compilation_profile, is_test=True, for_perf=False)
-        current_failed_test_count = run_tests(bin_path)
-        all_failed_test_count += current_failed_test_count
-    LOGGER.info(f"All test count: {all_test_count}")
-    LOGGER.info(f"Failed test count: {all_failed_test_count}")
+    full_test(compilation_profiles=compilation_profiles)
 
 
 if __name__ == '__main__':

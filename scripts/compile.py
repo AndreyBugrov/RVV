@@ -4,7 +4,7 @@ import subprocess # necessary
 
 from pathlib import Path
 
-from common import critical_message
+from common_defs import critical_message, PARENT_DIRECTORY
 
 LOGGER = logging.getLogger(__name__)
 BASE_OPTIMIZATION_LEVEL = "-O2"
@@ -20,7 +20,14 @@ COMPILATION_PROFILE_TO_OPTIONS = {
 }
 
 
-def compile_source(bin_directory: Path, compilation_profile: str, is_test: bool, for_perf: bool) -> Path:
+def _create_bin_directory() -> Path:
+    bin_directory = PARENT_DIRECTORY / 'bin'
+    bin_directory.mkdir(parents=True, exist_ok=True)
+    return bin_directory
+
+
+def compile_source(compilation_profile: str, is_test: bool, for_perf: bool) -> Path:
+    bin_directory = _create_bin_directory()
     if is_test:
         bin_path = bin_directory / "test.out"
     else:

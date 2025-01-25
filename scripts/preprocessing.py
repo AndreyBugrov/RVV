@@ -3,6 +3,8 @@ import logging # necessary
 from pathlib import Path
 from copy import copy
 
+from common_defs import PARENT_DIRECTORY
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -38,9 +40,9 @@ def set_min_core_frequency_limit(frequency, core_num):
     subprocess.Popen(line, shell=True).communicate()
 
 
-def prepare_result_directory(parent_directory: Path, is_temporary: bool):
+def prepare_result_directory(is_temporary: bool):
     LOGGER.info("Preparing result directory")
-    result_directory = copy(parent_directory)
+    result_directory = copy(PARENT_DIRECTORY)
     if is_temporary:
         result_directory = result_directory / "staging_results"
     else:
