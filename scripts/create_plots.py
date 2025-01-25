@@ -20,6 +20,12 @@ FILE_NAME_TO_PLOT_NAME={
     "vec_p_std_x86_2.1GHz.csv" : "Inner product"
 }
 
+TIME_NAME = "Time"
+VEC_COLUMN_NAMES = ["Experiments count", "Length", TIME_NAME]
+MAT_COLUMN_NAMES = ["Experiments count", "1st row count", "1st column count", "2nd column count", TIME_NAME]
+GS_COLUMN_NAMES = ["Experiments count", "Vector system size", "Vector length", TIME_NAME]
+QR_COLUMN_NAMES = ["Experiments count", "Row count", "Column count", TIME_NAME]
+
 def save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_directory: str, mat_names: list[str], gs_names: list[str], qr_names: list[str]):
     for path_item in Path(result_directory).glob("*.csv"):
         file_name = path_item.name
@@ -115,15 +121,9 @@ def save_vec_plots(plot_format: str, time_name: str, result_directory: str, vec_
     plt.cla()
 
 
-def create_plots(plot_format: str, result_directory: str, time_name: str, vec_names: list, mat_names: list, gs_names: list, qr_names: list):
+def create_plots(plot_format: str, result_directory: str, time_name: str=TIME_NAME, vec_column_names: list=VEC_COLUMN_NAMES, mat_column_names: list=MAT_COLUMN_NAMES, gs_column_names: list=GS_COLUMN_NAMES, qr_column_names: list=QR_COLUMN_NAMES):
     LOGGER.info("Plotting graphs")
     LOGGER.info("Saving not vector plots")
-    save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=time_name, result_directory=result_directory, mat_names=mat_names, gs_names=gs_names, qr_names=qr_names)
+    save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=time_name, result_directory=result_directory, mat_names=mat_column_names, gs_names=gs_column_names, qr_names=qr_column_names)
     LOGGER.info("Saving vector only plots")
-    save_vec_plots(plot_format=plot_format, time_name=time_name, result_directory=result_directory, vec_names=vec_names)
-
-
-if __name__ == "__main__":
-    from scripts.run import VEC_NAMES, MAT_NAMES, GS_NAMES, QR_NAMES
-    save_no_vec_plots_and_init_ax("png", VEC_NAMES[-1], "prod_results", MAT_NAMES, GS_NAMES, QR_NAMES)
-    save_vec_plots("png", VEC_NAMES[-1], "prod_results", VEC_NAMES)
+    save_vec_plots(plot_format=plot_format, time_name=time_name, result_directory=result_directory, vec_names=vec_column_names)
