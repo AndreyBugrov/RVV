@@ -13,7 +13,6 @@ static TestFunctionInput get_test_function_input() {
 
 static void print_header(std::ostream& stream) {
     auto current_date = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    //const std::string delimiter = "--------------------------------------------------------------------------------\n";
     stream<<"RUN DATE: "<<std::ctime(&current_date)<<delimiter;
     stream<<"RUN PARAMETERS:\nVALUES: from "<< kMinValue<<" to "<<kMaxValue<<"\nLENGTH: from "<<kMinLength<<" to "<<kMaxLength<<"\n";
     stream << delimiter;
@@ -38,7 +37,7 @@ static void parse_failed_test_output(const TestOutput& test_output, const std::s
     }
 }
 
-void run_tests(const std::vector<TestTask>& test_tasks, size_t task_count, std::ostream& stream) {
+size_t run_tests(const std::vector<TestTask>& test_tasks, size_t task_count, std::ostream& stream) {
     print_header(stream);
     size_t passed = 0;
     size_t failed = 0;
@@ -62,13 +61,13 @@ void run_tests(const std::vector<TestTask>& test_tasks, size_t task_count, std::
     std::chrono::duration<double> all_task_seconds = end_task - start_task;
     double total_seconds = all_task_seconds.count();
     stream<<"TOTAL:\n"<<"RUN:    "<<task_count<<"\nPASSED: "<<passed<<"\nFAILED: "<<failed<<"\nTIME:   "<<total_seconds<<"\n";
-    if(wrong_test_names.empty()){
-        return;
+    if(failed){
+        stream << delimiter;
+        stream<<"FAILED TESTS: \n";
+        for(std::string test_name : wrong_test_names){
+            stream<<"\""<< test_name<<"\" ";
+        }
+        stream<<"\n";
     }
-    stream << delimiter;
-    stream<<"FAILED TESTS: \n";
-    for(std::string test_name : wrong_test_names){
-        stream<<"\""<< test_name<<"\" ";
-    }
-    stream<<"\n";
+    return failed;
 }

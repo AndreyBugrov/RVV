@@ -107,6 +107,6 @@ void fill_tasks(std::vector<TestTask>& tasks){
 int main(){
     std::vector<TestTask> tasks;
     fill_tasks(tasks);
-    run_tests(tasks, tasks.size(), std::cout);
-    return 0;
+    int failed_test_count = static_cast<int>(run_tests(tasks, tasks.size(), std::cout));
+    return failed_test_count;
 }
