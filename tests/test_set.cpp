@@ -4,7 +4,7 @@ using std::string;
 
 static const num_type kEps = 0.000001;
 
-AssertionResult test_scalar_prod(TestFunctionInputExtended input){
+ExpectationResult test_scalar_prod(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> a, b;
     
@@ -65,15 +65,15 @@ AssertionResult test_scalar_prod(TestFunctionInputExtended input){
         switch (input.function_type)
         {
         case FunctionOptimizationType::kSimple:
-            return assert::assert_throw(scalar_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
+            return expect::expect_throw(scalar_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
         case FunctionOptimizationType::kSimpleStd:
-            return assert::assert_throw(scalar_product_std, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
+            return expect::expect_throw(scalar_product_std, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
         default:
-            return assert::assert_false(true);
+            return expect::expect_false(true);
         }
         break;
     default:
-        return assert::assert_false(true);
+        return expect::expect_false(true);
         break;
     }
     num_type test_result;
@@ -89,13 +89,13 @@ AssertionResult test_scalar_prod(TestFunctionInputExtended input){
         test_result = scalar_product_opt_unsafe(a, b, length);
         break;
     default:
-        return assert::assert_false(true);
+        return expect::expect_false(true);
         break;
     }
-    return assert::assert_eq(etalon, test_result);
+    return expect::expect_eq(etalon, test_result);
 }
 
-AssertionResult test_matrix_prod(TestFunctionInputExtended input){
+ExpectationResult test_matrix_prod(TestFunctionInputExtended input){
     size_t a_row_number = 0;
     size_t a_column_number = 0;
     size_t b_column_number = 0;
@@ -157,18 +157,18 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
                 foo = matrix_prod_base_simple;
                 break;
             default:
-                return assert::assert_false(true);
+                return expect::expect_false(true);
                 break;
             }
             a.resize(a_row_number*a_column_number+1);
-            bool wrong_a = assert::assert_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
+            bool wrong_a = expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
             a.resize(a_row_number*a_column_number);
             b.resize(a_column_number*b_column_number+1);
-            bool wrong_b = assert::assert_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
+            bool wrong_b = expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
             b.resize(a_column_number*b_column_number);
             c.resize(a_row_number*b_column_number+1);
-            bool wrong_c = assert::assert_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
-            return assert::assert_true(wrong_a&&wrong_b&&wrong_c);
+            bool wrong_c = expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
+            return expect::expect_true(wrong_a&&wrong_b&&wrong_c);
         }
         break;
     default:
@@ -181,13 +181,13 @@ AssertionResult test_matrix_prod(TestFunctionInputExtended input){
         matrix_prod_base_simple(a, b, c, a_row_number, a_column_number, b_column_number);
         break;
     default:
-        return assert::assert_false(true);
+        return expect::expect_false(true);
         break;
     }
-    return assert::assert_iterable_containers_eq(etalon, c, etalon.size());
+    return expect::expect_iterable_containers_eq(etalon, c, etalon.size());
 }
 
-AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
+ExpectationResult test_qram_schmidt(TestFunctionInputExtended input){
     size_t vector_system_size = 0;
     size_t vector_length = 0;
     vector<vector<num_type>> vector_system;
@@ -244,7 +244,7 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
             for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
                 num_type res = scalar_product_opt_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
                 if(res == res){
-                    return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
+                    return expect::expect_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
                 }
             }
         }
@@ -252,17 +252,17 @@ AssertionResult test_qram_schmidt(TestFunctionInputExtended input){
         for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
             for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
                 num_type res = scalar_product_opt_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
-                bool assert_result =  assert::assert_near(0., res, kEps);
+                bool assert_result =  expect::expect_near(0., res, kEps);
                 if(!assert_result){
-                    return assert::assert_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
+                    return expect::expect_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
                 }
             }
         }
     }
-    return assert::assert_true(true);
+    return expect::expect_true(true);
 }
 
-AssertionResult test_vector_norm(TestFunctionInputExtended input){
+ExpectationResult test_vector_norm(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> vec;
     
@@ -298,10 +298,10 @@ AssertionResult test_vector_norm(TestFunctionInputExtended input){
         base_norm+=vec[i]*vec[i];
     }
     base_norm = sqrt(base_norm);
-    return assert::assert_eq(base_norm, test_norm);
+    return expect::expect_eq(base_norm, test_norm);
 }
 
-AssertionResult test_normalize_vector(TestFunctionInputExtended input){
+ExpectationResult test_normalize_vector(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> vec;
     num_type etalon = 1.0;
@@ -336,10 +336,10 @@ AssertionResult test_normalize_vector(TestFunctionInputExtended input){
     }
     num_type norm = get_vector_norm(vec);
     normalize_vector_inplace(vec, norm);
-    return assert::assert_near(etalon, get_vector_norm(vec), kEps);
+    return expect::expect_near(etalon, get_vector_norm(vec), kEps);
 }
 
-AssertionResult test_matrix_transposition(TestFunctionInputExtended input){
+ExpectationResult test_matrix_transposition(TestFunctionInputExtended input){
     size_t row_num = 0;
     size_t column_num = 0;
     vector<num_type> matrix;
@@ -374,14 +374,14 @@ AssertionResult test_matrix_transposition(TestFunctionInputExtended input){
         for(size_t j=0;j<row_num;++j){
             result = result && (T_matrix[i*row_num+j] == matrix[j*column_num+i]);
             if(! result){
-                return assert::assert_eq(i, j);
+                return expect::expect_eq(i, j);
             }
         }
     }
-    return assert::assert_true(result);
+    return expect::expect_true(result);
 }
 
-AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
+ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     size_t row_num = 0;
     size_t column_num = 0;
 
@@ -429,9 +429,9 @@ AssertionResult test_qr_decomposition(TestFunctionInputExtended input){
         QR_decomposition_base_simple(matrix, Q_matrix, R_matrix, row_num, column_num);
         break;
     default:
-        return assert::assert_true(false);
+        return expect::expect_true(false);
     }
     vector<num_type> test_matrix(row_num*column_num);
     matrix_prod_base_simple(Q_matrix, R_matrix, test_matrix, row_num, column_num, column_num);
-    return assert::assert_iterable_containers_near(matrix, test_matrix, kEps, row_num*column_num);
+    return expect::expect_iterable_containers_near(matrix, test_matrix, kEps, row_num*column_num);
 }

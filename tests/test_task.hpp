@@ -1,10 +1,8 @@
 #pragma once
 
-#include <sstream>  // stringstream
-
 #include "../tasks/base_task.hpp"  // inheritance
 #include "../common/exception.hpp"  // Exception
-#include "assert.hpp"  // AssertionResult
+#include "expect.hpp"  // ExpectationResult
 
 
 struct TestFunctionInput{
@@ -58,12 +56,12 @@ public:
     bool passed() const{return passed_;}
 };
 
-class TestTask: public BaseTask<TestFunctionInputExtended, AssertionResult, TestOutput>{
+class TestTask: public BaseTask<TestFunctionInputExtended, ExpectationResult, TestOutput>{
     FunctionOptimizationType function_type_;
     AlgebraObjectVersion version_;
 public:
     TestTask(std::string name, FunctionOptimizationType function_type, AlgebraObjectVersion version, 
-    std::function<AssertionResult(TestFunctionInputExtended)> task): 
+    std::function<ExpectationResult(TestFunctionInputExtended)> task): 
     BaseTask(name, task), function_type_(function_type), version_(version)
     {}
     TestOutput run(TestFunctionInput input) const{
@@ -71,7 +69,7 @@ public:
         std::string error_type;
         std::string error_message;
         double seconds = 0.0;
-        AssertionResult passed = false;
+        ExpectationResult passed = false;
         try{
             const auto start_test{std::chrono::steady_clock::now()};
             passed = task_(TestFunctionInputExtended(input, function_type_, version_));
