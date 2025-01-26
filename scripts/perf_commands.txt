@@ -3,7 +3,7 @@ echo -1 > /proc/sys/kernel/perf_event_paranoid
 echo 0 > /proc/sys/kernel/kptr_restrict
 exit
 source ./scripts/env.sh
-python scripts/run.py compilation -d x86 -l info -c release --flame-graph
+python scripts/run.py compilation -d x86 -l info -c release --for-perf
 perf record -F 99 -a -g -- ../RVV/bin/experiment.out 10 qr_d_sim 1000 1000 ./log.log > staging_results/perf.data
 perf script --kallsyms=/proc/kallsyms | ../FlameGraph/stackcollapse-perf.pl > staging_results/perf.script
 ../FlameGraph/flamegraph.pl staging_results/perf.script > staging_results/flame_graph.svg
