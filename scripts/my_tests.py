@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from common_defs import critical_message
-from compile import compile_source
+from compile import compile_sources
 
 
 LOGGER = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ def full_test(compilation_profiles: list[str]):
     failed_profiles = set()
     for compilation_profile in compilation_profiles:
         LOGGER.info(f"Compilation_profile: {compilation_profile}")
-        bin_path = compile_source(compilation_profile, is_test=True, for_perf=False)
+        bin_path = compile_sources(compilation_profile, is_test=True, for_perf=False)
         LOGGER.info(f"Running tests")
         current_failed_test_count = run_tests(bin_path)
         all_failed_test_count += current_failed_test_count

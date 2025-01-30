@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 from common_defs import critical_message
-from compile import compile_source
+from compile import compile_sources
 from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
 from create_plots import create_plots
 
@@ -37,7 +37,7 @@ def _run_binary(bin_path: Path, function_name: str, sizes: str, exp_count: int) 
     return output
 
 
-def _get_current_sizes_by_operation_class(current_size: int, operation_class: str):
+def get_current_sizes_by_operation_class(current_size: int, operation_class: str):
     base_current_size = f'{current_size} '
     output = ""
     if operation_class == OPERATIONS['vector']:
@@ -81,7 +81,7 @@ def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_cou
         writer.writerow(header)
 
     for i in range(min_n, max_n, step_n):
-        current_sizes = _get_current_sizes_by_operation_class(current_size=i, operation_class=operation_class)
+        current_sizes = get_current_sizes_by_operation_class(current_size=i, operation_class=operation_class)
         row = _run_binary(bin_path=bin_path, function_name=function_name, sizes=current_sizes, exp_count=exp_count)
         with open(csv_file_name, 'a', encoding='utf-8') as f:
             writer = csv.writer(f, delimiter=';')
@@ -90,25 +90,27 @@ def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_cou
     LOGGER.info(f'Results were saved to {csv_file_name}')
 
 
-def full_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], exp_count: int, device_name: str, is_temporary: bool):
+def full_experiment_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], exp_count: int, device_name: str, is_temporary: bool):
     LOGGER.info("Start of preprocessing phase")
-    bin_path = compile_source(compilation_profile=compilation_profile, is_test=False, for_perf=False)
     result_directory = prepare_result_directory(is_temporary=is_temporary)
+    bin_path = compile_sources(compilation_profile=compilation_profile, is_test=False, for_perf=False)
     core_nums = get_available_cores()
     min_frequenciy, max_frequency = get_min_max_frequencies()
     try:
-        LOGGER.info('Frequency setting')
+        LOGGER.info("Frequency setting")
         for core in core_nums:  
             set_min_core_frequency_limit(max_frequency, core)
+        LOGGER.debug(f"Frequency is {max_frequency}")
         LOGGER.info("Experiment execution")
         for function_item in function_names_set:
             LOGGER.info(f'Process \"{function_item}\" function')
             run_experiment(bin_path, function_item, sizes, exp_count, device_name, max_frequency, result_directory)
     except KeyboardInterrupt:
-        critical_message('Program has been interrupted')
-    finally:
         for core in core_nums:
             set_min_core_frequency_limit(min_frequenciy, core)
+        critical_message('Program has been interrupted')
+    for core in core_nums:
+        set_min_core_frequency_limit(min_frequenciy, core)
     create_plots(plot_format=plot_format, result_directory=str(result_directory))
 
 

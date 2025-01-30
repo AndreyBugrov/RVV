@@ -26,7 +26,11 @@ def _create_bin_directory() -> Path:
     return bin_directory
 
 
-def compile_source(compilation_profile: str, is_test: bool, for_perf: bool) -> Path:
+def compile_sources(compilation_profile: str, is_test: bool, for_perf: bool) -> Path:
+    """
+    Returns:
+        path to exectution file
+    """
     bin_directory = _create_bin_directory()
     if is_test:
         bin_path = bin_directory / "test.out"
@@ -51,7 +55,7 @@ def compile_source(compilation_profile: str, is_test: bool, for_perf: bool) -> P
         perf_argument = ""
     args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {perf_argument} {COMPILATION_PROFILE_TO_OPTIONS[compilation_profile]} " + " ".join(source_file_list) + f" -o {bin_path}"
     cmd = shlex.split(args)
-    LOGGER.debug("Compilation arguments: " + " ".join(cmd))
+    LOGGER.debug("Compilation command line: " + " ".join(cmd))
 
     LOGGER.info('Compilation')
     compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
