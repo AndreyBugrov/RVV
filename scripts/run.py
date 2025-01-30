@@ -8,7 +8,7 @@ from preprocessing import prepare_result_directory
 from experiment import get_function_name_set, full_experiment_pass, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
 from my_tests import full_test
 from performance import measure_performance
-from common_defs import critical_message
+from common_defs import critical_message, get_device_name
 
 
 LOGGER = logging.getLogger(__name__)
@@ -86,8 +86,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="QR decomposition run automation")
 
     base_parent_parser = argparse.ArgumentParser(add_help=False)
-    base_parent_parser.add_argument('-d', '--device-name', help="Device name", choices=["kendryte", "x86"], required=True)
     base_parent_parser.add_argument('-l', '--logger-level', help="Level of supported logger messages", choices=['debug', 'info', 'warning', 'error', 'critical'], default='info')
+    base_parent_parser.set_defaults(device_name="unknown")
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
     parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile (do not specify if compilation is not necessary)", choices=COMPILATION_PROFILE_TO_OPTIONS.keys())
@@ -125,6 +125,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     set_logger_level(args.logger_level)
+    args.device_name = get_device_name()
     if hasattr(args, "func"):
         args.func(args)
     else:

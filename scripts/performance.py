@@ -78,12 +78,16 @@ def _create_flame_graph(perf_script_path: Path, perf_beginning: str, is_icicle: 
 
 def _get_qr_function_names_from_optimization_class(optimization_classes: str) -> list[str]:
     function_names = []
+    if "all" in optimization_classes:
+        LOGGER.info("All optimization classes were chosen")
+        optimization_classes = list(OPTIMIZATIONS.keys())
     for optimization_class in optimization_classes:
         function_name = OPERATIONS['qr'] + '_' + OPTIMIZATIONS[optimization_class]
         if function_name in FUNCTION_NAMES_DICT:
             function_names.append(function_name)
         else:
             LOGGER.warning(f"QR decomposition does not have \"{optimization_class}\" optimization class")
+    LOGGER.debug(f"Function name list: {function_names}")
     return function_names
 
 
