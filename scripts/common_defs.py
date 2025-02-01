@@ -25,6 +25,7 @@ def get_device_name():
     LOGGER.info("\"kendryte\" device name was chosen")
     return "kendryte"
 
+
 def set_logger_level(logger_level):
     logger_level_paramenter = 0
     if logger_level == 'degug':
