@@ -24,3 +24,17 @@ def get_device_name():
         return "x86"
     LOGGER.info("\"kendryte\" device name was chosen")
     return "kendryte"
+
+def set_logger_level(logger_level):
+    logger_level_paramenter = 0
+    if logger_level == 'degug':
+        logger_level_paramenter = logging.DEBUG
+    elif logger_level == 'info':
+        logger_level_paramenter = logging.INFO
+    elif logger_level == 'warning':
+        logger_level_paramenter = logging.WARNING
+    elif logger_level == 'error':
+        logger_level_paramenter = logging.ERROR
+    elif logger_level == 'critical':
+        logger_level_paramenter = logging.CRITICAL
+    logging.basicConfig(level=logger_level_paramenter, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')

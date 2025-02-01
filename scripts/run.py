@@ -1,6 +1,5 @@
 import argparse
 import logging
-from pathlib import Path
 
 from create_plots import create_plots
 from compile import compile_sources, COMPILATION_PROFILE_TO_OPTIONS
@@ -8,29 +7,21 @@ from preprocessing import prepare_result_directory
 from experiment import get_function_name_set, full_experiment_pass, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
 from my_tests import full_test
 from performance import measure_performance
-from common_defs import critical_message, get_device_name
+from common_defs import critical_message, get_device_name, set_logger_level
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-def set_logger_level(logger_level):
-    logger_level_paramenter = 0
-    if logger_level == 'degug':
-        logger_level_paramenter = logging.DEBUG
-    elif logger_level == 'info':
-        logger_level_paramenter = logging.INFO
-    elif logger_level == 'warning':
-        logger_level_paramenter = logging.WARNING
-    elif logger_level == 'error':
-        logger_level_paramenter = logging.ERROR
-    elif logger_level == 'critical':
-        logger_level_paramenter = logging.CRITICAL
-    logging.basicConfig(level=logger_level_paramenter, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
-
-
 def compilation(args):
-    compile_sources(compilation_profile=args.compilation_profile, is_test=False, for_perf=args.for_perf)
+    compilation_type = args.type
+    is_test=False
+    for_perf=False
+    if compilation_type == "perf":
+        for_perf = True
+    elif compilation_type == "test":
+        is_test = True
+    compile_sources(args.compilation_profile, is_test, for_perf)
 
 
 def smoke_test(args):
@@ -82,6 +73,7 @@ def perf_measurements(args):
         compilation_profiles = args.compilation_profiles
     measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="QR decomposition run automation")
 
@@ -95,27 +87,25 @@ if __name__ == '__main__':
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
     parent_plotting_parser.add_argument('--is-temporary', help="Save the results to temporary directory or not", choices=['true', 'false'], required=True)
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)
-    parent_optimization_parser.add_argument('--optimization-classes', help="Optimization classes", choices=list(OPTIMIZATIONS.keys()) + ['all'], nargs='*')
     parent_optimization_parser.add_argument('-n', '--exp-count', help="Number of experiments with equal parameters", type=int, required=True)
+    parent_optimization_parser.add_argument('--optimization-classes', help="Optimization classes", choices=list(OPTIMIZATIONS.keys()) + ['all'], nargs='*')
     parent_multicompilation_parser = argparse.ArgumentParser(add_help=False)
     parent_multicompilation_parser.add_argument('-c', '--compilation-profiles', help="Compilation profiles. \"perf\" means all profiles except \"debug\"", choices=list(COMPILATION_PROFILE_TO_OPTIONS.keys()) + ["perf"], nargs="+")
 
     subparsers = parser.add_subparsers()
     compilation_parser = subparsers.add_parser("compilation", parents=[base_parent_parser, parent_compilation_parser], help="Sourse files compilation")
-    compilation_parser.add_argument("--for-perf", help="add options for further perf record report creation", action="store_true")
+    compilation_parser.add_argument("--type", help="Compilation_target", choices=["experiment", "perf", "test"], required=True)
     compilation_parser.set_defaults(func=compilation)
     smoke_test_parser = subparsers.add_parser("smoke_test", parents=[base_parent_parser, parent_compilation_parser], help="Small experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)
     plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser], help="Result directory plotting")
     plotting_parser.set_defaults(func=plotting)
     
-    experiment_parser = subparsers.add_parser("experiment", parents=[base_parent_parser, parent_compilation_parser, parent_plotting_parser, parent_optimization_parser], help="Full experiment")
-    experiment_parser.set_defaults(func=experiment)
-
+    experiment_parser = subparsers.add_parser("experiment", parents=[base_parent_parser, parent_compilation_parser, parent_plotting_parser, parent_optimization_parser], help="Full experiment run")
     experiment_parser.add_argument('--operation-classes', help="Operation classes", choices=list(OPERATIONS.keys()) + ['all'], nargs='*')
     experiment_parser.add_argument('-f', '--functions', help="Specific functions", choices=list(FUNCTION_NAMES_DICT['all']) + ['all'], nargs='*')   
-
-    experiment_parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=("MIN_SIZE MAX_SIZE STEP"), type=int, nargs=3, required=True)
+    experiment_parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=("MIN_SIZE", "MAX_SIZE", "STEP"), type=int, nargs=3, required=True)
+    experiment_parser.set_defaults(func=experiment)
 
     testing_parser = subparsers.add_parser("test", parents=[base_parent_parser, parent_multicompilation_parser], help="Tests for all compilation option sets")
     testing_parser.set_defaults(func=testing)
