@@ -71,7 +71,7 @@ def perf_measurements(args):
         compilation_profiles = [key for key in list(COMPILATION_PROFILE_TO_OPTIONS.keys()) if key != "debug"]
     else:
         compilation_profiles = args.compilation_profiles
-    measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name)
+    measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name, args.output_dir, args.suffix)
 
 
 if __name__ == '__main__':

@@ -13,9 +13,9 @@ LOGGER = logging.getLogger(__name__)
 QR_ROW_LENGTH = 1000
 
 
-def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilation_profile: str, device_name: str) -> Path:
+def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilation_profile: str, device_name: str, result_directory: Path) -> Path:
     sizes = get_current_sizes_by_operation_class(QR_ROW_LENGTH, OPERATIONS["qr"])
-    perf_data_path = Path(f"staging_results/{compilation_profile}_{function_name}_{device_name}_perf.data")
+    perf_data_path = result_directory / f"{compilation_profile}_{function_name}_{device_name}_perf.data"
     args = f"perf record -F 99 -a -g -o {perf_data_path} -- {bin_path} {exp_count} {function_name} {sizes} experiments.log"
     perf_object_name = "Perf record"
     LOGGER.debug(f"{perf_object_name} line: {args}")
@@ -91,13 +91,13 @@ def _get_qr_function_names_from_optimization_class(optimization_classes: str) ->
     return function_names
 
 
-def _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name):
+def _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory):
     try:
         LOGGER.info("Frequency setting")
         for core in core_nums:  
             set_min_core_frequency_limit(max_frequency, core)
         LOGGER.debug(f"Frequency is {max_frequency}")
-        perf_data_path = _get_perf_data(bin_path, function_name, exp_count, compilation_profile, device_name)
+        perf_data_path = _get_perf_data(bin_path, function_name, exp_count, compilation_profile, device_name, result_directory)
     except KeyboardInterrupt:
         for core in core_nums:
             set_min_core_frequency_limit(min_frequenciy, core)
@@ -111,7 +111,7 @@ def _measure_performance_for_function(function_name, core_nums, min_frequenciy, 
 
 
 def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int, device_name: str, output_dir: str, suffix: str) -> list[str]:
-    prepare_result_directory(output_dir, suffix)
+    result_directory = prepare_result_directory(output_dir, suffix)
     function_names = _get_qr_function_names_from_optimization_class(optimization_classes)
     core_nums = get_available_cores()
     min_frequenciy, max_frequency = get_min_max_frequencies()
@@ -120,4 +120,4 @@ def measure_performance(optimization_classes: set[str], compilation_profiles: li
         bin_path = compile_sources(compilation_profile=compilation_profile, is_test=False, for_perf=True)
         for function_name in function_names:
             LOGGER.info(f'Process \"{function_name}\" function')
-            _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name)
+            _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory)
