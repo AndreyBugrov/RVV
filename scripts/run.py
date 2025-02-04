@@ -1,9 +1,8 @@
 import argparse
 import logging
 
-from create_plots import create_plots
+from create_plots import create_plots, get_result_directories
 from compile import compile_sources, COMPILATION_PROFILE_TO_OPTIONS
-from preprocessing import prepare_result_directory
 from experiment import get_function_name_set, full_experiment_pass, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
 from my_tests import full_test
 from performance import measure_performance
@@ -26,7 +25,7 @@ def compilation(args):
 
 def smoke_test(args):
     function_names_set = get_function_name_set(["all"], [], [])
-    full_experiment_pass(compilation_profile=args.compilation_profile, plot_format="png", function_names_set=function_names_set, sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, is_temporary=True)
+    full_experiment_pass(compilation_profile=args.compilation_profile, plot_format="png", function_names_set=function_names_set, sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir, suffix=args.suffix)
 
 
 def experiment(args):
@@ -44,12 +43,13 @@ def experiment(args):
         LOGGER.warning("Results will be saved to temporary directory")
     else:
         LOGGER.warning("Results will be saved to the ordinary directory")
-    full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count, args.device_name, is_temporary)
+    full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count, args.device_name, args.output_dir, args.suffix)
 
 
 def plotting(args):
-    result_directory = prepare_result_directory(is_temporary=args.is_temporary)
-    create_plots(plot_format=args.plot_format, result_directory=str(result_directory))
+    result_directories = get_result_directories(args.output_dir, args.patterns)
+    for result_directory in result_directories:
+        create_plots(plot_format=args.plot_format, result_directory=str(result_directory))
 
 
 def testing(args):
@@ -71,7 +71,7 @@ def perf_measurements(args):
         compilation_profiles = [key for key in list(COMPILATION_PROFILE_TO_OPTIONS.keys()) if key != "debug"]
     else:
         compilation_profiles = args.compilation_profiles
-    measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name)
+    measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name, args.output_dir, args.suffix)
 
 
 if __name__ == '__main__':
@@ -85,23 +85,27 @@ if __name__ == '__main__':
     parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile (do not specify if compilation is not necessary)", choices=COMPILATION_PROFILE_TO_OPTIONS.keys())
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
-    parent_plotting_parser.add_argument('--is-temporary', help="Save the results to temporary directory or not", choices=['true', 'false'], required=True)
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)
     parent_optimization_parser.add_argument('-n', '--exp-count', help="Number of experiments with equal parameters", type=int, required=True)
     parent_optimization_parser.add_argument('--optimization-classes', help="Optimization classes", choices=list(OPTIMIZATIONS.keys()) + ['all'], nargs='*')
     parent_multicompilation_parser = argparse.ArgumentParser(add_help=False)
-    parent_multicompilation_parser.add_argument('-c', '--compilation-profiles', help="Compilation profiles. \"perf\" means all profiles except \"debug\"", choices=list(COMPILATION_PROFILE_TO_OPTIONS.keys()) + ["perf"], nargs="+")
+    parent_multicompilation_parser.add_argument('-c', '--compilation-profiles', help="Compilation profiles. \"perf\" means all profiles except \"debug\"", choices=list(COMPILATION_PROFILE_TO_OPTIONS.keys()) + ["perf"], nargs="+", required=True)
+    parent_result_parser = argparse.ArgumentParser(add_help=False)
+    parent_result_parser.add_argument('-o', "--output-dir", help="Path to parent directory for result directory", required=True)
+    parent_suffix_parser = argparse.ArgumentParser(add_help=False)
+    parent_suffix_parser.add_argument("--suffix", help="Custom directory name part after current date", required=False)
 
     subparsers = parser.add_subparsers()
     compilation_parser = subparsers.add_parser("compilation", parents=[base_parent_parser, parent_compilation_parser], help="Sourse files compilation")
     compilation_parser.add_argument("--type", help="Compilation_target", choices=["experiment", "perf", "test"], required=True)
     compilation_parser.set_defaults(func=compilation)
-    smoke_test_parser = subparsers.add_parser("smoke_test", parents=[base_parent_parser, parent_compilation_parser], help="Small experiment validation")
+    smoke_test_parser = subparsers.add_parser("smoke_test", parents=[base_parent_parser, parent_compilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)
-    plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser], help="Result directory plotting")
+    plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser, parent_result_parser], help="Result directory plotting")
+    plotting_parser.add_argument('-p', '--patterns', help="Directory name patterns for directory names reqular expressions", required=True, nargs="+")
     plotting_parser.set_defaults(func=plotting)
     
-    experiment_parser = subparsers.add_parser("experiment", parents=[base_parent_parser, parent_compilation_parser, parent_plotting_parser, parent_optimization_parser], help="Full experiment run")
+    experiment_parser = subparsers.add_parser("experiment", parents=[base_parent_parser, parent_compilation_parser, parent_plotting_parser, parent_result_parser, parent_suffix_parser, parent_optimization_parser], help="Full experiment run")
     experiment_parser.add_argument('--operation-classes', help="Operation classes", choices=list(OPERATIONS.keys()) + ['all'], nargs='*')
     experiment_parser.add_argument('-f', '--functions', help="Specific functions", choices=list(FUNCTION_NAMES_DICT['all']) + ['all'], nargs='*')   
     experiment_parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=("MIN_SIZE", "MAX_SIZE", "STEP"), type=int, nargs=3, required=True)
@@ -110,7 +114,7 @@ if __name__ == '__main__':
     testing_parser = subparsers.add_parser("test", parents=[base_parent_parser, parent_multicompilation_parser], help="Tests for all compilation option sets")
     testing_parser.set_defaults(func=testing)
 
-    performance_parser = subparsers.add_parser("perf", parents=[base_parent_parser, parent_multicompilation_parser, parent_optimization_parser], help="Performance measurements using Linux Perf")
+    performance_parser = subparsers.add_parser("perf", parents=[base_parent_parser, parent_multicompilation_parser, parent_optimization_parser, parent_result_parser, parent_suffix_parser], help="Performance measurements using Linux Perf")
     performance_parser.set_defaults(func=perf_measurements)
 
     args = parser.parse_args()

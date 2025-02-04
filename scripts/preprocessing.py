@@ -1,9 +1,9 @@
-import subprocess # necessary
-import logging # necessary
+import subprocess
+import logging
 from pathlib import Path
-from copy import copy
+from datetime import datetime
 
-from common_defs import PARENT_DIRECTORY
+from common_defs import critical_message
 
 LOGGER = logging.getLogger(__name__)
 
@@ -40,12 +40,23 @@ def set_min_core_frequency_limit(frequency, core_num):
     subprocess.Popen(line, shell=True).communicate()
 
 
-def prepare_result_directory(is_temporary: bool):
+def _output_dir_exists(output_dir: str):
+    output_dir_path = Path(output_dir)
+    return output_dir_path.is_dir()
+
+
+def prepare_result_directory(output_dir: str, suffix: str | None) -> Path:
+    LOGGER.info("Check output directory")
+    if not _output_dir_exists(output_dir):
+        critical_message(f"Output directory {output_dir} does not exist")
     LOGGER.info("Preparing result directory")
-    result_directory = copy(PARENT_DIRECTORY)
-    if is_temporary:
-        result_directory = result_directory / "staging_results"
-    else:
-        result_directory = result_directory / "prod_results"
-    result_directory.mkdir(parents=True, exist_ok=True)
+    parent_directory = Path(output_dir)
+    current_datetime = datetime.today().strftime('%Y%m%d_%H%M%S')
+    result_directory = parent_directory / current_datetime
+    if suffix:
+        result_directory = Path(str(result_directory) + "_" + suffix)
+    try:
+        result_directory.mkdir(parents=True, exist_ok=False)
+    except FileNotFoundError:
+        critical_message(f"Directory {result_directory} already exists")
     return result_directory
