@@ -110,8 +110,8 @@ def _measure_performance_for_function(function_name, core_nums, min_frequenciy, 
     _create_flame_graph(perf_script_path, perf_beginning, is_icicle=True)
 
 
-def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int, device_name: str) -> list[str]:
-    prepare_result_directory(is_temporary=True)
+def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int, device_name: str, output_dir: str, suffix: str) -> list[str]:
+    prepare_result_directory(output_dir, suffix)
     function_names = _get_qr_function_names_from_optimization_class(optimization_classes)
     core_nums = get_available_cores()
     min_frequenciy, max_frequency = get_min_max_frequencies()

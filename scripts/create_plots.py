@@ -1,7 +1,8 @@
 import glob
 from pathlib import Path
 import os
-import logging # necessary
+import logging
+import re
 
 from matplotlib import pyplot as plt
 from matplotlib.ticker import StrMethodFormatter
@@ -127,3 +128,20 @@ def create_plots(plot_format: str, result_directory: str, time_name: str=TIME_NA
     save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=time_name, result_directory=result_directory, mat_names=mat_column_names, gs_names=gs_column_names, qr_names=qr_column_names)
     LOGGER.info("Saving vector only plots")
     save_vec_plots(plot_format=plot_format, time_name=time_name, result_directory=result_directory, vec_names=vec_column_names)
+
+
+def get_result_directories(output_dir: str, patterns: list[str]) -> list[Path]:
+    LOGGER.info("Looking for result directories")
+    result_directories = []
+    parent_directory = Path(output_dir)
+    pattern_list_str = ", \"".join(patterns)
+    LOGGER.debug(f"Pattern list: \"{pattern_list_str}\"")
+    for directory_content_item in parent_directory.iterdir():
+        if not directory_content_item.is_dir():
+            continue
+        for pattern in patterns:
+            match_result = re.search(pattern, str(directory_content_item))
+            if match_result is not None:
+                LOGGER.info(f"Adding \"{directory_content_item}\" result directory")
+                result_directories.append(directory_content_item)
+    return result_directories
