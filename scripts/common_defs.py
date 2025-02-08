@@ -11,10 +11,10 @@ def critical_message(msg: str):
     sys.exit(-1)
 
 
-def get_device_name():
+def get_device_name() -> str:
     LOGGER.info("Getting device name")
-    LOGGER.debug("\"cpuinfo\" import")
     try:
+        LOGGER.debug("\"cpuinfo\" import")
         import cpuinfo
     except ImportError:
         critical_message("ImportError while importing cpuinfo")

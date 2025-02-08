@@ -1,24 +1,21 @@
-import glob
 from pathlib import Path
-import os
 import logging
-import re
 
 from matplotlib import pyplot as plt
-from matplotlib.ticker import StrMethodFormatter
-import numpy as np
 import pandas as pd
+
+from common_defs import critical_message
 
 LOGGER = logging.getLogger(__name__)
 
 
 COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "darkgreen", "sienna", "lime", "gold", "dodblue", "lightsalmon", "midnightblue", "darkred", "cyan", "deeppink"]
-FILE_NAME_TO_PLOT_NAME={
-    "gs_p_sim_x86_2.1GHz.csv" : "Процесс ортогонализации Грама-Шмидта (базовый)",
-    "mat_p_sim_x86_2.1GHz.csv" : "Умножение матриц (базовое)",
-    "qr_d_sim_x86_2.1GHz.csv" : "QR-разложение матриц (базовое)",
-    "vec_p_sim_x86_2.1GHz.csv" : "Базовый алгоритм",
-    "vec_p_std_x86_2.1GHz.csv" : "Inner product"
+FILE_BEGINS_TO_GRAPH_NAMES={
+    "gs_p_sim" : "Процесс ортогонализации Грама-Шмидта (базовый)",
+    "mat_p_sim" : "Умножение матриц (базовое)",
+    "qr_d_sim" : "QR-разложение матриц (базовое)",
+    "vec_p_sim" : "Базовый алгоритм",
+    "vec_p_std" : "Inner product"
 }
 
 TIME_NAME = "Time"
@@ -27,107 +24,110 @@ MAT_COLUMN_NAMES = ["Experiments count", "1st row count", "1st column count", "2
 GS_COLUMN_NAMES = ["Experiments count", "Vector system size", "Vector length", TIME_NAME]
 QR_COLUMN_NAMES = ["Experiments count", "Row count", "Column count", TIME_NAME]
 
-def save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_directory: str, mat_names: list[str], gs_names: list[str], qr_names: list[str]):
-    for path_item in Path(result_directory).glob("*.csv"):
-        file_name = path_item.name
-        current_names = []
+
+def _get_curve_name(file_name: str) -> str | None:
+    for key in FILE_BEGINS_TO_GRAPH_NAMES.keys():
+        if file_name.startswith(key):
+            LOGGER.debug(f"{FILE_BEGINS_TO_GRAPH_NAMES[key]} was matched with {file_name}")
+            return FILE_BEGINS_TO_GRAPH_NAMES[key]
+    LOGGER.warning(f"{file_name} has no match with graph name")
+
+
+def _get_length_list(result_directory: Path, mat_names: list[str], gs_names: list[str], qr_names: list[str]) -> list[int]:
+    for path_item in result_directory.glob("*.csv"):
+        column_names = []
         file_name = path_item.name
         if file_name.startswith("vec"):
             continue
         elif file_name.startswith("mat"):
-            current_names = mat_names
+            column_names = mat_names
         elif file_name.startswith("gs"):
-            current_names = gs_names
+            column_names = gs_names
         elif file_name.startswith("qr"):
-            current_names = qr_names
+            column_names = qr_names
         else:
-            raise KeyError(f"Unsupported begin of the file name '{file_name}'")
-        
-        types_dict = {}
-        for i in range(len(current_names)-1):
-            types_dict[current_names[i]] = int
-        types_dict[current_names[-1]] = float
-        
-        n_list = [int(item) for item in pd.read_csv(path_item, sep=';', decimal='.', header=0)[current_names[1]].to_list()]
-        break
+            critical_message(f"Unsupported begin of the file name \"{file_name}\"")
+        return [int(item) for item in pd.read_csv(path_item, sep=';', decimal='.', header=0)[column_names[1]].to_list()]
     else:
-        return
-    fig, ax = plt.subplots(figsize=(10, 8), dpi=100)
-    times_dict = {}
-    for path_item in Path(result_directory).glob("*.csv"):
-        current_names = []
-        file_name = path_item.name
-        if file_name.startswith("vec"):
-            continue
-        elif file_name.startswith("mat"):
-            current_names = mat_names
-        elif file_name.startswith("gs"):
-            current_names = gs_names
-        elif file_name.startswith("qr"):
-            current_names = qr_names
-        else:
-            raise KeyError(f"Unsupported begin of the file name '{file_name}'")
-        types_dict = {}
-        for i in range(len(current_names)-1):
-            types_dict[current_names[i]] = int
-        types_dict[current_names[-1]] = float
-        
-        tmp_df = pd.read_csv(path_item, sep=';', decimal='.', header=0, names=current_names, dtype=types_dict)
-        times_dict[FILE_NAME_TO_PLOT_NAME[file_name]] = tmp_df[time_name].to_list()
+        LOGGER.warning(f"There is no supported non-vector results files in \"{result_directory}\" directory")
+        return []
 
-        # df.plot(ax=ax, colormap=COLOR_LIST[plot_index], x=df[current_names[0]], y=df[current_names[-1]], legend=NAMES_DICT[path_item])
+
+def _plot_graph(times_dict: dict, dimension_size_list: list[int], result_directory: Path, device_name: str, plot_format: str, title: str, is_vector: bool):
     df = pd.DataFrame.from_dict(times_dict)
+    _, ax = plt.subplots(figsize=(10, 8), dpi=100)
     for plot_index, column in enumerate(df.columns):
-        ax.plot(n_list, df[column], color=COLOR_LIST[plot_index], label=column)
-
-    ax.set_title('Алгоритмы', fontsize=15)
+        ax.plot(dimension_size_list, df[column], color=COLOR_LIST[plot_index], label=column)
+    ax.set_title(title, fontsize=15)
     ax.set_xlabel("Количество элементов")
     ax.set_ylabel("Время работы, секунды")
-    ax.ticklabel_format(style='sci', useMathText=True)
+    ax.ticklabel_format(style='sci', axis='x', useMathText=True)
     ax.locator_params(axis='x', min_n_ticks=10)
     ax.locator_params(axis='y', min_n_ticks=10)
-    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
     ax.legend(loc="upper left")
-    plt.savefig(os.path.join(result_directory, f"no_vec.{plot_format}"), bbox_inches="tight", format=plot_format)
+    if is_vector:
+        plot_file_path = result_directory / f"vec_{device_name}.{plot_format}"
+    else:
+        plot_file_path = result_directory / f"non_vec_{device_name}.{plot_format}"
+    plt.savefig(plot_file_path, bbox_inches="tight", format=plot_format)
+    LOGGER.info(f"Plot was saved to {plot_file_path}")
     plt.cla()
 
 
-def save_vec_plots(plot_format: str, time_name: str, result_directory: str, vec_names: list[str]):
-    if not glob.glob(os.path.join(result_directory, "vec*.csv")):
+def _add_time_series_to_times_dict(current_names: list[str], path_item: Path, file_name: str, time_name: str, times_dict: dict):
+    types_dict = {}
+    for i in range(len(current_names)-1):
+        types_dict[current_names[i]] = int
+    types_dict[current_names[-1]] = float
+        
+    tmp_df = pd.read_csv(path_item, sep=';', decimal='.', header=0, names=current_names, dtype=types_dict)
+    times_dict[_get_curve_name(file_name)] = tmp_df[time_name].to_list()
+
+
+def _save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_directory: Path, device_name: str, mat_names: list[str], gs_names: list[str], qr_names: list[str]):
+    dimension_size_list = _get_length_list(result_directory, mat_names, gs_names, qr_names)
+    if not dimension_size_list:
         return
-    fig, ax = plt.subplots(figsize=(10, 8), dpi=100)
-    base_file = glob.glob(os.path.join(result_directory, "vec*.csv"))[0]
-    vec_n_list = pd.read_csv(base_file, sep=';', decimal='.', header=0,
+    times_dict = {}
+    for path_item in result_directory.glob("*.csv"):
+        current_names = []
+        file_name = path_item.name
+        if file_name.startswith("vec"):
+            continue
+        elif file_name.startswith("mat"):
+            current_names = mat_names
+        elif file_name.startswith("gs"):
+            current_names = gs_names
+        elif file_name.startswith("qr"):
+            current_names = qr_names
+        _add_time_series_to_times_dict(current_names, path_item, file_name, time_name, times_dict)
+
+        # df.plot(ax=ax, colormap=COLOR_LIST[plot_index], x=df[current_names[0]], y=df[current_names[-1]], legend=NAMES_DICT[path_item]
+    _plot_graph(times_dict, dimension_size_list, result_directory, device_name, plot_format, "Основные алгоритмы", is_vector=False)
+
+
+
+def save_vec_plots(plot_format: str, time_name: str, result_directory: Path, device_name: str, vec_names: list[str]): 
+    result_directories = [item for item in result_directory.glob("vec*.csv")]
+    if not result_directories:
+        LOGGER.warning(f"There is no supported vector results files in \"{result_directory}\" directory")
+        return
+    base_file = result_directories[0]
+    dimension_size_list = pd.read_csv(base_file, sep=';', decimal='.', header=0,
                              dtype={vec_names[0]: int, vec_names[1]: int, vec_names[2]: float})[vec_names[1]].to_list()
     times_dict = {}
-    for path_item in Path(result_directory).glob("vec*.csv"):
+    for path_item in result_directory.glob("vec*.csv"):
         file_name = path_item.name
-        types_dict = {}
-        for i in range(len(vec_names)-1):
-            types_dict[vec_names[i]] = int
-        types_dict[vec_names[-1]] = float
-        
-        tmp_df = pd.read_csv(path_item, sep=';', decimal='.', header=0, names=vec_names, dtype=types_dict)
-        times_dict[FILE_NAME_TO_PLOT_NAME[file_name]] = tmp_df[time_name].to_list()
-    df = pd.DataFrame.from_dict(times_dict)
-    for plot_index, column in enumerate(df.columns):
-        ax.plot(vec_n_list, df[column], color=COLOR_LIST[plot_index], label=column)
-
-    ax.set_title("Скалярное произведение векторов", fontsize=15)
-    ax.set_xlabel("Количество элементов")
-    ax.set_ylabel("Время работы, секунды")
-    ax.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
-    ax.legend(loc='upper left')
-    plt.savefig(os.path.join(result_directory, f"vec.{plot_format}"), bbox_inches="tight", format=plot_format)
-    plt.cla()
+        _add_time_series_to_times_dict(vec_names, path_item, file_name, time_name, times_dict)
+    _plot_graph(times_dict, dimension_size_list, result_directory, device_name, plot_format, "Скалярное произведение векторов", is_vector=True)
 
 
-def create_plots(plot_format: str, result_directory: str, time_name: str=TIME_NAME, vec_column_names: list=VEC_COLUMN_NAMES, mat_column_names: list=MAT_COLUMN_NAMES, gs_column_names: list=GS_COLUMN_NAMES, qr_column_names: list=QR_COLUMN_NAMES):
-    LOGGER.info("Plotting graphs")
-    LOGGER.info("Saving not vector plots")
-    save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=time_name, result_directory=result_directory, mat_names=mat_column_names, gs_names=gs_column_names, qr_names=qr_column_names)
-    LOGGER.info("Saving vector only plots")
-    save_vec_plots(plot_format=plot_format, time_name=time_name, result_directory=result_directory, vec_names=vec_column_names)
+def create_plots(plot_format: str, result_directory: Path, device_name: str, time_name: str=TIME_NAME, vec_column_names: list=VEC_COLUMN_NAMES, mat_column_names: list=MAT_COLUMN_NAMES, gs_column_names: list=GS_COLUMN_NAMES, qr_column_names: list=QR_COLUMN_NAMES):
+    LOGGER.info(f"Creating plots for \"{result_directory}\"")
+    LOGGER.info("Creating non-vector plots")
+    _save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=time_name, result_directory=result_directory, device_name=device_name, mat_names=mat_column_names, gs_names=gs_column_names, qr_names=qr_column_names)
+    LOGGER.info("Creating vector only plots")
+    save_vec_plots(plot_format=plot_format, time_name=time_name, result_directory=result_directory, device_name=device_name, vec_names=vec_column_names)
 
 
 def get_result_directories(output_dir: str, patterns: list[str]) -> list[Path]:
@@ -136,12 +136,16 @@ def get_result_directories(output_dir: str, patterns: list[str]) -> list[Path]:
     parent_directory = Path(output_dir)
     pattern_list_str = ", \"".join(patterns)
     LOGGER.debug(f"Pattern list: \"{pattern_list_str}\"")
-    for directory_content_item in parent_directory.iterdir():
-        if not directory_content_item.is_dir():
-            continue
-        for pattern in patterns:
-            match_result = re.search(pattern, str(directory_content_item))
-            if match_result is not None:
-                LOGGER.info(f"Adding \"{directory_content_item}\" result directory")
+    for pattern in patterns:
+        extended_pattern = f"{pattern}"
+        for directory_content_item in parent_directory.glob(pattern=extended_pattern):
+            if not directory_content_item.is_dir():
+                continue
+            else:
                 result_directories.append(directory_content_item)
+    if not len(result_directories):
+        LOGGER.warning("There is no directory found by patterns")
+    else:
+        result_directory_names = [str(item) for item in result_directories]
+        LOGGER.info(f"Result directories: {result_directory_names}")
     return result_directories

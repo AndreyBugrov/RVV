@@ -36,20 +36,15 @@ def experiment(args):
         critical_message("Step should be more than 0!") # can be changed in next versions of "sizes" support
     if sizes[0] > sizes[1]:
         critical_message("\"min_n\" should be less or equal \"max_n\"!")
-    function_names_set = get_function_name_set(args.specific_functions, args.operation_classes, args.optimization_classes)
+    function_names_set = get_function_name_set(args.functions, args.operation_classes, args.optimization_classes)
     LOGGER.debug(f"Chosen functions: {function_names_set}")
-    is_temporary = args.is_temporary == 'true'
-    if is_temporary:
-        LOGGER.warning("Results will be saved to temporary directory")
-    else:
-        LOGGER.warning("Results will be saved to the ordinary directory")
     full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count, args.device_name, args.output_dir, args.suffix)
 
 
 def plotting(args):
     result_directories = get_result_directories(args.output_dir, args.patterns)
     for result_directory in result_directories:
-        create_plots(plot_format=args.plot_format, result_directory=str(result_directory))
+        create_plots(plot_format=args.plot_format, result_directory=result_directory, device_name=args.device_name)
 
 
 def testing(args):
@@ -102,7 +97,7 @@ if __name__ == '__main__':
     smoke_test_parser = subparsers.add_parser("smoke_test", parents=[base_parent_parser, parent_compilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)
     plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser, parent_result_parser], help="Result directory plotting")
-    plotting_parser.add_argument('-p', '--patterns', help="Directory name patterns for directory names reqular expressions", required=True, nargs="+")
+    plotting_parser.add_argument('-p', '--patterns', help="Directory name part patterns", required=True, nargs="+")
     plotting_parser.set_defaults(func=plotting)
     
     experiment_parser = subparsers.add_parser("experiment", parents=[base_parent_parser, parent_compilation_parser, parent_plotting_parser, parent_result_parser, parent_suffix_parser, parent_optimization_parser], help="Full experiment run")
