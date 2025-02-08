@@ -49,14 +49,14 @@ def prepare_result_directory(output_dir: str, suffix: str | None) -> Path:
     LOGGER.info("Check output directory")
     if not _output_dir_exists(output_dir):
         critical_message(f"Output directory {output_dir} does not exist")
-    LOGGER.info("Preparing result directory")
     parent_directory = Path(output_dir)
     current_datetime = datetime.today().strftime('%Y%m%d_%H%M%S')
     result_directory = parent_directory / current_datetime
     if suffix:
         result_directory = Path(str(result_directory) + "_" + suffix)
     try:
-        result_directory.mkdir(parents=True, exist_ok=False)
-    except FileNotFoundError:
+        result_directory.mkdir(parents=False, exist_ok=False)
+    except FileExistsError:
         critical_message(f"Directory {result_directory} already exists")
+    LOGGER.info(f"Result directory {result_directory} is prepared")
     return result_directory

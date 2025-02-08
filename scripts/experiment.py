@@ -111,7 +111,7 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
         critical_message('Program has been interrupted')
     for core in core_nums:
         set_min_core_frequency_limit(min_frequenciy, core)
-    create_plots(plot_format=plot_format, result_directory=str(result_directory))
+    create_plots(plot_format=plot_format, result_directory=result_directory, device_name=device_name)
 
 
 def _create_function_dict() -> dict[str, set[str]]:
