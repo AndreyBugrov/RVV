@@ -5,7 +5,7 @@ from pathlib import Path
 
 from common_defs import critical_message
 from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
-from compile import compile_sources
+from compilation import compile_sources
 from experiment import get_current_sizes_by_operation_class, OPERATIONS, OPTIMIZATIONS, FUNCTION_NAMES_DICT
 
 

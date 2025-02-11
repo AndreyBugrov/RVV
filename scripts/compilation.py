@@ -26,10 +26,21 @@ def _create_bin_directory() -> Path:
     return bin_directory
 
 
+def _get_source_files_list(is_test: bool) -> list[str]:
+    source_file_list = []
+    source_file_list.extend([str(item) for item in Path("algorithms").glob("*.cpp")])
+    source_file_list.extend([str(item) for item in Path("common").glob("*.cpp")])
+    if is_test:
+        source_file_list.extend([str(item) for item in Path("tests").glob("*.cpp")])
+    else:
+        source_file_list.extend([str(item) for item in Path("experiments").glob("*.cpp")])
+    return source_file_list
+
+
 def compile_sources(compilation_profile: str, is_test: bool, for_perf: bool) -> Path:
     """
     Returns:
-        path to exectution file
+        path to execution file
     """
     bin_directory = _create_bin_directory()
     if is_test:
@@ -39,21 +50,20 @@ def compile_sources(compilation_profile: str, is_test: bool, for_perf: bool) -> 
     if not compilation_profile:
         LOGGER.warning('Compilation is skipped')
         return bin_path
-    source_file_list = []
-    source_file_list.extend([str(item) for item in Path("algorithms").glob("*.cpp")])
-    source_file_list.extend([str(item) for item in Path("common").glob("*.cpp")])
-    if is_test:
-        source_file_list.extend([str(item) for item in Path("tests").glob("*.cpp")])
-    else:
-        source_file_list.extend([str(item) for item in Path("experiments").glob("*.cpp")])
     
+    source_file_list = _get_source_files_list(is_test)
     LOGGER.debug("Source file list: " + " ".join(source_file_list))
+
+    optimization_options = COMPILATION_PROFILE_TO_OPTIONS[compilation_profile]
+    if is_test and compilation_profile in ["optimal", "math", "fast"]:
+        optimization_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
 
     if for_perf:
         perf_argument = "-fno-omit-frame-pointer"
     else:
         perf_argument = ""
-    args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {perf_argument} {COMPILATION_PROFILE_TO_OPTIONS[compilation_profile]} " + " ".join(source_file_list) + f" -o {bin_path}"
+
+    args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {perf_argument} {optimization_options} " + " ".join(source_file_list) + f" -o {bin_path}"
     cmd = shlex.split(args)
     LOGGER.debug("Compilation command line: " + " ".join(cmd))
 
@@ -62,3 +72,12 @@ def compile_sources(compilation_profile: str, is_test: bool, for_perf: bool) -> 
     if compiler_errors:
         critical_message('Compilation errors:\n'+compiler_errors.decode('utf-8'))
     return bin_path
+
+
+def translate_compilation_profiles(raw_compilation_profiles: list[str]) -> list[str]:
+    if "perf" in raw_compilation_profiles:
+        compilation_profiles = [key for key in list(COMPILATION_PROFILE_TO_OPTIONS.keys()) if key != "debug"]
+        if "debug" in raw_compilation_profiles:
+            compilation_profiles.append("debug")
+        return compilation_profiles
+    return raw_compilation_profiles
