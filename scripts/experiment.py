@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 from common_defs import critical_message
-from compile import compile_sources
+from compilation import compile_sources
 from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
 from create_plots import create_plots
 

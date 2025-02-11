@@ -2,9 +2,9 @@ import argparse
 import logging
 
 from create_plots import create_plots, get_result_directories
-from compile import compile_sources, COMPILATION_PROFILE_TO_OPTIONS
+from compilation import compile_sources, COMPILATION_PROFILE_TO_OPTIONS, translate_compilation_profiles
 from experiment import get_function_name_set, full_experiment_pass, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
-from my_tests import full_test
+from testing import full_test
 from performance import measure_performance
 from common_defs import critical_message, get_device_name, set_logger_level
 
@@ -48,11 +48,7 @@ def plotting(args):
 
 
 def testing(args):
-    compilation_profiles = []
-    if not args.compilation_profile:
-        compilation_profiles = list(COMPILATION_PROFILE_TO_OPTIONS.keys())
-    else:
-        compilation_profiles.append(args.compilation_profile)
+    compilation_profiles = translate_compilation_profiles(args.compilation_profiles)
     full_test(compilation_profiles=compilation_profiles)
 
 
@@ -60,12 +56,7 @@ def perf_measurements(args):
     exp_count = args.exp_count
     if int(exp_count) < 1:
         critical_message("Choose at least one experiment!")
-    if not args.compilation_profiles:
-        critical_message("Choose at least one compilation profile!")
-    if "perf" in args.compilation_profiles:
-        compilation_profiles = [key for key in list(COMPILATION_PROFILE_TO_OPTIONS.keys()) if key != "debug"]
-    else:
-        compilation_profiles = args.compilation_profiles
+    compilation_profiles = translate_compilation_profiles(args.compilation_profiles)
     measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name, args.output_dir, args.suffix)
 
 

@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from common_defs import critical_message
-from compile import compile_sources
+from compilation import compile_sources
 
 
 LOGGER = logging.getLogger(__name__)
@@ -27,9 +27,9 @@ def run_tests(bin_path: Path):
         test_output = stdout.split("FAILED TESTS: \n")[0]
         LOGGER.debug(f"Test output:\n{test_output}")
         failed_test = stdout.split("FAILED TESTS: \n")[1]
-        LOGGER.warning(f"FAILED TESTS: \n{failed_test}")
+        LOGGER.warning(f"Failed tests: \n{failed_test}")
     else:
-        LOGGER.info("Tests were passed")
+        LOGGER.info("Tests passed")
         LOGGER.debug(f"Test output:\n{stdout}")
     return returncode
 
