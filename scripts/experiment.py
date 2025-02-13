@@ -93,7 +93,7 @@ def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_cou
 def full_experiment_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], exp_count: int, device_name: str, output_dir: str, suffix: str):
     LOGGER.info("Start of preprocessing phase")
     result_directory = prepare_result_directory(output_dir, suffix)
-    bin_path = compile_sources(compilation_profile=compilation_profile, is_test=False, for_perf=False)
+    bin_path = compile_sources(compilation_profile, device_name, is_test=False, for_perf=False)
     core_nums = get_available_cores()
     min_frequenciy, max_frequency = get_min_max_frequencies()
     try:
