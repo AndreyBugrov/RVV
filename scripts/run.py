@@ -68,7 +68,7 @@ if __name__ == '__main__':
     base_parent_parser.set_defaults(device_name="unknown")
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
-    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile (do not specify if compilation is not necessary)", choices=COMPILATION_PROFILES)
+    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile", choices=COMPILATION_PROFILES, required=True)
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)
