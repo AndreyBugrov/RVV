@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from create_plots import create_plots, get_result_directories
-from compilation import compile_sources, COMPILATION_PROFILE_TO_OPTIONS, translate_compilation_profiles
+from compilation import compile_sources, COMPILATION_PROFILES, translate_compilation_profiles
 from experiment import get_function_name_set, full_experiment_pass, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
 from testing import full_test
 from performance import measure_performance
@@ -49,7 +49,7 @@ def plotting(args):
 
 def testing(args):
     compilation_profiles = translate_compilation_profiles(args.compilation_profiles)
-    full_test(compilation_profiles=compilation_profiles)
+    full_test(compilation_profiles, args.device_name)
 
 
 def perf_measurements(args):
@@ -68,14 +68,14 @@ if __name__ == '__main__':
     base_parent_parser.set_defaults(device_name="unknown")
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
-    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile (do not specify if compilation is not necessary)", choices=COMPILATION_PROFILE_TO_OPTIONS.keys())
+    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile", choices=COMPILATION_PROFILES, required=True)
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)
     parent_optimization_parser.add_argument('-n', '--exp-count', help="Number of experiments with equal parameters", type=int, required=True)
     parent_optimization_parser.add_argument('--optimization-classes', help="Optimization classes", choices=list(OPTIMIZATIONS.keys()) + ['all'], nargs='*')
     parent_multicompilation_parser = argparse.ArgumentParser(add_help=False)
-    parent_multicompilation_parser.add_argument('-c', '--compilation-profiles', help="Compilation profiles. \"perf\" means all profiles except \"debug\"", choices=list(COMPILATION_PROFILE_TO_OPTIONS.keys()) + ["perf"], nargs="+", required=True)
+    parent_multicompilation_parser.add_argument('-c', '--compilation-profiles', help="Compilation profiles. \"perf\" means all profiles except \"debug\"", choices=COMPILATION_PROFILES + ["perf"], nargs="+", required=True)
     parent_result_parser = argparse.ArgumentParser(add_help=False)
     parent_result_parser.add_argument('-o', "--output-dir", help="Path to parent directory for result directory", required=True)
     parent_suffix_parser = argparse.ArgumentParser(add_help=False)

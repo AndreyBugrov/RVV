@@ -5,6 +5,8 @@ from pathlib import Path
 LOGGER = logging.getLogger(__name__)
 PARENT_DIRECTORY = Path(".").parent.parent
 
+X86_NAME = "x86"
+KENDRYTE_NAME = "kendryte"
 
 def critical_message(msg: str):
     LOGGER.critical(f"{msg}")
@@ -18,12 +20,12 @@ def get_device_name() -> str:
         import cpuinfo
     except ImportError:
         critical_message("ImportError while importing cpuinfo")
+    device_name = KENDRYTE_NAME
     arch = cpuinfo.get_cpu_info().get("arch")
     if arch == "X86_64":
-        LOGGER.info("\"x86\" device name was chosen")
-        return "x86"
-    LOGGER.info("\"kendryte\" device name was chosen")
-    return "kendryte"
+        device_name = X86_NAME
+    LOGGER.info(f"\"{device_name}\" device name was chosen")
+    return device_name
 
 
 def set_logger_level(logger_level):

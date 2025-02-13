@@ -4,20 +4,39 @@ import subprocess # necessary
 
 from pathlib import Path
 
-from common_defs import critical_message, PARENT_DIRECTORY
+from common_defs import critical_message, PARENT_DIRECTORY, X86_NAME, KENDRYTE_NAME
 
 LOGGER = logging.getLogger(__name__)
+
+COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "math", "lto", "native", "optimal"]
 BASE_OPTIMIZATION_LEVEL = "-O2"
-COMPILATION_PROFILE_TO_OPTIONS = {
-    "debug": "-O0",
-    "release": "-O2",
-    "O3": "-O3",
-    "fast": "-Ofast",
-    "native": f"{BASE_OPTIMIZATION_LEVEL} -march=native",
-    "math": f"{BASE_OPTIMIZATION_LEVEL} -ffast-math",
-    "lto": f"{BASE_OPTIMIZATION_LEVEL} -flto=auto -fuse-linker-plugin",
-    "optimal": f"{BASE_OPTIMIZATION_LEVEL} -flto=auto -fuse-linker-plugin -march=native -ffast-math"
+OPTIMIZATION_LEVELS = {
+    COMPILATION_PROFILES[0]: "-O0",
+    COMPILATION_PROFILES[1]: "-O2",
+    COMPILATION_PROFILES[2]: "-O3",
+    COMPILATION_PROFILES[3]: "-Ofast",
 }
+EXTRA_OPTIONS_OFFSET = 4
+EXTRA_OPTIMIZATIONS = {
+    COMPILATION_PROFILES[EXTRA_OPTIONS_OFFSET]: "-ffast-math",
+    COMPILATION_PROFILES[EXTRA_OPTIONS_OFFSET + 1]: "-flto=auto -fuse-linker-plugin",
+}
+DEVICE_OPTIMIZATIONS = {
+    X86_NAME: "-march=native",
+    KENDRYTE_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicsr_zifencei_zihpm_zba_zbb_zbc_zbs_svpbmt"
+}
+
+
+def _get_compilation_options(compilation_profile: str, device_name: str):
+    if compilation_profile in OPTIMIZATION_LEVELS:
+        return OPTIMIZATION_LEVELS[compilation_profile]
+    elif compilation_profile in EXTRA_OPTIMIZATIONS:
+        return f"{BASE_OPTIMIZATION_LEVEL} {EXTRA_OPTIMIZATIONS[compilation_profile]}"
+    if compilation_profile == "native":
+        return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]}"
+    elif compilation_profile == COMPILATION_PROFILES[-1]:
+        all_extra_optimizations = " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
+        return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]} {all_extra_optimizations}"
 
 
 def _create_bin_directory() -> Path:
@@ -37,7 +56,7 @@ def _get_source_files_list(is_test: bool) -> list[str]:
     return source_file_list
 
 
-def compile_sources(compilation_profile: str, is_test: bool, for_perf: bool) -> Path:
+def compile_sources(compilation_profile: str, device_name: str, is_test: bool, for_perf: bool) -> Path:
     """
     Returns:
         path to execution file
@@ -54,7 +73,7 @@ def compile_sources(compilation_profile: str, is_test: bool, for_perf: bool) -> 
     source_file_list = _get_source_files_list(is_test)
     LOGGER.debug("Source file list: " + " ".join(source_file_list))
 
-    optimization_options = COMPILATION_PROFILE_TO_OPTIONS[compilation_profile]
+    optimization_options = _get_compilation_options(compilation_profile, device_name)
     if is_test and compilation_profile in ["optimal", "math", "fast"]:
         optimization_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
 
@@ -75,9 +94,12 @@ def compile_sources(compilation_profile: str, is_test: bool, for_perf: bool) -> 
 
 
 def translate_compilation_profiles(raw_compilation_profiles: list[str]) -> list[str]:
-    if "perf" in raw_compilation_profiles:
-        compilation_profiles = [key for key in list(COMPILATION_PROFILE_TO_OPTIONS.keys()) if key != "debug"]
-        if "debug" in raw_compilation_profiles:
-            compilation_profiles.append("debug")
-        return compilation_profiles
-    return raw_compilation_profiles
+    if "perf" not in raw_compilation_profiles:
+        compilation_profiles = raw_compilation_profiles
+    elif "debug" in raw_compilation_profiles:
+        compilation_profiles = COMPILATION_PROFILES
+    else:
+        compilation_profiles = [item for item in COMPILATION_PROFILES if item != "debug"]
+    LOGGER.debug(f"Chosen compilation profiles: {compilation_profiles}")
+    return compilation_profiles
+    

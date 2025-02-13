@@ -34,13 +34,13 @@ def run_tests(bin_path: Path):
     return returncode
 
 
-def full_test(compilation_profiles: list[str]):
+def full_test(compilation_profiles: list[str], device_name: str):
     all_test_count = TEST_COUNT * len(compilation_profiles)
     all_failed_test_count = 0
     failed_profiles = set()
     for compilation_profile in compilation_profiles:
         LOGGER.info(f"Compilation_profile: {compilation_profile}")
-        bin_path = compile_sources(compilation_profile, is_test=True, for_perf=False)
+        bin_path = compile_sources(compilation_profile, device_name, is_test=True, for_perf=False)
         LOGGER.info(f"Running tests")
         current_failed_test_count = run_tests(bin_path)
         all_failed_test_count += current_failed_test_count
