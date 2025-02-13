@@ -35,8 +35,8 @@ def _get_compilation_options(compilation_profile: str, device_name: str):
     if compilation_profile == "native":
         return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]}"
     elif compilation_profile == COMPILATION_PROFILES[-1]:
-        compiler_options = " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
-        return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]} {compiler_options}"
+        all_extra_optimizations = " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
+        return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]} {all_extra_optimizations}"
 
 
 def _create_bin_directory() -> Path:
@@ -94,10 +94,12 @@ def compile_sources(compilation_profile: str, device_name: str, is_test: bool, f
 
 
 def translate_compilation_profiles(raw_compilation_profiles: list[str]) -> list[str]:
-    if "perf" in raw_compilation_profiles:
-        if "debug" in raw_compilation_profiles:
-            compilation_profiles = COMPILATION_PROFILES
-        else:
-            compilation_profiles = COMPILATION_PROFILES[1:]
-        return compilation_profiles
-    return raw_compilation_profiles
+    if "perf" not in raw_compilation_profiles:
+        compilation_profiles = raw_compilation_profiles
+    elif "debug" in raw_compilation_profiles:
+        compilation_profiles = COMPILATION_PROFILES
+    else:
+        compilation_profiles = [item for item in COMPILATION_PROFILES if item != "debug"]
+    LOGGER.debug(f"Chosen compilation profiles: {compilation_profiles}")
+    return compilation_profiles
+    
