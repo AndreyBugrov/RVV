@@ -119,7 +119,7 @@ def _create_function_dict() -> dict[str, set[str]]:
     function_names_dict = dict()
     # add support for operations
     function_names_dict['vector'] = {OPERATIONS['vector'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['vector']+ '_' + OPTIMIZATIONS['std']}
-    function_names_dict['matrix'] = {OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['simple']}
+    function_names_dict['matrix'] = {OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['hl_opt']}
     function_names_dict['gram_schmidt'] = {OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['simple']}
     function_names_dict['qr'] = {OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simple']}
     # add support for optimizations

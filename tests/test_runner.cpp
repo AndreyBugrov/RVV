@@ -2,8 +2,6 @@
 
 const std::string delimiter = "--------------------------------------------------------------------------------\n";
 
-const double kMinValue = -100.0;
-const double kMaxValue = 100.0;
 const size_t kMinLength = 256;
 const size_t kMaxLength = 512;
 
@@ -60,7 +58,7 @@ size_t run_tests(const std::vector<TestTask>& test_tasks, size_t task_count, std
     const auto end_task{std::chrono::steady_clock::now()};
     std::chrono::duration<double> all_task_seconds = end_task - start_task;
     double total_seconds = all_task_seconds.count();
-    stream<<"TOTAL:\n"<<"RUN:    "<<task_count<<"\nPASSED: "<<passed<<"\nFAILED: "<<failed<<"\nTIME:   "<<total_seconds<<"\n";
+    stream<<"TOTAL"<<"\nPASSED: "<<passed<<"\nFAILED: "<<failed<<"\nALL:    "<<task_count<<"\nTIME:   "<<total_seconds<<"\n";
     if(failed){
         stream << delimiter;
         stream<<"FAILED TESTS: \n";

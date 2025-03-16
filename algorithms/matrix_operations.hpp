@@ -8,4 +8,4 @@
 
 using std::vector;
 
-vector<num_type> transpose_matrix(const vector<num_type>& matr, size_t row_num, size_t column_num);
+vector<num_type> transpose_matrix(const vector<num_type>& matr, size_t row_count, size_t column_count);

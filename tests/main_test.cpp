@@ -34,15 +34,15 @@ void fill_tasks(std::vector<TestTask>& tasks){
         pair<object_indexes, map<FunctionOptimizationType, string>>(
             object_indexes::kScalarMultiplication,
             map<FunctionOptimizationType, string>{
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimple, "simple scalar product"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimpleStd, "STD-based scalar product"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnsafe, "STD-based unsafe scalar product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimple, "simple dot product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kStd, "STD-based dot product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnsafe, "STD-based unsafe dot product"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
             object_indexes::kVectorNormCalculation,
             map<FunctionOptimizationType, string>{
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kNoThrowing, "STD-based vector norm calculaion"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kNoThrowing, "simple vector norm calculation"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -55,6 +55,7 @@ void fill_tasks(std::vector<TestTask>& tasks){
             object_indexes::kMatrixProduct,
             map<FunctionOptimizationType, string>{
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimple, "base simple matrix product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "row simple matrix product"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -73,6 +74,9 @@ void fill_tasks(std::vector<TestTask>& tasks){
             object_indexes::kQRDecompostion,
             map<FunctionOptimizationType, string>{
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnsafe, "base unsafe QR decomposition"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "row simple QR decomposition"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRowStd, "row simple + matrix Gram-Schmidt QR decomposition"),
+                
             }
         ),
     };
@@ -84,12 +88,12 @@ void fill_tasks(std::vector<TestTask>& tasks){
         pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kWrong, " (incorrect "),
     };
     const map<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>> object_types={
-        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kScalarMultiplication, test_scalar_prod),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kScalarMultiplication, test_dot_product),
         pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormCalculation, test_vector_norm),
         pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kVectorNormalization, test_normalize_vector),
-        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kMatrixProduct, test_matrix_prod),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kMatrixProduct, test_matrix_product),
         pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kMatrixTransposition, test_matrix_transposition),
-        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kGramSchmidtProcess, test_qram_schmidt),
+        pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kGramSchmidtProcess, test_gram_schmidt),
         pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kQRDecompostion, test_qr_decomposition),
     };
 

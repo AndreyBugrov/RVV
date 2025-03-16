@@ -42,6 +42,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         std::pair<std::string, FunctionIndex>("vec_p_sim", FunctionIndex::kScalarProductSimple),
         std::pair<std::string, FunctionIndex>("vec_p_std", FunctionIndex::kScalarProductStd),
         std::pair<std::string, FunctionIndex>("mat_p_sim", FunctionIndex::kMatrixProductSimple),
+        std::pair<std::string, FunctionIndex>("mat_p_hlo", FunctionIndex::kMatrixProductRowSimple),
         std::pair<std::string, FunctionIndex>("gs_p_sim", FunctionIndex::kGramSchmidtSimple),
         std::pair<std::string, FunctionIndex>("qr_d_sim", FunctionIndex::kQRSimple),
     };
@@ -69,16 +70,16 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         switch (function_index)
         {
         case FunctionIndex::kScalarProductSimple:
-            output = run_experiment_task(experiment_count, scalar_product_simple, reset_scalar_product, a, b, vector_length);
+            output = run_experiment_task(experiment_count, dot_product_simple, reset_dot_product, a, b, vector_length);
             break;
         case FunctionIndex::kScalarProductStd:
-            output = run_experiment_task(experiment_count, scalar_product_std, reset_scalar_product, a, b, vector_length);
+            output = run_experiment_task(experiment_count, dot_product_std, reset_dot_product, a, b, vector_length);
             break;
         default:
             break;
         }
     }
-    if(function_index==FunctionIndex::kMatrixProductSimple){
+    if(function_index==FunctionIndex::kMatrixProductSimple || function_index==FunctionIndex::kMatrixProductRowSimple){
         correct_size = ArgumentNumber::kMatrixProduct;
         if(arguments_size!=correct_size){
             throw Exception(ErrorType::kWrongArgumentNumber, generate_string("Expected ", correct_size, " arguments for scalar product but passed ", arguments_size));
@@ -95,7 +96,10 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         switch (function_index)
         {
         case FunctionIndex::kMatrixProductSimple:
-            output = run_experiment_task(experiment_count, matrix_prod_base_simple, reset_matrix_product, a, b, c, a_row_num, a_column_num, b_column_num);
+            output = run_experiment_task(experiment_count, matrix_product_base_simple, reset_matrix_product, a, b, c, a_row_num, a_column_num, b_column_num);
+            break;
+        case FunctionIndex::kMatrixProductRowSimple:
+            output = run_experiment_task(experiment_count, matrix_product_row_simple, reset_matrix_product, a, b, c, a_row_num, a_column_num, b_column_num);
             break;
         default:
             break;

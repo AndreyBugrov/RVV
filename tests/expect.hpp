@@ -2,6 +2,7 @@
 
 #include <cmath>  // fabs
 #include <limits> // max double value
+#include <concepts> // concept
 
 #include "../common/exception.hpp" // Exception in expect_throw
 #include "../common/generators.hpp"  // generate_string
@@ -15,6 +16,24 @@ public:
     ~ExpectationResult() = default;
     operator bool()const {return passed_;}
     std::string error_message() const {return error_message_;}
+};
+
+template<typename T>
+concept is_not_void_type = !std::is_void_v<T>;
+
+template <class T>
+concept Indexable = requires (T series){
+    {series.begin()} -> std::random_access_iterator;
+}
+&& requires (T series){
+    {series.end()} -> std::random_access_iterator;
+} || requires(T series, size_t index){
+    {series[index]} -> is_not_void_type;
+};
+
+template <class T>
+concept FabsSupporting = requires (T value){
+    {fabs(value)} -> std::same_as<T>;
 };
 
 namespace expect{
@@ -69,14 +88,22 @@ namespace expect{
         return ExpectationResult(false, generate_string("Expected: equality to ", expected, ". Actual: ", actual));
     }
 
-    template<typename Container>
-    ExpectationResult expect_iterable_containers_eq(Container expected, Container actual, size_t length) noexcept {
-        num_type max_difference = 0.0;
-        num_type min_difference = std::numeric_limits<num_type>::max();
+    template<typename Container, typename T>
+    requires Indexable<Container> && FabsSupporting<T>
+    ExpectationResult expect_indexable_containers_near(Container expected, Container actual, T eps, size_t length) noexcept {
+        T max_difference = 0.0;
+        T min_difference = std::numeric_limits<num_type>::max();
         size_t wrong_value_number = 0;
+        size_t first_wrong_index = 0;
+        size_t last_wrong_index = 0;
         for(size_t i = 0; i<length;++i){
-            num_type difference = std::fabs(expected[i]-actual[i]);
-            if(difference){
+            T difference = std::fabs(expected[i] - actual[i]);
+            if(difference > eps){
+                if(!wrong_value_number){
+                    first_wrong_index = i;
+                }else{
+                    last_wrong_index = i;
+                }
                 ++wrong_value_number;
                 if(difference>max_difference){
                     max_difference = difference;
@@ -87,21 +114,41 @@ namespace expect{
             }
         }
         if(wrong_value_number){
-            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0;
-            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Min difference: ", min_difference ,". Max difference: ", max_difference, ". Container length: ", length));
+            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0; // only double, not num_type
+            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Absolute min relative difference: ", min_difference ,". Absolute max relative difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
         }else{
             return ExpectationResult(true);
         }
     }
 
+    template<typename Container, typename T=num_type>
+    requires Indexable<Container> && FabsSupporting<T>
+    ExpectationResult expect_indexable_containers_eq(Container expected, Container actual, size_t length) noexcept {
+        return expect_indexable_containers_near(expected, actual, T(0.0), length);
+    }
+
     template<typename Container, typename T>
-    ExpectationResult expect_iterable_containers_near(Container expected, Container actual, T eps, size_t length) noexcept {
+    requires Indexable<Container> && FabsSupporting<T>
+    ExpectationResult expect_indexable_containers_near_relative(Container expected, Container actual, T relative_eps, size_t length) noexcept {
         T max_difference = 0.0;
         T min_difference = std::numeric_limits<num_type>::max();
         size_t wrong_value_number = 0;
+        size_t first_wrong_index = 0;
+        size_t last_wrong_index = 0;
+        T zero = 0.0;
+        T difference = 0.0;
         for(size_t i = 0; i<length;++i){
-            T difference = std::fabs(expected[i]-actual[i]);
-            if(difference > eps){
+            if(expected[i] == zero){
+                difference = std::fabs(expected[i] - actual[i]);
+            }else{
+                difference = std::fabs(expected[i] - actual[i]) / std::fabs(expected[i]);
+            }
+            if(difference > relative_eps){
+                if(!wrong_value_number){
+                    first_wrong_index = i;
+                }else{
+                    last_wrong_index = i;
+                }
                 ++wrong_value_number;
                 if(difference>max_difference){
                     max_difference = difference;
@@ -112,8 +159,8 @@ namespace expect{
             }
         }
         if(wrong_value_number){
-            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0;
-            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Min difference: ", min_difference ,". Max difference: ", max_difference, ". Container length: ", length));
+            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0; // only double, not num_type
+            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Relative min difference: ", min_difference ,". Relative max difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
         }else{
             return ExpectationResult(true);
         }
@@ -128,17 +175,13 @@ namespace expect{
     }
 
     template<typename T>
+    requires FabsSupporting<T>
     ExpectationResult expect_near(T expected, T actual, T abs_error) noexcept {
-        try{
-            T result = std::fabs(expected-actual);
-            if(result <= abs_error){
-                return ExpectationResult(true);
-            }
-            return ExpectationResult(false, generate_string("Expected: equality to ", expected, " near ", abs_error, ". Actual: ", actual));
+        T result = std::fabs(expected-actual);
+        if(result <= abs_error){
+            return ExpectationResult(true);
         }
-        catch(...){
-            return ExpectationResult(false, generate_string("Can't calculate modulus of difference between ", expected, " and ", actual));
-        }
+        return ExpectationResult(false, generate_string("Expected: equality to ", expected, " near ", abs_error, ". Actual: ", actual));
     }
 
     ExpectationResult expect_true(bool expression) noexcept;

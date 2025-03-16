@@ -13,6 +13,7 @@ COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpi
 FILE_BEGINS_TO_GRAPH_NAMES={
     "gs_p_sim" : "Процесс ортогонализации Грама-Шмидта (базовый)",
     "mat_p_sim" : "Умножение матриц (базовое)",
+    "mat_p_hlo" : "Умножение матриц (строчный алгоритм)",
     "qr_d_sim" : "QR-разложение матриц (базовое)",
     "vec_p_sim" : "Базовый алгоритм",
     "vec_p_std" : "Inner product"

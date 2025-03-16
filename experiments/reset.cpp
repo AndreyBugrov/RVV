@@ -1,6 +1,6 @@
 #include "reset.hpp"
 
-void reset_scalar_product(const vector<num_type>& a, const vector<num_type>& b, size_t length){
+void reset_dot_product(const vector<num_type>& a, const vector<num_type>& b, size_t length){
     // vectors are unchangable
     return;
 }

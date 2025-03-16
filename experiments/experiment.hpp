@@ -12,7 +12,7 @@
 #include "../common/single_logger.hpp" // logging
 #include "../common/generators.hpp"  // only to generate error message
 
-#include "../algorithms/scalar_product.hpp"
+#include "../algorithms/dot_product.hpp"
 #include "../algorithms/matrix_product.hpp"
 #include "../algorithms/gram_schmidt.hpp"
 #include "../algorithms/qr_decomposition.hpp"
@@ -23,6 +23,7 @@ enum class FunctionIndex{
     kScalarProductSimple,
     kScalarProductStd,
     kMatrixProductSimple,
+    kMatrixProductRowSimple,
     kGramSchmidtSimple,
     kQRSimple,
 };
