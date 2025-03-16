@@ -20,12 +20,13 @@ def compilation(args):
         for_perf = True
     elif compilation_type == "test":
         is_test = True
-    compile_sources(args.compilation_profile, is_test, for_perf)
+    compile_sources(args.compilation_profile, args.device_name, is_test, for_perf)
 
 
 def smoke_test(args):
     function_names_set = get_function_name_set(["all"], [], [])
-    full_experiment_pass(compilation_profile=args.compilation_profile, plot_format="png", function_names_set=function_names_set, sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir, suffix=args.suffix)
+    for compilation_profile in translate_compilation_profiles(args.compilation_profiles):
+        full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set, sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir, suffix=args.suffix)
 
 
 def experiment(args):
@@ -69,6 +70,7 @@ if __name__ == '__main__':
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
     parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile", choices=COMPILATION_PROFILES, required=True)
+    parent_compilation_parser.add_argument('--no-recompile', help="Do not recompile sources", action="store_true")
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)
@@ -85,7 +87,7 @@ if __name__ == '__main__':
     compilation_parser = subparsers.add_parser("compilation", parents=[base_parent_parser, parent_compilation_parser], help="Sourse files compilation")
     compilation_parser.add_argument("--type", help="Compilation_target", choices=["experiment", "perf", "test"], required=True)
     compilation_parser.set_defaults(func=compilation)
-    smoke_test_parser = subparsers.add_parser("smoke_test", parents=[base_parent_parser, parent_compilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
+    smoke_test_parser = subparsers.add_parser("smoke-test", parents=[base_parent_parser, parent_multicompilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)
     plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser, parent_result_parser], help="Result directory plotting")
     plotting_parser.add_argument('-p', '--patterns', help="Directory name part patterns", required=True, nargs="+")

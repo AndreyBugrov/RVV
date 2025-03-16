@@ -1,10 +1,8 @@
 #include "test_set.hpp"
 
-using std::string;
+static const num_type kRelativeEps = 1E-7;
 
-static const num_type kEps = 0.000001;
-
-ExpectationResult test_scalar_prod(TestFunctionInputExtended input){
+ExpectationResult test_dot_product(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> a, b;
     
@@ -17,9 +15,9 @@ ExpectationResult test_scalar_prod(TestFunctionInputExtended input){
     }
     if(input.algebra_object_version == AlgebraObjectVersion::kWrong){
         if(generate_rand_integer_number(input.min_length, input.max_length)){
-            b.resize(length+1);
+            b.resize(length + 1);
         }else{
-            a.resize(length+1);
+            a.resize(length + 1);
         }
     }
 
@@ -65,11 +63,11 @@ ExpectationResult test_scalar_prod(TestFunctionInputExtended input){
         switch (input.function_type)
         {
         case FunctionOptimizationType::kSimple:
-            return expect::expect_throw(scalar_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
-        case FunctionOptimizationType::kSimpleStd:
-            return expect::expect_throw(scalar_product_std, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
+            return expect::expect_throw(dot_product_simple, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
+        case FunctionOptimizationType::kStd:
+            return expect::expect_throw(dot_product_std, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
         default:
-            return expect::expect_false(true);
+            throw Exception(ErrorType::kValueError, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
         }
         break;
     default:
@@ -80,13 +78,13 @@ ExpectationResult test_scalar_prod(TestFunctionInputExtended input){
     switch (input.function_type)
     {
     case FunctionOptimizationType::kSimple:
-        test_result = scalar_product_simple(a, b, length);
+        test_result = dot_product_simple(a, b, length);
         break;
-    case FunctionOptimizationType::kSimpleStd:
-        test_result = scalar_product_std(a, b, length);
+    case FunctionOptimizationType::kStd:
+        test_result = dot_product_std(a, b, length);
         break;
     case FunctionOptimizationType::kUnsafe:
-        test_result = scalar_product_opt_unsafe(a, b, length);
+        test_result = dot_product_opt(a, b, length);
         break;
     default:
         return expect::expect_false(true);
@@ -95,7 +93,7 @@ ExpectationResult test_scalar_prod(TestFunctionInputExtended input){
     return expect::expect_eq(etalon, test_result);
 }
 
-ExpectationResult test_matrix_prod(TestFunctionInputExtended input){
+ExpectationResult test_matrix_product(TestFunctionInputExtended input){
     size_t a_row_number = 0;
     size_t a_column_number = 0;
     size_t b_column_number = 0;
@@ -154,11 +152,13 @@ ExpectationResult test_matrix_prod(TestFunctionInputExtended input){
             switch (input.function_type)
             {
             case FunctionOptimizationType::kSimple:
-                foo = matrix_prod_base_simple;
+                foo = matrix_product_base_simple;
+                break;
+            case FunctionOptimizationType::kRow:
+                foo = matrix_product_row_simple;
                 break;
             default:
-                return expect::expect_false(true);
-                break;
+                throw Exception(ErrorType::kValueError, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
             }
             a.resize(a_row_number*a_column_number+1);
             bool wrong_a = expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
@@ -172,22 +172,25 @@ ExpectationResult test_matrix_prod(TestFunctionInputExtended input){
         }
         break;
     default:
-        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
     switch (input.function_type)
     {
     case FunctionOptimizationType::kSimple:
-        matrix_prod_base_simple(a, b, c, a_row_number, a_column_number, b_column_number);
+        matrix_product_base_simple(a, b, c, a_row_number, a_column_number, b_column_number);
+        break;
+    case FunctionOptimizationType::kRow:
+        matrix_product_row_simple(a, b, c, a_row_number, a_column_number, b_column_number);
         break;
     default:
-        return expect::expect_false(true);
+        throw Exception(ErrorType::kValueError, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
         break;
     }
-    return expect::expect_iterable_containers_eq(etalon, c, etalon.size());
+    return expect::expect_indexable_containers_eq(etalon, c, etalon.size());
 }
 
-ExpectationResult test_qram_schmidt(TestFunctionInputExtended input){
+ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
     size_t vector_system_size = 0;
     size_t vector_length = 0;
     vector<vector<num_type>> vector_system;
@@ -223,7 +226,7 @@ ExpectationResult test_qram_schmidt(TestFunctionInputExtended input){
         }
         break;
     default:
-        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
     switch (input.function_type)
@@ -240,24 +243,33 @@ ExpectationResult test_qram_schmidt(TestFunctionInputExtended input){
         break;
     }
     if(input.algebra_object_version==AlgebraObjectVersion::kZero){ // the presence of zero vectors leads to nan in the proj calculation 
-        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+        for(size_t vec_index = 0; vec_index<vector_system_size; ++vec_index){
             for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
-                num_type res = scalar_product_opt_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
+                num_type res = dot_product_opt(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
                 if(res == res){
                     return expect::expect_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
                 }
             }
         }
     }else{
-        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
-            for(size_t next_vec_index = vec_index + 1; next_vec_index<vector_system_size;++next_vec_index){
-                num_type res = scalar_product_opt_unsafe(orthogonal_system[vec_index], orthogonal_system[next_vec_index], vector_length);
-                bool assert_result =  expect::expect_near(0., res, kEps);
-                if(!assert_result){
-                    return expect::expect_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
-                }
+        size_t end_vec_index = vector_system_size - 1;
+        if(input.algebra_object_version == AlgebraObjectVersion::kEmpty){
+            end_vec_index = vector_system_size; // to protect from subtraction from zero
+        }
+        size_t checked_container_length = vector_system_size * (vector_system_size - 1) / 2;
+        vector<num_type> dot_product_results(checked_container_length);
+        vector<num_type> zero_container(checked_container_length);
+        size_t offset = -vector_system_size;
+        generate_zero_array(zero_container.data(), checked_container_length);
+        for(size_t vec_index = 0; vec_index < end_vec_index; ++vec_index){
+            offset += (vector_system_size - vec_index);
+            size_t dot_index = 0;
+            for(size_t next_vec_index = vec_index + 1; next_vec_index < vector_system_size; ++next_vec_index, ++dot_index){
+                num_type res = dot_product_opt(orthogonal_system.at(vec_index), orthogonal_system.at(next_vec_index), vector_length);
+                dot_product_results.at(offset + dot_index) = res;
             }
         }
+        return expect::expect_indexable_containers_near_relative(zero_container, dot_product_results, kRelativeEps, checked_container_length);
     }
     return expect::expect_true(true);
 }
@@ -289,7 +301,7 @@ ExpectationResult test_vector_norm(TestFunctionInputExtended input){
         generate_rand_array(vec.data(), length, input.min_value, input.max_value);
         break;
     default:
-        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
     num_type test_norm = get_vector_norm(vec);
@@ -331,24 +343,24 @@ ExpectationResult test_normalize_vector(TestFunctionInputExtended input){
         generate_rand_array(vec.data(), length, input.min_value, input.max_value);
         break;
     default:
-        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
     num_type norm = get_vector_norm(vec);
     normalize_vector_inplace(vec, norm);
-    return expect::expect_near(etalon, get_vector_norm(vec), kEps);
+    return expect::expect_near(etalon, get_vector_norm(vec), kRelativeEps);
 }
 
 ExpectationResult test_matrix_transposition(TestFunctionInputExtended input){
-    size_t row_num = 0;
-    size_t column_num = 0;
+    size_t row_count = 0;
+    size_t column_count = 0;
     vector<num_type> matrix;
     vector<num_type> T_matrix;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
-       row_num = generate_rand_integer_number(input.min_length, input.max_length);
-       column_num = generate_rand_integer_number(input.min_length, input.max_length);
-       matrix.resize(row_num*column_num);
+       row_count = generate_rand_integer_number(input.min_length, input.max_length);
+       column_count = generate_rand_integer_number(input.min_length, input.max_length);
+       matrix.resize(row_count*column_count);
     }
 
     switch (input.algebra_object_version)
@@ -356,23 +368,23 @@ ExpectationResult test_matrix_transposition(TestFunctionInputExtended input){
     case AlgebraObjectVersion::kEmpty:
         break;
     case AlgebraObjectVersion::kZero:
-        generate_zero_array(matrix.data(), row_num*column_num);
+        generate_zero_array(matrix.data(), row_count*column_count);
         break;
     case AlgebraObjectVersion::kIdentity:
-        generate_identity_matrix(matrix.data(), row_num, column_num);
+        generate_identity_matrix(matrix.data(), row_count, column_count);
         break;
     case AlgebraObjectVersion::kGeneral:
-        generate_rand_array(matrix.data(), row_num*column_num, input.min_value, input.max_value);
+        generate_rand_array(matrix.data(), row_count*column_count, input.min_value, input.max_value);
         break;
     default:
-        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
-    T_matrix = transpose_matrix(matrix, row_num, column_num);
+    T_matrix = transpose_matrix(matrix, row_count, column_count);
     bool result = true;
-    for(size_t i=0;i<column_num;++i){
-        for(size_t j=0;j<row_num;++j){
-            result = result && (T_matrix[i*row_num+j] == matrix[j*column_num+i]);
+    for(size_t i=0;i<column_count;++i){
+        for(size_t j=0;j<row_count;++j){
+            result = result && (T_matrix[i*row_count+j] == matrix[j*column_count+i]);
             if(! result){
                 return expect::expect_eq(i, j);
             }
@@ -382,25 +394,39 @@ ExpectationResult test_matrix_transposition(TestFunctionInputExtended input){
 }
 
 ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
-    size_t row_num = 0;
-    size_t column_num = 0;
+    size_t row_count = 0;
+    size_t column_count = 0;
 
     vector<num_type> matrix;
     vector<num_type> Q_matrix;
     vector<num_type> R_matrix;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
-        if(input.function_type == FunctionOptimizationType::kUnsafe){
-            column_num = generate_rand_integer_number(input.min_length, input.max_length);
-            row_num = generate_rand_integer_number(column_num, input.max_length);
+        // if(input.function_type == FunctionOptimizationType::kUnsafe){
+        //     column_count = generate_rand_integer_number(input.min_length, input.max_length);
+        //     row_count = generate_rand_integer_number(column_count, input.max_length);
             
+        // }else{
+        //     row_count = generate_rand_integer_number(input.min_length, input.max_length);
+        //     column_count = generate_rand_integer_number(input.min_length, input.max_length);
+        // }
+        if(input.function_type == FunctionOptimizationType::kRowStd){
+            // column_count = 10;
+            // row_count = 12;
+            column_count = generate_rand_integer_number(input.min_length, input.max_length);
+            row_count = generate_rand_integer_number(column_count, input.max_length);
+            
+            matrix.resize(row_count*column_count);
+            Q_matrix.resize(row_count*column_count);
+            R_matrix.resize(column_count*column_count);
         }else{
-            row_num = generate_rand_integer_number(input.min_length, input.max_length);
-            column_num = generate_rand_integer_number(input.min_length, input.max_length);
+            column_count = generate_rand_integer_number(input.min_length, input.max_length);
+            row_count = generate_rand_integer_number(column_count, input.max_length);
+            matrix.resize(row_count*column_count);
+            Q_matrix.resize(row_count*column_count);
+            R_matrix.resize(column_count*column_count);
         }
-        matrix.resize(row_num*column_num);
-        Q_matrix.resize(row_num*column_num);
-        R_matrix.resize(column_num*column_num);
+
     }
 
     switch (input.algebra_object_version)
@@ -408,30 +434,36 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     case AlgebraObjectVersion::kEmpty:
         break;
     case AlgebraObjectVersion::kZero:
-        generate_zero_array(matrix.data(), row_num*column_num);
+        generate_zero_array(matrix.data(), row_count*column_count);
         break;
     case AlgebraObjectVersion::kIdentity:
-        generate_identity_matrix(matrix.data(), row_num, column_num);
+        generate_identity_matrix(matrix.data(), row_count, column_count);
         break;
     case AlgebraObjectVersion::kGeneral:
-        generate_rand_array(matrix.data(), row_num*column_num, input.min_value, input.max_value);
+        generate_rand_array(matrix.data(), row_count*column_count, input.min_value, input.max_value);
         break;
     case AlgebraObjectVersion::kWrong:
-        ///////////////////////////////////
+        return expect::expect_true(true);
         break;
     default:
-        throw Exception(ErrorType::kValueError, generate_string("Unsupported matrix version number for matrix product: ", static_cast<int>(input.algebra_object_version)));
+        throw Exception(ErrorType::kValueError, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
     switch (input.function_type)
     {
     case FunctionOptimizationType::kUnsafe:
-        QR_decomposition_base_simple(matrix, Q_matrix, R_matrix, row_num, column_num);
+        QR_decomposition_base_simple(matrix, Q_matrix, R_matrix, row_count, column_count);
+        break;
+    case FunctionOptimizationType::kRow:
+        QR_decomposition_row_product_simple(matrix, Q_matrix, R_matrix, row_count, column_count);
+        break;
+    case FunctionOptimizationType::kRowStd:
+        QR_decomposition_row_product_matrix_process_simple(matrix, Q_matrix, R_matrix, row_count, column_count);
         break;
     default:
-        return expect::expect_true(false);
+        throw Exception(ErrorType::kValueError, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
-    vector<num_type> test_matrix(row_num*column_num);
-    matrix_prod_base_simple(Q_matrix, R_matrix, test_matrix, row_num, column_num, column_num);
-    return expect::expect_iterable_containers_near(matrix, test_matrix, kEps, row_num*column_num);
+    vector<num_type> test_matrix(row_count*column_count);
+    matrix_product_base_simple(Q_matrix, R_matrix, test_matrix, row_count, column_count, column_count);
+    return expect::expect_indexable_containers_near_relative(matrix, test_matrix, kRelativeEps, row_count*column_count);
 }
