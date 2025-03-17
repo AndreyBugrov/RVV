@@ -12,9 +12,12 @@ LOGGER = logging.getLogger(__name__)
 COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "darkgreen", "sienna", "lime", "gold", "dodblue", "lightsalmon", "midnightblue", "darkred", "cyan", "deeppink"]
 FILE_BEGINS_TO_GRAPH_NAMES={
     "gs_p_sim" : "Процесс ортогонализации Грама-Шмидта (базовый)",
+    "gs_p_row" : "Процесс ортогонализации Грама-Шмидта (матричный)",
     "mat_p_sim" : "Умножение матриц (базовое)",
-    "mat_p_hlo" : "Умножение матриц (строчный алгоритм)",
+    "mat_p_row_sim" : "Умножение матриц (строчный алгоритм)",
     "qr_d_sim" : "QR-разложение матриц (базовое)",
+    "qr_d_row_sim" : "QR-разложение матриц (строчное умножение матриц)",
+    "qr_d_row_row" : "QR-разложение матриц (строчное умножение матриц + матричный процесс)",
     "vec_p_sim" : "Базовый алгоритм",
     "vec_p_std" : "Inner product"
 }

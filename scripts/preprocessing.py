@@ -58,5 +58,5 @@ def prepare_result_directory(output_dir: str, suffix: str | None) -> Path:
         result_directory.mkdir(parents=False, exist_ok=False)
     except FileExistsError:
         critical_message(f"Directory {result_directory} already exists")
-    LOGGER.info(f"Result directory {result_directory} is prepared")
+    LOGGER.info(f"Result directory {result_directory} was created")
     return result_directory

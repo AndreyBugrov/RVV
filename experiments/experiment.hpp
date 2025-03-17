@@ -20,8 +20,8 @@
 #include "reset.hpp"
 
 enum class FunctionIndex{
-    kScalarProductSimple,
-    kScalarProductStd,
+    kDotProductSimple,
+    kDotProductStd,
     kMatrixProductSimple,
     kMatrixProductRow,
     kGramSchmidtSimple,

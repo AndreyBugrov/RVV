@@ -26,6 +26,7 @@ def compilation(args):
 def smoke_test(args):
     function_names_set = get_function_name_set(["all"], [], [])
     for compilation_profile in translate_compilation_profiles(args.compilation_profiles):
+        LOGGER.info(f"Compilation profile: {compilation_profile}")
         full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set, sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir, suffix=args.suffix)
 
 
