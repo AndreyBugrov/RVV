@@ -1,25 +1,19 @@
 #include "vector_operations.hpp"
 
 num_type get_vector_norm(const vector<num_type>& vec){
-    num_type square_norm = dot_product_opt(vec, vec, vec.size());
-    return sqrt(square_norm);
+    return get_vector_norm(vec.data(), vec.size());
 }
 
-num_type inner_get_vector_norm(const num_type* vec, size_t length){
+num_type get_vector_norm(const num_type* vec, size_t length){
     num_type square_norm = inner_optimal_dot_product(vec, vec, length);
     return sqrt(square_norm);
 }
 
 void normalize_vector_inplace(vector<num_type>& vec, num_type norm){
-    if(norm==0){
-        return;
-    }
-    for(size_t coord_num=0;coord_num<vec.size();++coord_num){
-        vec[coord_num] /= norm;
-    }
+    normalize_vector_inplace(vec.data(), norm, vec.size());
 }
 
-void inner_normalize_vector_inplace(num_type* vec, num_type norm, size_t length){
+void normalize_vector_inplace(num_type* vec, num_type norm, size_t length){
     if(norm==0){
         return;
     }
@@ -27,7 +21,6 @@ void inner_normalize_vector_inplace(num_type* vec, num_type norm, size_t length)
         vec[coord_num] /= norm;
     }
 }
-
 
 bool is_vector_zero(const vector<num_type>& vec){
     for(size_t i=0;i<vec.size();++i){
@@ -39,12 +32,10 @@ bool is_vector_zero(const vector<num_type>& vec){
 }
 
 void sub_vector_from_vector_inplace(vector<num_type>& minuend, const vector<num_type>& subtrahend){
-    for(size_t i=0;i<minuend.size();++i){
-        minuend[i]-=subtrahend[i];
-    }
+    sub_vector_from_vector_inplace(minuend.data(), subtrahend.data(), minuend.size());
 }
 
-void inner_sub_vector_from_vector_inplace(num_type* minuend, const num_type* subtrahend, size_t length){
+void sub_vector_from_vector_inplace(num_type* minuend, const num_type* subtrahend, size_t length){
     for(size_t i=0;i<length;++i){
         minuend[i]-=subtrahend[i];
     }

@@ -36,15 +36,18 @@ double count_seconds(std::vector<double>& seconds){
 }
 
 BaseTaskOutput run_experiment(int experiment_count, std::string function_name, std::vector<size_t> function_arguments){
-    const num_type min_value = -100.0;
-    const num_type max_value = 100.0;
+    const num_type kMinValue = -100.0;
+    const num_type kMaxValue = 100.0;
     const std::map<std::string, FunctionIndex> function_name_to_index={
         std::pair<std::string, FunctionIndex>("vec_p_sim", FunctionIndex::kScalarProductSimple),
         std::pair<std::string, FunctionIndex>("vec_p_std", FunctionIndex::kScalarProductStd),
         std::pair<std::string, FunctionIndex>("mat_p_sim", FunctionIndex::kMatrixProductSimple),
-        std::pair<std::string, FunctionIndex>("mat_p_hlo", FunctionIndex::kMatrixProductRowSimple),
+        std::pair<std::string, FunctionIndex>("mat_p_row", FunctionIndex::kMatrixProductRow),
         std::pair<std::string, FunctionIndex>("gs_p_sim", FunctionIndex::kGramSchmidtSimple),
+        std::pair<std::string, FunctionIndex>("gs_p_row", FunctionIndex::kGramSchmidtRow),
         std::pair<std::string, FunctionIndex>("qr_d_sim", FunctionIndex::kQRSimple),
+        std::pair<std::string, FunctionIndex>("qr_d_row", FunctionIndex::kQRRow),
+        std::pair<std::string, FunctionIndex>("qr_d_row_std", FunctionIndex::kQRRowRow),
     };
     enum ArgumentNumber{
         kScalarProduct = 1,
@@ -57,7 +60,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
     size_t correct_size;
 
     BaseTaskOutput output(false, "UnknownError", "Was not ran", 0.0);
-    if(function_index==FunctionIndex::kScalarProductSimple||function_index==FunctionIndex::kScalarProductStd){
+    if(function_index==FunctionIndex::kScalarProductSimple || function_index==FunctionIndex::kScalarProductStd){
         correct_size = ArgumentNumber::kScalarProduct;
         if(arguments_size!=correct_size){
             throw Exception(ErrorType::kWrongArgumentNumber, generate_string("Expected ", correct_size, " arguments for scalar product but passed ", arguments_size));
@@ -65,21 +68,23 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         size_t vector_length = function_arguments[0];
         vector<num_type> a(vector_length);
         vector<num_type> b(vector_length);
-        generate_rand_array(a.data(), vector_length, min_value, max_value);
-        generate_rand_array(b.data(), vector_length, min_value, max_value);
+        generate_rand_array(a.data(), vector_length, kMinValue, kMaxValue);
+        generate_rand_array(b.data(), vector_length, kMinValue, kMaxValue);
+        std::function<num_type (const vector_num&, const vector_num&, size_t)> foo;
         switch (function_index)
         {
         case FunctionIndex::kScalarProductSimple:
-            output = run_experiment_task(experiment_count, dot_product_simple, reset_dot_product, a, b, vector_length);
+            foo = dot_product_simple;
             break;
         case FunctionIndex::kScalarProductStd:
-            output = run_experiment_task(experiment_count, dot_product_std, reset_dot_product, a, b, vector_length);
+            foo = dot_product_std;
             break;
         default:
             break;
         }
+        return run_experiment_task(experiment_count, foo, reset_dot_product, a, b, vector_length);
     }
-    if(function_index==FunctionIndex::kMatrixProductSimple || function_index==FunctionIndex::kMatrixProductRowSimple){
+    if(function_index==FunctionIndex::kMatrixProductSimple || function_index==FunctionIndex::kMatrixProductRow){
         correct_size = ArgumentNumber::kMatrixProduct;
         if(arguments_size!=correct_size){
             throw Exception(ErrorType::kWrongArgumentNumber, generate_string("Expected ", correct_size, " arguments for scalar product but passed ", arguments_size));
@@ -90,22 +95,24 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         vector<num_type> a(a_row_num*a_column_num);
         vector<num_type> b(a_column_num*b_column_num);
         vector<num_type> c(a_row_num*b_column_num);
-        generate_rand_array(a.data(), a_row_num*a_column_num, min_value, max_value);
-        generate_rand_array(b.data(), a_column_num*b_column_num, min_value, max_value);
-        generate_rand_array(c.data(), a_row_num*b_column_num, min_value, max_value);
+        generate_rand_array(a.data(), a_row_num*a_column_num, kMinValue, kMaxValue);
+        generate_rand_array(b.data(), a_column_num*b_column_num, kMinValue, kMaxValue);
+        generate_rand_array(c.data(), a_row_num*b_column_num, kMinValue, kMaxValue);
+        std::function<void(const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)> foo;
         switch (function_index)
         {
         case FunctionIndex::kMatrixProductSimple:
-            output = run_experiment_task(experiment_count, matrix_product_base_simple, reset_matrix_product, a, b, c, a_row_num, a_column_num, b_column_num);
+            foo = matrix_product_base_simple;
             break;
-        case FunctionIndex::kMatrixProductRowSimple:
-            output = run_experiment_task(experiment_count, matrix_product_row_simple, reset_matrix_product, a, b, c, a_row_num, a_column_num, b_column_num);
+        case FunctionIndex::kMatrixProductRow:
+            foo = matrix_product_row_simple;
             break;
         default:
             break;
         }
+        return run_experiment_task(experiment_count, foo, reset_matrix_product, a, b, c, a_row_num, a_column_num, b_column_num);
     }
-    if(function_index==FunctionIndex::kGramSchmidtSimple){
+    if(function_index==FunctionIndex::kGramSchmidtSimple || function_index==FunctionIndex::kGramSchmidtRow){
         correct_size = ArgumentNumber::kGramSchmidtProcess;
         if(arguments_size!=correct_size){
             throw Exception(ErrorType::kWrongArgumentNumber, generate_string("Expected ", correct_size, " arguments for Gram-Schmidt process but passed ", arguments_size));
@@ -115,18 +122,32 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         vector<vector<num_type>> vec_system(vector_system_size);
         for(size_t vec_ind = 0;vec_ind <vector_system_size;++vec_ind){
             vec_system[vec_ind].resize(vector_length);
-            generate_rand_array(vec_system[vec_ind].data(), vector_length, min_value, max_value);
+            generate_rand_array(vec_system[vec_ind].data(), vector_length, kMinValue, kMaxValue);
         }
         switch (function_index)
         {
         case FunctionIndex::kGramSchmidtSimple:
-            output = run_experiment_task(experiment_count, gram_schmidt_base_simple, reset_gram_schmidt, vec_system);
+            {
+                vector<vector<num_type>> vec_system(vector_system_size);
+                for(size_t vec_ind = 0;vec_ind <vector_system_size;++vec_ind){
+                    vec_system[vec_ind].resize(vector_length);
+                    generate_rand_array(vec_system[vec_ind].data(), vector_length, kMinValue, kMaxValue);
+                }
+                return run_experiment_task(experiment_count, gram_schmidt_base_simple, reset_gram_schmidt, vec_system);
+            }
+            break;
+        case FunctionIndex::kGramSchmidtRow:
+            {
+                vector_num vec_system(vector_system_size*vector_length);
+                generate_rand_array(vec_system.data(), vector_system_size*vector_length, kMinValue, kMaxValue);
+                return run_experiment_task(experiment_count, gram_schmidt_matrix_simple_inplace, reset_inplace_gram_schmidt, vec_system);
+            }
             break;
         default:
             break;
         }
     }
-    if(function_index==FunctionIndex::kQRSimple){
+    if(function_index==FunctionIndex::kQRSimple || function_index==FunctionIndex::kQRRow || function_index==FunctionIndex::kQRRowRow){
         correct_size = ArgumentNumber::kQRDecomposition;
         if(arguments_size!=correct_size){
             throw Exception(ErrorType::kWrongArgumentNumber, generate_string("Expected ", correct_size, " arguments for QR decomposition but passed ", arguments_size));
@@ -136,15 +157,23 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         vector<num_type> matrix(row_num*column_num);
         vector<num_type> Q(row_num*column_num);
         vector<num_type> R(column_num*column_num);
-        generate_rand_array(matrix.data(), row_num*column_num, min_value, max_value);
+        generate_rand_array(matrix.data(), row_num*column_num, kMinValue, kMaxValue);
+        std::function<void(const vector_num&, vector_num&, vector_num&, size_t, size_t)> foo;
         switch (function_index)
         {
         case FunctionIndex::kQRSimple:
-            output = run_experiment_task(experiment_count, QR_decomposition_base_simple, reset_qr, matrix, Q, R, row_num, column_num);
+            foo = QR_decomposition_base_simple;
+            break;
+        case FunctionIndex::kQRRow:
+            foo = QR_decomposition_row_product_simple;
+            break;
+        case FunctionIndex::kQRRowRow:
+            foo = QR_decomposition_row_product_matrix_process_simple;
             break;
         default:
             break;
         }
+        return run_experiment_task(experiment_count, foo, reset_qr, matrix, Q, R, row_num, column_num);
     }
     return output;
 }

@@ -32,7 +32,7 @@ int main()
     std::vector<num_type> my_q(row_num*column_num);
     std::vector<num_type> my_r(column_num*column_num);
     const auto start_test{std::chrono::steady_clock::now()};
-    QR_decomposition_row_product_simple(my_matrix, my_q, my_r, row_num, column_num);
+    QR_decomposition_row_product_matrix_process_simple(my_matrix, my_q, my_r, row_num, column_num);
     const auto end_test{std::chrono::steady_clock::now()};
     vector_num my_check_matrix(row_num * column_num);
     const std::chrono::duration<double> test_seconds = end_test - start_test;

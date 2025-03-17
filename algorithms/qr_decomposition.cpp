@@ -71,7 +71,7 @@ void QR_decomposition_row_product_matrix_process_simple(const vector<num_type>& 
     vector<num_type> Q_matrix_transposed = transpose_matrix(matrix, row_count, column_count);
     Q_matrix_transposed = gram_schmidt_matrix_simple_inplace(Q_matrix_transposed, column_count, row_count);
     for(size_t vec_num = 0;vec_num<column_count;++vec_num){
-        inner_normalize_vector_inplace(&Q_matrix_transposed[vec_num*row_count], inner_get_vector_norm(&Q_matrix_transposed[vec_num*row_count], row_count), row_count);
+        normalize_vector_inplace(&Q_matrix_transposed[vec_num*row_count], get_vector_norm(&Q_matrix_transposed[vec_num*row_count], row_count), row_count);
     }
     matrix_product_row_simple(Q_matrix_transposed, matrix, R_matrix, column_count, row_count, column_count);
     // get Q^T matrix from Q

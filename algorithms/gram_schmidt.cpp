@@ -37,7 +37,8 @@ vector_num gram_schmidt_matrix_simple_inplace(vector_num& transposed_matrix, siz
     for(size_t vec_index=0;vec_index<row_count;++vec_index){
         for(size_t proj_index=0;proj_index<vec_index;++proj_index){
             num_type* projection = proj(&transposed_matrix[vec_index*column_count], &orthogonal_matrix[proj_index*column_count], column_count);
-            inner_sub_vector_from_vector_inplace(&orthogonal_matrix[vec_index*column_count], projection, column_count);
+            sub_vector_from_vector_inplace(&orthogonal_matrix[vec_index*column_count], projection, column_count);
+            delete projection;
         }
     }
     return orthogonal_matrix;
