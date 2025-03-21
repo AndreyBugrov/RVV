@@ -10,7 +10,11 @@ int main(int argc, char* argv[]){
     // experiment count, function name, function arguments, .log file path
     const int kMinArgumentsCount = 5;
     if(argc < kMinArgumentsCount){
-        Exception ex(ErrorType::kWrongArgumentNumber, generate_string("Expected ", kMinArgumentsCount, " arguments but passed ", argc));
+        std::string arguments;
+        for(int argument_index = 1; argument_index<argc; ++argument_index){
+            arguments += std::to_string(argument_index) + ". " + argv[argument_index] + "\n";
+        }
+        Exception ex(ErrorType::kWrongArgumentCount, generate_string("Expected at least ", kMinArgumentsCount, " arguments but passed ", argc, ". Arguments:\n", arguments));
         std::cerr<<ex.what()<<"\n";
         std::cerr<<ex.message()<<"\n";
         return argc;

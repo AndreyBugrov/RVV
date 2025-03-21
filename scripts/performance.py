@@ -6,7 +6,7 @@ from pathlib import Path
 from common_defs import critical_message
 from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
 from compilation import compile_sources
-from experiment import get_current_sizes_by_operation_class, OPERATIONS, OPTIMIZATIONS, FUNCTION_NAMES_DICT
+from experiment import get_current_sizes_by_operation_class, terminate_experiment, OPERATIONS, OPTIMIZATIONS, FUNCTION_NAMES_DICT
 
 
 LOGGER = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilati
         perf_record_info = stderr.decode('utf-8')
         LOGGER.warning(f"{perf_object_name} output:\n{perf_record_info}")
     if proc.returncode:
-        critical_message(f"Process has completed with non-zero return code: {proc.returncode}")
+        terminate_experiment(f"Process has completed with non-zero return code: {proc.returncode}")
     return perf_data_path
 
 

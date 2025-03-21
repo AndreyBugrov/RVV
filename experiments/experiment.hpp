@@ -22,13 +22,20 @@
 enum class FunctionIndex{
     kDotProductSimple,
     kDotProductStd,
+    kDotProductSimd,
+    kDotProductEnd, // end
     kMatrixProductSimple,
     kMatrixProductRow,
+    kMatrixProductEnd, // end
     kGramSchmidtSimple,
     kGramSchmidtRow,
+    kGramSchmidtSimd,
+    kGramSchmidtEnd, // end
     kQRSimple,
     kQRRow,
     kQRRowRow,
+    kQRSimd,
+    kQREnd, // end
 };
 
 // experiment_count is of int type because there are only std::stoi, not std::stoui

@@ -13,6 +13,12 @@ num_type* proj(const num_type* projected, const num_type* mapped_vec, size_t len
     return inner_multiply_vector_by_number(mapped_vec, a_b/b_b, length);
 }
 
+num_type* proj_simd(const num_type* projected, const num_type* mapped_vec, size_t length){
+    num_type a_b = inner_optimal_dot_product_simd(projected, mapped_vec, length);
+    num_type b_b = inner_optimal_dot_product_simd(mapped_vec, mapped_vec, length);
+    return inner_multiply_vector_by_number(mapped_vec, a_b/b_b, length);
+}
+
 vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>& vec_system){
     if(vec_system.size()==0){
         return vec_system;
@@ -37,6 +43,21 @@ vector_num gram_schmidt_matrix_simple_inplace(vector_num& transposed_matrix, siz
     for(size_t vec_index=0;vec_index<row_count;++vec_index){
         for(size_t proj_index=0;proj_index<vec_index;++proj_index){
             num_type* projection = proj(&transposed_matrix[vec_index*column_count], &orthogonal_matrix[proj_index*column_count], column_count);
+            sub_vector_from_vector_inplace(&orthogonal_matrix[vec_index*column_count], projection, column_count);
+            delete projection;
+        }
+    }
+    return orthogonal_matrix;
+}
+
+vector_num gram_schmidt_simd(vector_num& transposed_matrix, size_t row_count, size_t column_count){
+    if(row_count == 0 || column_count == 0){
+        return vector_num(0);
+    }
+    vector_num orthogonal_matrix = transposed_matrix;
+    for(size_t vec_index=0;vec_index<row_count;++vec_index){
+        for(size_t proj_index=0;proj_index<vec_index;++proj_index){
+            num_type* projection = proj_simd(&transposed_matrix[vec_index*column_count], &orthogonal_matrix[proj_index*column_count], column_count);
             sub_vector_from_vector_inplace(&orthogonal_matrix[vec_index*column_count], projection, column_count);
             delete projection;
         }

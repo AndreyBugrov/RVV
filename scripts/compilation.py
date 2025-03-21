@@ -9,12 +9,12 @@ from common_defs import critical_message, PARENT_DIRECTORY, X86_NAME, KENDRYTE_N
 LOGGER = logging.getLogger(__name__)
 
 COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "math", "lto", "native", "optimal"]
-BASE_OPTIMIZATION_LEVEL = "-O2"
+BASE_OPTIMIZATION_LEVEL = "-O2 -fopenmp-simd"
 OPTIMIZATION_LEVELS = {
-    COMPILATION_PROFILES[0]: "-O0",
-    COMPILATION_PROFILES[1]: "-O2",
-    COMPILATION_PROFILES[2]: "-O3",
-    COMPILATION_PROFILES[3]: "-Ofast",
+    COMPILATION_PROFILES[0]: "-O0 -fopenmp-simd",
+    COMPILATION_PROFILES[1]: "-O2 -fopenmp-simd",
+    COMPILATION_PROFILES[2]: "-O3 -fopenmp-simd",
+    COMPILATION_PROFILES[3]: "-Ofast -fopenmp-simd",
 }
 EXTRA_OPTIONS_OFFSET = 4
 EXTRA_OPTIMIZATIONS = {
@@ -75,7 +75,7 @@ def compile_sources(compilation_profile: str, device_name: str, is_test: bool, f
 
     optimization_options = _get_compilation_options(compilation_profile, device_name)
     if is_test and compilation_profile in ["optimal", "math", "fast"]:
-        optimization_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
+        optimization_options += " -fno-finite-math-only -g"  # for nan tests in Gram-Schmidt process
 
     if for_perf:
         perf_argument = "-fno-omit-frame-pointer"

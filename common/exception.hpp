@@ -7,7 +7,7 @@ enum class ErrorType{
     kUnknownError,
     kUnequalLengthError,
     kValueError,
-    kWrongArgumentNumber,
+    kWrongArgumentCount,
 };
 
 class Exception{

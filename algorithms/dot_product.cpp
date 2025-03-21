@@ -32,6 +32,15 @@ num_type dot_product_intrinsic(const vector<num_type>& a, const vector<num_type>
     return num_type(0.);
 }
 
+num_type inner_optimal_dot_product_simd(const num_type* a, const num_type* b, size_t length){
+    num_type prod = 0.0;
+    #pragma omp simd reduction(+:prod)
+    for(size_t i = 0; i < length; ++i){
+        prod += a[i] * b[i];
+    }
+    return prod;
+}
+
 num_type inner_optimal_dot_product(const num_type* a, const num_type* b, size_t length){
     num_type prod = 0.0;
     for(size_t i = 0; i < length; ++i){

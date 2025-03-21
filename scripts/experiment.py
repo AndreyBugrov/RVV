@@ -14,20 +14,29 @@ LOGGER = logging.getLogger(__name__)
 
 
 OPERATIONS = {'vector' : 'vec_p', 'matrix' : 'mat_p', 'gram_schmidt' : 'gs_p', 'qr': 'qr_d'}
-OPTIMIZATIONS = {'simple': 'sim', 'std' : 'std', 'scalar': 'sca', 'hl_opt' : 'hlo', 'intrinsic': 'int', 'll_opt': 'llo'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized
+OPTIMIZATIONS = {'simple': 'sim', 'std' : 'std', 'row' : 'row_sim', 'scalar': 'sca', 'simd' : 'simd', 'hl_opt' : 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized
+
+
+def terminate_experiment(error_msg: str):
+    LOGGER.critical(f"{error_msg}")
+    raise KeyboardInterrupt
 
 
 def _run_binary(bin_path: Path, function_name: str, sizes: str, exp_count: int) -> list[str]:
     args = f"{bin_path} {exp_count} {function_name} {sizes} experiments.log"
+    LOGGER.debug(f"Run args: {args}")
     cmd = shlex.split(args)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = proc.communicate()
-    if proc.returncode:
-        critical_message(f'Process has completed with non-zero return code: {proc.returncode}')
     stderr = output[1]
-    if stderr:
-        error_output = stderr.decode('utf-8')
-        critical_message(f'Errors while running:\n{error_output}')
+    if proc.returncode or stderr:
+        error_message = "Run errors:"
+        if proc.returncode:
+            error_message += f'\nProcess terminated with a non-zero return code: {proc.returncode}\n'
+        if stderr:
+            error_output = stderr.decode('utf-8')
+            error_message += f'\nErrors while running:\n{error_output}'
+        terminate_experiment(error_message)
     stdout = output[0].decode('utf-8')  # we can't catch termination message (it is neither in stderr nor in stdout)
     LOGGER.debug('Program output: ' + stdout[:-1])
     row = stdout[:-1].split('\n')
@@ -48,6 +57,8 @@ def get_current_sizes_by_operation_class(current_size: int, operation_class: str
         output = base_current_size * 2
     elif operation_class == OPERATIONS['qr']:
         output = base_current_size * 2
+    else:
+        terminate_experiment(f"Wrong operation class name: {operation_class}")
     return output[:-1]
 
 
@@ -62,8 +73,7 @@ def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_cou
     max_n = sizes[1] + 1
     step_n = sizes[2]
 
-    optimization_class = function_name.split('_')[-1]
-    operation_class = function_name.replace('_' + optimization_class, "")
+    operation_class = function_name.split("_")[0] + "_" + function_name.split("_")[1]
 
     csv_file_name = result_directory / Path(function_name + '_' + device_type + '_' + str(frequency / (1000*1000)) + 'GHz' + '.csv')
 
@@ -108,7 +118,7 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
     except KeyboardInterrupt:
         for core in core_nums:
             set_min_core_frequency_limit(min_frequenciy, core)
-        critical_message('Program has been interrupted')
+        critical_message('Experiment was interrupted')
     for core in core_nums:
         set_min_core_frequency_limit(min_frequenciy, core)
     create_plots(plot_format=plot_format, result_directory=result_directory, device_name=device_name)
@@ -119,9 +129,10 @@ def _create_function_dict() -> dict[str, set[str]]:
     function_names_dict = dict()
     # add support for operations
     function_names_dict['vector'] = {OPERATIONS['vector'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['vector']+ '_' + OPTIMIZATIONS['std']}
-    function_names_dict['matrix'] = {OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['hl_opt']}
-    function_names_dict['gram_schmidt'] = {OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['simple']}
-    function_names_dict['qr'] = {OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simple']}
+    function_names_dict['matrix'] = {OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['row']}
+    function_names_dict['gram_schmidt'] = {OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['row']}
+    function_names_dict['qr'] = {OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['row'], 
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['full_row'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simd']}
     # add support for optimizations
     for key in OPTIMIZATIONS.keys():
         function_names_dict[key] = set()

@@ -4,6 +4,8 @@
 #include <numeric> // std::inner_product
 #include <asm/unistd.h> // intrinsics
 
+#include "omp.h" // openmp
+
 #include "../common/exception.hpp"  // Exception
 #include "../common/generators.hpp"  // generate_string, defines.hpp
 
@@ -15,4 +17,6 @@ num_type dot_product_std(const vector<num_type>& a, const vector<num_type>& b, s
 num_type dot_product_opt(const vector<num_type>& a, const vector<num_type>& b, size_t length);
 
 num_type dot_product_intrinsic(const vector<num_type>& a, const vector<num_type>& b, size_t length);
+
 num_type inner_optimal_dot_product(const num_type* a, const num_type* b, size_t length);
+num_type inner_optimal_dot_product_simd(const num_type* a, const num_type* b, size_t length);
