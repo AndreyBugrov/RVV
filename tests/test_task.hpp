@@ -24,9 +24,11 @@ enum class FunctionOptimizationType{
     kSimple,
     kStd,
     kRow,
-    kRowStd,
+    kRowRow,
     kSimpleIntrinsic,
     kRowIntrinsic,
+    kSimd,
+    kUnrolling,
     kUnsafe,
     kNoThrowing,
 };
@@ -36,7 +38,7 @@ enum class AlgebraObjectVersion{
     kZero,
     kIdentity, // one object is identity
     kGeneral,
-    kWrong, // check throws or not in wrong input case
+    kIncorrect, // check throws or not in wrong input case
 };
 
 struct TestFunctionInputExtended: TestFunctionInput{

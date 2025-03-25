@@ -11,15 +11,17 @@ LOGGER = logging.getLogger(__name__)
 
 COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "darkgreen", "sienna", "lime", "gold", "dodblue", "lightsalmon", "midnightblue", "darkred", "cyan", "deeppink"]
 FILE_BEGINS_TO_GRAPH_NAMES={
-    "gs_p_sim" : "Процесс ортогонализации Грама-Шмидта (базовый)",
-    "gs_p_row" : "Процесс ортогонализации Грама-Шмидта (матричный)",
-    "mat_p_sim" : "Умножение матриц (базовое)",
-    "mat_p_row_sim" : "Умножение матриц (строчный алгоритм)",
-    "qr_d_sim" : "QR-разложение матриц (базовое)",
-    "qr_d_row_sim" : "QR-разложение матриц (строчное умножение матриц)",
-    "qr_d_row_row" : "QR-разложение матриц (строчное умножение матриц + матричный процесс)",
-    "vec_p_sim" : "Базовый алгоритм",
-    "vec_p_std" : "Inner product"
+    "gs_p_sim_" : "Процесс ортогонализации Грама-Шмидта (базовый)",
+    "gs_p_row_" : "Процесс ортогонализации Грама-Шмидта (матричный)",
+    "mat_p_sim_" : "Умножение матриц (базовое)",
+    "mat_p_row_sim_" : "Умножение матриц (строчный алгоритм)",
+    "qr_d_sim_" : "QR-разложение матриц (базовое)",
+    "qr_d_row_sim_" : "QR-разложение матриц (строчное умножение матриц)",
+    "qr_d_row_row_" : "QR-разложение матриц (строчное умножение матриц + матричный процесс)",
+    "qr_d_simd_" : "QR-разложение матриц (SIMD)",
+    "vec_p_sim_" : "Базовый алгоритм",
+    "vec_p_std_" : "Inner product",
+    "vec_p_simd_" : "SIMD"
 }
 
 TIME_NAME = "Time"
@@ -88,7 +90,7 @@ def _add_time_series_to_times_dict(current_names: list[str], path_item: Path, fi
     times_dict[_get_curve_name(file_name)] = tmp_df[time_name].to_list()
 
 
-def _save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_directory: Path, device_name: str, mat_names: list[str], gs_names: list[str], qr_names: list[str]):
+def _save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_directory: Path, device_name: str, base_title: str, mat_names: list[str], gs_names: list[str], qr_names: list[str]):
     dimension_size_list = _get_length_list(result_directory, mat_names, gs_names, qr_names)
     if not dimension_size_list:
         return
@@ -107,11 +109,11 @@ def _save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_dire
         _add_time_series_to_times_dict(current_names, path_item, file_name, time_name, times_dict)
 
         # df.plot(ax=ax, colormap=COLOR_LIST[plot_index], x=df[current_names[0]], y=df[current_names[-1]], legend=NAMES_DICT[path_item]
-    _plot_graph(times_dict, dimension_size_list, result_directory, device_name, plot_format, "Основные алгоритмы", is_vector=False)
+    _plot_graph(times_dict, dimension_size_list, result_directory, device_name, plot_format, base_title, is_vector=False)
 
 
 
-def save_vec_plots(plot_format: str, time_name: str, result_directory: Path, device_name: str, vec_names: list[str]): 
+def save_vec_plots(plot_format: str, time_name: str, result_directory: Path, device_name: str, dot_title: str, vec_names: list[str]): 
     result_directories = [item for item in result_directory.glob("vec*.csv")]
     if not result_directories:
         LOGGER.warning(f"There is no supported vector results files in \"{result_directory}\" directory")
@@ -123,15 +125,18 @@ def save_vec_plots(plot_format: str, time_name: str, result_directory: Path, dev
     for path_item in result_directory.glob("vec*.csv"):
         file_name = path_item.name
         _add_time_series_to_times_dict(vec_names, path_item, file_name, time_name, times_dict)
-    _plot_graph(times_dict, dimension_size_list, result_directory, device_name, plot_format, "Скалярное произведение векторов", is_vector=True)
+    _plot_graph(times_dict, dimension_size_list, result_directory, device_name, plot_format, dot_title, is_vector=True)
 
 
-def create_plots(plot_format: str, result_directory: Path, device_name: str, time_name: str=TIME_NAME, vec_column_names: list=VEC_COLUMN_NAMES, mat_column_names: list=MAT_COLUMN_NAMES, gs_column_names: list=GS_COLUMN_NAMES, qr_column_names: list=QR_COLUMN_NAMES):
+def create_plots(plot_format: str, result_directory: Path, device_name: str, base_title: str, 
+                 dot_title: str, time_name: str=TIME_NAME, vec_column_names: list=VEC_COLUMN_NAMES,
+                 mat_column_names: list=MAT_COLUMN_NAMES, gs_column_names: list=GS_COLUMN_NAMES,
+                 qr_column_names: list=QR_COLUMN_NAMES):
     LOGGER.info(f"Creating plots for \"{result_directory}\"")
     LOGGER.info("Creating non-vector plots")
-    _save_no_vec_plots_and_init_ax(plot_format=plot_format, time_name=time_name, result_directory=result_directory, device_name=device_name, mat_names=mat_column_names, gs_names=gs_column_names, qr_names=qr_column_names)
+    _save_no_vec_plots_and_init_ax(plot_format, time_name, result_directory, device_name, base_title, mat_names=mat_column_names, gs_names=gs_column_names, qr_names=qr_column_names)
     LOGGER.info("Creating vector only plots")
-    save_vec_plots(plot_format=plot_format, time_name=time_name, result_directory=result_directory, device_name=device_name, vec_names=vec_column_names)
+    save_vec_plots(plot_format, time_name, result_directory, device_name, dot_title, vec_names=vec_column_names)
 
 
 def get_result_directories(output_dir: str, patterns: list[str]) -> list[Path]:

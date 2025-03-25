@@ -92,6 +92,8 @@ if __name__ == '__main__':
     smoke_test_parser.set_defaults(func=smoke_test)
     plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser, parent_result_parser], help="Result directory plotting")
     plotting_parser.add_argument('-p', '--patterns', help="Directory name part patterns", required=True, nargs="+")
+    plotting_parser.add_argument('--dot-title', help="Dot product plot title", default="Основные алгоритмы")
+    plotting_parser.add_argument('--base-title', help="Base algorithms plot title", default="Скалярное произведение векторов")
     plotting_parser.set_defaults(func=plotting)
     
     experiment_parser = subparsers.add_parser("experiment", parents=[base_parent_parser, parent_compilation_parser, parent_plotting_parser, parent_result_parser, parent_suffix_parser, parent_optimization_parser], help="Full experiment run")

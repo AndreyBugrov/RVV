@@ -42,15 +42,18 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         std::pair<std::string, FunctionIndex>("vec_p_sim", FunctionIndex::kDotProductSimple),
         std::pair<std::string, FunctionIndex>("vec_p_std", FunctionIndex::kDotProductStd),
         std::pair<std::string, FunctionIndex>("vec_p_simd", FunctionIndex::kDotProductSimd),
+        std::pair<std::string, FunctionIndex>("vec_p_urol", FunctionIndex::kDotProductUnrolling),
         std::pair<std::string, FunctionIndex>("mat_p_sim", FunctionIndex::kMatrixProductSimple),
         std::pair<std::string, FunctionIndex>("mat_p_row_sim", FunctionIndex::kMatrixProductRow),
         std::pair<std::string, FunctionIndex>("gs_p_sim", FunctionIndex::kGramSchmidtSimple),
         std::pair<std::string, FunctionIndex>("gs_p_row_sim", FunctionIndex::kGramSchmidtRow),
         std::pair<std::string, FunctionIndex>("gs_p_simd", FunctionIndex::kGramSchmidtSimd),
+        std::pair<std::string, FunctionIndex>("gs_p_simd", FunctionIndex::kGramSchmidtUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_sim", FunctionIndex::kQRSimple),
         std::pair<std::string, FunctionIndex>("qr_d_row_sim", FunctionIndex::kQRRow),
         std::pair<std::string, FunctionIndex>("qr_d_row_row", FunctionIndex::kQRRowRow),
         std::pair<std::string, FunctionIndex>("qr_d_simd", FunctionIndex::kQRSimd),
+        std::pair<std::string, FunctionIndex>("qr_d_urol", FunctionIndex::kQRUnrolling),
     };
     enum ArgumentNumber{
         kDotProduct = 1,
@@ -66,7 +69,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
     if(static_cast<int>(function_index)>=static_cast<int>(FunctionIndex::kDotProductSimple) && static_cast<int>(function_index) < static_cast<int>(FunctionIndex::kDotProductEnd)){
         correct_size = ArgumentNumber::kDotProduct;
         if(arguments_size!=correct_size){
-            throw Exception(ErrorType::kWrongArgumentCount, generate_string("Expected ", correct_size, " arguments for dot product but passed ", arguments_size));
+            throw Exception(ErrorType::kIncorrectArgumentCount, generate_string("Expected ", correct_size, " arguments for dot product but passed ", arguments_size));
         }
         size_t vector_length = function_arguments[0];
         vector<num_type> a(vector_length);
@@ -77,10 +80,16 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         switch (function_index)
         {
         case FunctionIndex::kDotProductSimple:
-            foo = dot_product_simple;
+            foo = dot_product_simple_unsafe;
             break;
         case FunctionIndex::kDotProductStd:
             foo = dot_product_std;
+            break;
+        case FunctionIndex::kDotProductSimd:
+            foo = dot_product_simd;
+            break;
+        case FunctionIndex::kDotProductUnrolling:
+            foo = dot_product_unrolling;
             break;
         default:
             break;
@@ -90,7 +99,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
     if(static_cast<int>(function_index) > static_cast<int>(FunctionIndex::kDotProductEnd) && static_cast<int>(function_index) < static_cast<int>(FunctionIndex::kMatrixProductEnd)){
         correct_size = ArgumentNumber::kMatrixProduct;
         if(arguments_size!=correct_size){
-            throw Exception(ErrorType::kWrongArgumentCount, generate_string("Expected ", correct_size, " arguments for matrix product but passed ", arguments_size));
+            throw Exception(ErrorType::kIncorrectArgumentCount, generate_string("Expected ", correct_size, " arguments for matrix product but passed ", arguments_size));
         }
         size_t a_row_num = function_arguments[0];
         size_t a_column_num = function_arguments[1];
@@ -118,7 +127,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
     if(static_cast<int>(function_index) > static_cast<int>(FunctionIndex::kMatrixProductEnd) && static_cast<int>(function_index) < static_cast<int>(FunctionIndex::kGramSchmidtEnd)){
         correct_size = ArgumentNumber::kGramSchmidtProcess;
         if(arguments_size!=correct_size){
-            throw Exception(ErrorType::kWrongArgumentCount, generate_string("Expected ", correct_size, " arguments for Gram-Schmidt process but passed ", arguments_size));
+            throw Exception(ErrorType::kIncorrectArgumentCount, generate_string("Expected ", correct_size, " arguments for Gram-Schmidt process but passed ", arguments_size));
         }
         size_t vector_system_size = function_arguments[0];
         size_t vector_length = function_arguments[1];
@@ -138,16 +147,22 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
             {
                 vector_num vec_system(vector_system_size*vector_length);
                 generate_rand_array(vec_system.data(), vector_system_size*vector_length, kMinValue, kMaxValue);
-                return run_experiment_task(experiment_count, gram_schmidt_matrix_simple_inplace, reset_inplace_gram_schmidt, vec_system, vector_system_size, vector_length);
+                return run_experiment_task(experiment_count, gram_schmidt_matrix_simple, reset_inplace_gram_schmidt, vec_system, vector_system_size, vector_length);
             }
             break;
         case FunctionIndex::kGramSchmidtSimd:
             {
                 vector_num vec_system(vector_system_size*vector_length);
                 generate_rand_array(vec_system.data(), vector_system_size*vector_length, kMinValue, kMaxValue);
-                return run_experiment_task(experiment_count, gram_schmidt_simd, reset_inplace_gram_schmidt, vec_system, vector_system_size, vector_length);
+                return run_experiment_task(experiment_count, gram_schmidt_matrix_simd, reset_inplace_gram_schmidt, vec_system, vector_system_size, vector_length);
             }
             break;
+        case FunctionIndex::kGramSchmidtUnrolling:
+            {
+                vector_num vec_system(vector_system_size*vector_length);
+                generate_rand_array(vec_system.data(), vector_system_size*vector_length, kMinValue, kMaxValue);
+                return run_experiment_task(experiment_count, gram_schmidt_matrix_unrolling, reset_inplace_gram_schmidt, vec_system, vector_system_size, vector_length);
+            }
         default:
             break;
         }
@@ -155,7 +170,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
     if(static_cast<int>(function_index) > static_cast<int>(FunctionIndex::kGramSchmidtEnd) && static_cast<int>(function_index) < static_cast<int>(FunctionIndex::kQREnd)){
         correct_size = ArgumentNumber::kQRDecomposition;
         if(arguments_size!=correct_size){
-            throw Exception(ErrorType::kWrongArgumentCount, generate_string("Expected ", correct_size, " arguments for QR decomposition but passed ", arguments_size));
+            throw Exception(ErrorType::kIncorrectArgumentCount, generate_string("Expected ", correct_size, " arguments for QR decomposition but passed ", arguments_size));
         }
         size_t row_num = function_arguments[0];
         size_t column_num = function_arguments[1];
@@ -177,6 +192,10 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
             break;
         case FunctionIndex::kQRSimd:
             foo = QR_decomposition_simd;
+            break;
+        case FunctionIndex::kQRUnrolling:
+            foo = QR_decomposition_unrolling;
+            break;
         default:
             break;
         }

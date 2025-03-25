@@ -17,3 +17,5 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input);
 ExpectationResult test_matrix_transposition(TestFunctionInputExtended input);
 ExpectationResult test_gram_schmidt(TestFunctionInputExtended input);
 ExpectationResult test_qr_decomposition(TestFunctionInputExtended input);
+
+ExpectationResult test_wrong_dot_product(FunctionOptimizationType function_type, const vector_num& a, const vector_num& b, size_t length);

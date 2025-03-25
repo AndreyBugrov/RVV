@@ -5,12 +5,12 @@ num_type get_vector_norm(const vector<num_type>& vec){
 }
 
 num_type get_vector_norm(const num_type* vec, size_t length){
-    num_type square_norm = inner_optimal_dot_product(vec, vec, length);
+    num_type square_norm = inner_simple_dot_product(vec, vec, length);
     return sqrt(square_norm);
 }
 
 num_type get_vector_norm_simd(const num_type* vec, size_t length){
-    num_type square_norm = inner_optimal_dot_product_simd(vec, vec, length);
+    num_type square_norm = inner_dot_product_simd(vec, vec, length);
     return sqrt(square_norm);
 }
 

@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 OPERATIONS = {'vector' : 'vec_p', 'matrix' : 'mat_p', 'gram_schmidt' : 'gs_p', 'qr': 'qr_d'}
-OPTIMIZATIONS = {'simple': 'sim', 'std' : 'std', 'row' : 'row_sim', 'scalar': 'sca', 'simd' : 'simd', 'hl_opt' : 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized
+OPTIMIZATIONS = {'simple': 'sim', 'std' : 'std', 'row' : 'row_sim', 'scalar': 'sca', 'simd' : 'simd', 'hl_opt' : 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row', 'unrolling': 'urol'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized
 
 
 def terminate_experiment(error_msg: str):

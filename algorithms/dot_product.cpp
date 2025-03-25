@@ -11,11 +11,11 @@ static void check_length(size_t a_size, size_t b_size, size_t length){
 
 num_type dot_product_simple(const vector<num_type>& a, const vector<num_type>& b, size_t length){
     check_length(a.size(), b.size(), length);
-    num_type prod = 0.0;
-    for(size_t i =0; i < length; ++i){
-        prod += a[i]*b[i];
-    }
-    return prod;
+    return dot_product_simple_unsafe(a, b, length);
+}
+
+num_type dot_product_simple_unsafe(const vector<num_type>& a, const vector<num_type>& b, size_t length){
+    return inner_simple_dot_product(a.data(), b.data(), length);
 }
 
 num_type dot_product_std(const vector<num_type>& a, const vector<num_type>& b, size_t length){
@@ -23,16 +23,17 @@ num_type dot_product_std(const vector<num_type>& a, const vector<num_type>& b, s
     return std::inner_product(a.begin(), a.end(), b.begin(), 0.);
 }
 
-num_type dot_product_opt(const vector<num_type>& a, const vector<num_type>& b, size_t length){
-    return inner_optimal_dot_product(a.data(), b.data(), length);
-}
-
-num_type dot_product_intrinsic(const vector<num_type>& a, const vector<num_type>& b, size_t length){
+num_type dot_product_simd(const vector<num_type>& a, const vector<num_type>& b, size_t length){
     check_length(a.size(), b.size(), length);
-    return num_type(0.);
+    return inner_dot_product_simd(a.data(), b.data(), length);
 }
 
-num_type inner_optimal_dot_product_simd(const num_type* a, const num_type* b, size_t length){
+num_type dot_product_unrolling(const vector<num_type>& a, const vector<num_type>& b, size_t length){
+    check_length(a.size(), b.size(), length);
+    return inner_dot_product_unrolling(a.data(), b.data(), length);
+}
+
+num_type inner_dot_product_simd(const num_type* a, const num_type* b, size_t length){
     num_type prod = 0.0;
     #pragma omp simd reduction(+:prod)
     for(size_t i = 0; i < length; ++i){
@@ -41,7 +42,18 @@ num_type inner_optimal_dot_product_simd(const num_type* a, const num_type* b, si
     return prod;
 }
 
-num_type inner_optimal_dot_product(const num_type* a, const num_type* b, size_t length){
+num_type inner_dot_product_unrolling(const num_type* a, const num_type* b, size_t length){
+    num_type prod1 = 0.0, prod2 = 0.0, prod3 = 0.0, prod4 = 0.0;
+    for(size_t i = 0; i < length; i += 4){
+        prod1 += a[i] * b[i];
+        prod2 += a[i+1] * b[i+1];
+        prod3 += a[i+2] * b[i+2];
+        prod4 += a[i+3] * b[i+3];
+    }
+    return prod1+prod2+prod3+prod4;
+}
+
+num_type inner_simple_dot_product(const num_type* a, const num_type* b, size_t length){
     num_type prod = 0.0;
     for(size_t i = 0; i < length; ++i){
         prod += a[i] * b[i];

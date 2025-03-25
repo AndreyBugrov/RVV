@@ -9,10 +9,10 @@ void generate_rand_array(num_type* arr, size_t n, num_type min, num_type max){
     }
 }
 
-int generate_rand_integer_number(int min, int max){
+size_t generate_rand_length(size_t min, size_t max){
     std::random_device rd;
-    std::mt19937 engine(rd());
-    std::uniform_int_distribution<> gen(min, max);
+    std::mt19937_64 engine(rd());
+    std::uniform_int_distribution<size_t> gen(min, max);
     return gen(engine);
 }
 

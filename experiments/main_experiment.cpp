@@ -14,7 +14,7 @@ int main(int argc, char* argv[]){
         for(int argument_index = 1; argument_index<argc; ++argument_index){
             arguments += std::to_string(argument_index) + ". " + argv[argument_index] + "\n";
         }
-        Exception ex(ErrorType::kWrongArgumentCount, generate_string("Expected at least ", kMinArgumentsCount, " arguments but passed ", argc, ". Arguments:\n", arguments));
+        Exception ex(ErrorType::kIncorrectArgumentCount, generate_string("Expected at least ", kMinArgumentsCount, " arguments but passed ", argc, ". Arguments:\n", arguments));
         std::cerr<<ex.what()<<"\n";
         std::cerr<<ex.message()<<"\n";
         return argc;

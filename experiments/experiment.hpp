@@ -23,6 +23,7 @@ enum class FunctionIndex{
     kDotProductSimple,
     kDotProductStd,
     kDotProductSimd,
+    kDotProductUnrolling,
     kDotProductEnd, // end
     kMatrixProductSimple,
     kMatrixProductRow,
@@ -30,11 +31,13 @@ enum class FunctionIndex{
     kGramSchmidtSimple,
     kGramSchmidtRow,
     kGramSchmidtSimd,
+    kGramSchmidtUnrolling,
     kGramSchmidtEnd, // end
     kQRSimple,
     kQRRow,
     kQRRowRow,
     kQRSimd,
+    kQRUnrolling,
     kQREnd, // end
 };
 

@@ -69,7 +69,7 @@ void QR_decomposition_row_product_matrix_process_simple(const vector<num_type>& 
         return;
     }
     vector<num_type> Q_matrix_transposed = transpose_matrix(matrix, row_count, column_count);
-    Q_matrix_transposed = gram_schmidt_matrix_simple_inplace(Q_matrix_transposed, column_count, row_count);
+    Q_matrix_transposed = gram_schmidt_matrix_simple(Q_matrix_transposed, column_count, row_count);
     for(size_t vec_num = 0;vec_num<column_count;++vec_num){
         normalize_vector_inplace(&Q_matrix_transposed[vec_num*row_count], get_vector_norm(&Q_matrix_transposed[vec_num*row_count], row_count), row_count);
     }
@@ -83,7 +83,21 @@ void QR_decomposition_simd(const vector<num_type>& matrix, vector<num_type>& Q_m
         return;
     }
     vector<num_type> Q_matrix_transposed = transpose_matrix(matrix, row_count, column_count);
-    Q_matrix_transposed = gram_schmidt_simd(Q_matrix_transposed, column_count, row_count);
+    Q_matrix_transposed = gram_schmidt_matrix_simd(Q_matrix_transposed, column_count, row_count);
+    for(size_t vec_num = 0;vec_num<column_count;++vec_num){
+        normalize_vector_inplace(&Q_matrix_transposed[vec_num*row_count], get_vector_norm_simd(&Q_matrix_transposed[vec_num*row_count], row_count), row_count);
+    }
+    matrix_product_row_simple(Q_matrix_transposed, matrix, R_matrix, column_count, row_count, column_count);
+    // get Q^T matrix from Q
+    Q_matrix = transpose_matrix(Q_matrix_transposed, column_count, row_count);
+}
+
+void QR_decomposition_unrolling(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    if(! perform_QR(matrix, Q_matrix, R_matrix, row_count, column_count)){
+        return;
+    }
+    vector<num_type> Q_matrix_transposed = transpose_matrix(matrix, row_count, column_count);
+    Q_matrix_transposed = gram_schmidt_matrix_unrolling(Q_matrix_transposed, column_count, row_count);
     for(size_t vec_num = 0;vec_num<column_count;++vec_num){
         normalize_vector_inplace(&Q_matrix_transposed[vec_num*row_count], get_vector_norm_simd(&Q_matrix_transposed[vec_num*row_count], row_count), row_count);
     }
@@ -96,8 +110,17 @@ bool perform_QR(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vect
     if(matrix.size() == 0){
         return false;
     }
-    if (row_count < column_count){
-        throw Exception(ErrorType::kValueError, generate_string("Matrix column count (", column_count, ") is more than matrix row count (", row_count, ")"));
+    if(row_count < column_count){
+        throw Exception(ErrorType::kIncorrectLengthRatio, generate_string("Matrix column count (", column_count, ") is more than matrix row count (", row_count, ")"));
+    }
+    if(matrix.size() != row_count * column_count){
+        throw Exception(ErrorType::kUnequalLengthError, generate_string("Base matrix size (", matrix.size(), ") is not equal to given length: ", row_count, " * ", column_count, ")"));
+    }
+    if(Q_matrix.size() != row_count * column_count){
+        throw Exception(ErrorType::kUnequalLengthError, generate_string("Q matrix size (", Q_matrix.size(), ") is not equal to given length: ", row_count, " * ", column_count, ")"));
+    }
+    if(R_matrix.size() != column_count * column_count){
+        throw Exception(ErrorType::kUnequalLengthError, generate_string("R matrix size (", R_matrix.size(), ") is not equal to given length: ", column_count, " * ", column_count, ")"));
     }
     if(is_vector_zero(matrix)){
         generate_zero_array(Q_matrix.data(), row_count*column_count);

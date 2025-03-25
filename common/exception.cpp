@@ -7,7 +7,7 @@ std::string Exception::get_eror_type(ErrorType enum_type) noexcept{
         return "UnequalLengthError";
     case ErrorType::kValueError:
         return "ValueError";
-    case ErrorType::kWrongArgumentCount:
+    case ErrorType::kIncorrectArgumentCount:
         return "WrongArgumentCount";
     default:
         return "UnknownError";

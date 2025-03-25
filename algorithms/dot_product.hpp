@@ -13,10 +13,10 @@ using std::vector;
 
 num_type dot_product_simple(const vector<num_type>& a, const vector<num_type>& b, size_t length);
 num_type dot_product_std(const vector<num_type>& a, const vector<num_type>& b, size_t length);
+num_type dot_product_simple_unsafe(const vector<num_type>& a, const vector<num_type>& b, size_t length);
+num_type dot_product_simd(const vector<num_type>& a, const vector<num_type>& b, size_t length);
+num_type dot_product_unrolling(const vector<num_type>& a, const vector<num_type>& b, size_t length);
 
-num_type dot_product_opt(const vector<num_type>& a, const vector<num_type>& b, size_t length);
-
-num_type dot_product_intrinsic(const vector<num_type>& a, const vector<num_type>& b, size_t length);
-
-num_type inner_optimal_dot_product(const num_type* a, const num_type* b, size_t length);
-num_type inner_optimal_dot_product_simd(const num_type* a, const num_type* b, size_t length);
+num_type inner_simple_dot_product(const num_type* a, const num_type* b, size_t length);
+num_type inner_dot_product_simd(const num_type* a, const num_type* b, size_t length);
+num_type inner_dot_product_unrolling(const num_type* a, const num_type* b, size_t length);

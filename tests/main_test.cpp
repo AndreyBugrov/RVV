@@ -85,7 +85,7 @@ void fill_tasks(std::vector<TestTask>& tasks){
         pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kZero, " (zero "),
         pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kIdentity, " (identity "),
         pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kGeneral, " (general "),
-        pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kWrong, " (incorrect "),
+        pair<AlgebraObjectVersion, string>(AlgebraObjectVersion::kIncorrect, " (incorrect "),
     };
     const map<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>> object_types={
         pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>>(object_indexes::kScalarMultiplication, test_dot_product),
@@ -100,7 +100,7 @@ void fill_tasks(std::vector<TestTask>& tasks){
     for(const pair<object_indexes, function<ExpectationResult(TestFunctionInputExtended)>> object_type_pair : object_types){
         for(const pair<FunctionOptimizationType, string> function_type : function_types.at(object_type_pair.first)){
             for(const pair<AlgebraObjectVersion, string> verification_name_pair: verification_names){
-                if(!((verification_name_pair.first==AlgebraObjectVersion::kWrong)&&(function_type.first==FunctionOptimizationType::kUnsafe || function_type.first == FunctionOptimizationType::kNoThrowing))){
+                if(!((verification_name_pair.first==AlgebraObjectVersion::kIncorrect)&&(function_type.first==FunctionOptimizationType::kUnsafe || function_type.first == FunctionOptimizationType::kNoThrowing))){
                     tasks.push_back(TestTask(function_type.second+verification_name_pair.second+object_names[object_type_pair.first], function_type.first, verification_name_pair.first, object_type_pair.second));
                 }
             }
