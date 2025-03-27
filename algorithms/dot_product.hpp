@@ -11,6 +11,8 @@
 
 using std::vector;
 
+const size_t kUnrollCoefficient = 4;
+
 num_type dot_product_simple(const vector<num_type>& a, const vector<num_type>& b, size_t length);
 num_type dot_product_std(const vector<num_type>& a, const vector<num_type>& b, size_t length);
 num_type dot_product_simple_unsafe(const vector<num_type>& a, const vector<num_type>& b, size_t length);

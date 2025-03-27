@@ -36,7 +36,9 @@ void fill_tasks(std::vector<TestTask>& tasks){
             map<FunctionOptimizationType, string>{
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimple, "simple dot product"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kStd, "STD-based dot product"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnsafe, "STD-based unsafe dot product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "dot product with omp simd"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "dot product with loop unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnsafe, "unsafe dot product"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -75,8 +77,9 @@ void fill_tasks(std::vector<TestTask>& tasks){
             map<FunctionOptimizationType, string>{
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnsafe, "base unsafe QR decomposition"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "row simple QR decomposition"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRowStd, "row simple + matrix Gram-Schmidt QR decomposition"),
-                
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRowRow, "row simple + matrix Gram-Schmidt QR decomposition"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "QR decomposition with omp simd"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "QR decomposition with loop unrolling"),
             }
         ),
     };

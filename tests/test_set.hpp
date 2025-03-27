@@ -18,4 +18,4 @@ ExpectationResult test_matrix_transposition(TestFunctionInputExtended input);
 ExpectationResult test_gram_schmidt(TestFunctionInputExtended input);
 ExpectationResult test_qr_decomposition(TestFunctionInputExtended input);
 
-ExpectationResult test_wrong_dot_product(FunctionOptimizationType function_type, const vector_num& a, const vector_num& b, size_t length);
+void resize_and_generate_matrix(vector_num& matrix, size_t row_count = 0, size_t column_count = 0, AlgebraObjectVersion matrix_version = AlgebraObjectVersion::kZero, num_type min_value = 0., num_type max_value = 0.);

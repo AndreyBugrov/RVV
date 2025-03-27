@@ -1,12 +1,14 @@
 #include "test_set.hpp"
 
+#include <iostream>
+
 static const num_type kRelativeEps = 1E-7;
 
 ExpectationResult test_dot_product(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> a, b;
     
-    num_type etalon;
+    num_type etalon = 0.;
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty && input.algebra_object_version != AlgebraObjectVersion::kIncorrect){
         length = generate_rand_length(input.min_length, input.max_length);
@@ -17,12 +19,10 @@ ExpectationResult test_dot_product(TestFunctionInputExtended input){
     switch (input.algebra_object_version)
     {
     case AlgebraObjectVersion::kEmpty:
-        etalon = 0.;
         break;
     case AlgebraObjectVersion::kZero:
         generate_zero_array(a.data(), length);
         generate_zero_array(b.data(), length);
-        etalon = 0.;
         break;
     case AlgebraObjectVersion::kIdentity:
         {
@@ -35,7 +35,7 @@ ExpectationResult test_dot_product(TestFunctionInputExtended input){
         break;
     case AlgebraObjectVersion::kGeneral:
     {
-        num_type rand_val = generate_rand_length(input.min_value, input.max_value);
+        num_type rand_val = generate_rand_value(input.min_value, input.max_value);
         for(size_t i=0;i<length;++i){
             if(i%2){
                 a[i] = rand_val;
@@ -79,6 +79,7 @@ ExpectationResult test_dot_product(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kUnrolling:
         foo = dot_product_unrolling;
+        break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
@@ -90,99 +91,82 @@ ExpectationResult test_dot_product(TestFunctionInputExtended input){
 }
 
 ExpectationResult test_matrix_product(TestFunctionInputExtended input){
-    size_t a_row_number = 0;
-    size_t a_column_number = 0;
-    size_t b_column_number = 0;
+    size_t a_row_count = 0;
+    size_t a_column_count = 0;
+    size_t b_column_count = 0;
     vector<num_type> a, b, c;
     vector<num_type> etalon;
 
-    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
-        a_row_number = generate_rand_length(input.min_length, input.max_length);
-        a_column_number = generate_rand_length(input.min_length, input.max_length);
-        b_column_number = generate_rand_length(input.min_length, input.max_length);
-        a.resize(a_row_number*a_column_number);
-        b.resize(a_column_number*b_column_number);
-        c.resize(a_row_number*b_column_number);
-        etalon.resize(a_row_number*b_column_number);
-
-        generate_zero_array(c.data(), a_row_number*b_column_number);
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty && input.algebra_object_version != AlgebraObjectVersion::kGeneral){
+        a_row_count = generate_rand_length(input.min_length, input.max_length);
+        a_column_count = generate_rand_length(input.min_length, input.max_length);
+        b_column_count = generate_rand_length(input.min_length, input.max_length);
+        resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, input.min_value, input.max_value);
     }
 
     switch (input.algebra_object_version)
     {
-    case AlgebraObjectVersion::kEmpty:
-        break;
-    case AlgebraObjectVersion::kZero:
-        generate_zero_array(a.data(), a_row_number*a_column_number);
-        generate_zero_array(b.data(), a_column_number*b_column_number);
-        break;
-    case AlgebraObjectVersion::kIdentity:
-        {
-            generate_identity_matrix(a.data(), a_row_number, a_column_number);
-            generate_rand_array(b.data(), a_column_number*b_column_number, input.min_value, input.max_value);
-            generate_zero_array(etalon.data(), a_row_number*b_column_number);
-            size_t max_i = std::min(a_row_number, a_column_number); // number of rows in a and in b
-            for(size_t i=0;i<max_i;++i){
-                for(size_t j=0;j<b_column_number;++j){
-                    etalon[i*b_column_number+j] = a[i*a_column_number+i]*b[i*b_column_number+j];
+        case AlgebraObjectVersion::kEmpty:
+            break;
+        case AlgebraObjectVersion::kIdentity:
+            {
+                resize_and_generate_matrix(b, a_column_count, b_column_count, AlgebraObjectVersion::kGeneral, input.min_value, input.max_value);
+                resize_and_generate_matrix(etalon, a_row_count, b_column_count);
+                size_t max_i = std::min(a_row_count, a_column_count); // number of rows in a and in b
+                for(size_t i=0;i<max_i;++i){
+                    for(size_t j=0;j<b_column_count;++j){
+                        etalon[i*b_column_count+j] = a[i*a_column_count+i]*b[i*b_column_count+j];
+                    }
                 }
             }
-        }
-        break;
-    case AlgebraObjectVersion::kGeneral:
-        a_row_number = 3;
-        a_column_number = 2;
-        b_column_number = 4;
-        etalon={    
-            5, -1, 4, -1, 
-            -1, 2, 1, 2, 
-            3, 0, 3, 0
-        };
-        a = {1, 2, 1, -1, 1, 1};
-        b = {1, 1, 2, 1, 2, -1, 1, -1};
-        c.resize(a_row_number*b_column_number);
-        break;
-    case AlgebraObjectVersion::kIncorrect:
-        {
-            std::function<void(const std::vector<double> &, const std::vector<double> &, std::vector<double> &, size_t, size_t, size_t)> foo;
-            switch (input.function_type)
-            {
-            case FunctionOptimizationType::kSimple:
-                foo = matrix_product_base_simple;
-                break;
-            case FunctionOptimizationType::kRow:
-                foo = matrix_product_row_simple;
-                break;
-            default:
-                throw Exception(ErrorType::kValueError, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
-            }
-            a.resize(a_row_number*a_column_number+1);
-            bool wrong_a = expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
-            a.resize(a_row_number*a_column_number);
-            b.resize(a_column_number*b_column_number+1);
-            bool wrong_b = expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
-            b.resize(a_column_number*b_column_number);
-            c.resize(a_row_number*b_column_number+1);
-            bool wrong_c = expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, c, a_row_number, a_column_number, b_column_number);
-            return expect::expect_true(wrong_a&&wrong_b&&wrong_c);
-        }
-        break;
-    default:
-        throw Exception(ErrorType::kValueError, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
-        break;
+            break;
+        case AlgebraObjectVersion::kGeneral:
+            a_row_count = 3;
+            a_column_count = 2;
+            b_column_count = 4;
+            etalon={    
+                5, -1, 4, -1, 
+                -1, 2, 1, 2, 
+                3, 0, 3, 0
+            };
+            a = {1, 2, 1, -1, 1, 1};
+            b = {1, 1, 2, 1, 2, -1, 1, -1};
+            break;
+        default:
+            resize_and_generate_matrix(b, a_column_count, b_column_count, input.algebra_object_version, input.min_value, input.max_value);
+            break;
     }
+    if(input.algebra_object_version != AlgebraObjectVersion::kIncorrect){
+        resize_and_generate_matrix(c, a_row_count, b_column_count); // to create incorrect c matrix in incorrect lengths check 
+    }
+    
+    std::function<void (const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)> foo;
     switch (input.function_type)
     {
     case FunctionOptimizationType::kSimple:
-        matrix_product_base_simple(a, b, c, a_row_number, a_column_number, b_column_number);
+        foo = matrix_product_base_simple;
         break;
     case FunctionOptimizationType::kRow:
-        matrix_product_row_simple(a, b, c, a_row_number, a_column_number, b_column_number);
+        foo = matrix_product_row_simple;
         break;
     default:
         throw Exception(ErrorType::kValueError, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
         break;
     }
+    if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
+        resize_and_generate_matrix(c, a_row_count, b_column_count, AlgebraObjectVersion::kIncorrect);
+        vector_num normal_a, normal_b, normal_c;
+        resize_and_generate_matrix(normal_a, a_row_count, a_column_count);
+        resize_and_generate_matrix(normal_b, a_column_count, b_column_count);
+        resize_and_generate_matrix(normal_c, a_row_count, b_column_count);
+        Exception required_exception = Exception(ErrorType::kUnequalLengthError, "");
+        bool wrong_a, wrong_b, wrong_c;
+        wrong_a = expect::expect_throw(foo, required_exception, a, normal_b, normal_c, a_row_count, a_column_count, b_column_count);
+        wrong_b = expect::expect_throw(foo, required_exception, normal_a, b, normal_c, a_row_count, a_column_count, b_column_count);
+        wrong_c = expect::expect_throw(foo, required_exception, normal_a, normal_b, c, a_row_count, a_column_count, b_column_count);
+        return expect::expect_true(wrong_a && wrong_b && wrong_c);
+    }
+    foo(a, b, c, a_row_count, a_column_count, b_column_count);
     return expect::expect_indexable_containers_eq(etalon, c, etalon.size());
 }
 
@@ -231,12 +215,7 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
         orthogonal_system = gram_schmidt_base_simple(vector_system);
         break;
     default:
-        orthogonal_system.resize(vector_system_size);
-        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
-            vector_system[vec_index].resize(vector_length);
-            generate_rand_array(vector_system[vec_index].data(), vector_length, input.min_value, input.max_value); // to make bad test result for not implemented functions
-        }
-        break;
+        throw Exception(ErrorType::kUnexpectedCase, generate_string("Unsupported FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
     if(input.algebra_object_version==AlgebraObjectVersion::kZero){ // the presence of zero vectors leads to nan in the proj calculation 
         for(size_t vec_index = 0; vec_index<vector_system_size; ++vec_index){
@@ -256,7 +235,9 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
         vector<num_type> dot_product_results(checked_container_length);
         vector<num_type> zero_container(checked_container_length);
         size_t offset = -vector_system_size;
-        generate_zero_array(zero_container.data(), checked_container_length);
+        if(checked_container_length != 0){
+            generate_zero_array(zero_container.data(), checked_container_length);
+        }
         for(size_t vec_index = 0; vec_index < end_vec_index; ++vec_index){
             offset += (vector_system_size - vec_index);
             size_t dot_index = 0;
@@ -273,11 +254,15 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
 ExpectationResult test_vector_norm(TestFunctionInputExtended input){
     size_t length = 0;
     vector<num_type> vec;
+    num_type etalon = 0.;
     
-    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty && input.algebra_object_version != AlgebraObjectVersion::kGeneral){
         length = generate_rand_length(input.min_length, input.max_length);
-        vec.resize(length);
     }
+    if(input.algebra_object_version == AlgebraObjectVersion::kGeneral){
+        length = 256;
+    }
+    vec.resize(length);
 
     switch (input.algebra_object_version)
     {
@@ -291,22 +276,20 @@ ExpectationResult test_vector_norm(TestFunctionInputExtended input){
             generate_zero_array(vec.data(), length);
             size_t rand_pos = generate_rand_length(0, length-1);
             vec[rand_pos] = 1.0;
+            etalon = 1.0;
         }
         break;
     case AlgebraObjectVersion::kGeneral:
-        generate_rand_array(vec.data(), length, input.min_value, input.max_value);
+        // memset does not work with non-zero floating-point values correctly (even memset(vec.data(), num_type(4), length * sizeof(num_type)) is incorrect)
+        std::fill(vec.begin(), vec.end(), num_type(4));
+        etalon = 64;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
     num_type test_norm = get_vector_norm(vec);
-    num_type base_norm = 0.0;
-    for(size_t i=0;i<length;++i){
-        base_norm+=vec[i]*vec[i];
-    }
-    base_norm = sqrt(base_norm);
-    return expect::expect_eq(base_norm, test_norm);
+    return expect::expect_eq(etalon, test_norm);
 }
 
 ExpectationResult test_normalize_vector(TestFunctionInputExtended input){
@@ -383,15 +366,13 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     // generation
     size_t row_count = 0;
     size_t column_count = 0;
-
-    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
-        column_count = generate_rand_length(input.min_length, input.max_length);
-        row_count = generate_rand_length(column_count, input.max_length);
-    }
-
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){ 
+        column_count = kUnrollCoefficient * generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+        row_count = kUnrollCoefficient * generate_rand_length(column_count / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+    }    
     resize_and_generate_matrix(matrix, row_count, column_count, input.algebra_object_version, input.min_value, input.max_value);
     resize_and_generate_matrix(Q_matrix, row_count, column_count);
-    resize_and_generate_matrix(R_matrix, row_count, column_count);
+    resize_and_generate_matrix(R_matrix, column_count, column_count);
     
     std::function<void (const vector<num_type>&, vector<num_type>&, vector<num_type>&, size_t, size_t)> foo;
     switch (input.function_type)
@@ -414,8 +395,19 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
-    if(input.algebra_object_version != AlgebraObjectVersion::kIncorrect){
-
+    if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
+        resize_and_generate_matrix(Q_matrix, row_count, column_count, input.algebra_object_version);
+        resize_and_generate_matrix(R_matrix, column_count, column_count, input.algebra_object_version);
+        vector_num normal_matrix, normal_Q, normal_R;
+        resize_and_generate_matrix(normal_matrix, row_count, column_count);
+        resize_and_generate_matrix(normal_Q, row_count, column_count);
+        resize_and_generate_matrix(normal_R, column_count, column_count);
+        Exception required_exception = Exception(ErrorType::kUnequalLengthError, "");
+        bool wrong_matrix, wrong_Q, wrong_R;
+        wrong_matrix = expect::expect_throw(foo, required_exception, matrix, normal_Q, normal_R, row_count, column_count);
+        wrong_Q = expect::expect_throw(foo, required_exception, normal_matrix, Q_matrix, normal_R, row_count, column_count);
+        wrong_R = expect::expect_throw(foo, required_exception, normal_matrix, normal_Q, R_matrix, row_count, column_count);
+        return expect::expect_true(wrong_matrix && wrong_Q && wrong_R);
     }
     foo(matrix, Q_matrix, R_matrix, row_count, column_count);
     vector<num_type> test_matrix(row_count*column_count);
@@ -423,7 +415,7 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     return expect::expect_indexable_containers_near_relative(matrix, test_matrix, kRelativeEps, row_count*column_count);
 }
 
-void resize_and_generate_matrix(vector_num& matrix, size_t row_count = 0, size_t column_count = 0, AlgebraObjectVersion matrix_version = AlgebraObjectVersion::kZero, num_type min_value = 0, num_type max_value = 0){
+void resize_and_generate_matrix(vector_num& matrix, size_t row_count, size_t column_count, AlgebraObjectVersion matrix_version, num_type min_value, num_type max_value){
     if (matrix_version != AlgebraObjectVersion::kIncorrect){
         matrix.resize(row_count * column_count);
     }
@@ -432,6 +424,10 @@ void resize_and_generate_matrix(vector_num& matrix, size_t row_count = 0, size_t
     case AlgebraObjectVersion::kEmpty:
         return;
     case AlgebraObjectVersion::kZero:
+        // to prevent memset of nullptr (even for null length)
+        if(row_count == 0 || column_count == 0){
+            return;
+        }
         generate_zero_array(matrix.data(), row_count*column_count);
         return;
     case AlgebraObjectVersion::kIdentity:

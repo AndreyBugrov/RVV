@@ -76,6 +76,13 @@ num_type* inner_multiply_vector_by_number(const num_type* vec, num_type number, 
     return multiplied;
 }
 
+void inner_multiply_vector_by_number(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
+    memcpy(mutiplied_vec, vec, length*sizeof(num_type));
+    for(size_t i=0;i<length;++i){
+        mutiplied_vec[i]*=number;
+    }
+}
+
 num_type* inner_multiply_vector_by_number_simd(const num_type* vec, num_type number, size_t length){
     num_type* multiplied = new num_type[length];
     memcpy(multiplied, vec, length*sizeof(num_type));

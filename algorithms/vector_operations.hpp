@@ -26,3 +26,5 @@ void add_vector_inplace(vector<num_type>& base_vec, const vector<num_type>& othe
 vector<num_type> multiply_vector_by_number(const vector<num_type>& vec, num_type number);
 num_type* inner_multiply_vector_by_number(const num_type* vec, num_type number, size_t length);
 num_type* inner_multiply_vector_by_number_simd(const num_type* vec, num_type number, size_t length);
+
+void inner_multiply_vector_by_number(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);

@@ -2,6 +2,10 @@
 
 const std::string delimiter = "--------------------------------------------------------------------------------\n";
 
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+
 const size_t kMinLength = 256;
 const size_t kMaxLength = 512;
 
@@ -17,19 +21,17 @@ static void print_header(std::ostream& stream) {
 }
 
 static void parse_passed_test_output(double test_time, std::ostream& stream){
-    stream<<"PASSED\n";
+    stream<< GREEN << "PASSED\n" << RESET;
     stream<<"TIME: "<<test_time<<" seconds\n";
 }
 
 static void parse_failed_test_output(const TestOutput& test_output, const std::string& test_task_name, std::vector<std::string>& wrong_test_names, std::ostream& stream) {
     wrong_test_names.push_back(test_task_name);
-    stream<<"FAILED DUE TO ";
+    stream<< RED << "FAILED\n" << RESET;
     if(test_output.ended()){
-        stream<<"ERROR\n";
         stream<<"TIME: "<<test_output.time()<<" seconds\n";
         stream<<"ERROR: "<<test_output.error_message()<<"\n";
     }else{
-        stream<<"EXCEPTION\n";
         stream<<"EXCEPTION TYPE: "<<test_output.what()<<"\n";
         stream<<"EXCEPTION MESSAGE: "<<test_output.error_message()<<"\n";
     }

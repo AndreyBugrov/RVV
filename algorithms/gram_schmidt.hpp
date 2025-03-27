@@ -1,18 +1,24 @@
 #pragma once
 
+#include <functional> // std::function for projections
 #include "vector_operations.hpp"  // vector multiplication from scalar product, mult by number, inplace vector minus
 
 using std::vector;
 
-vector<num_type> proj(const vector<num_type>& projected, const vector<num_type>& mapped_vec);
-num_type* proj(const num_type* projected, const num_type* mapped_vec, size_t length);
-num_type* proj_simd(const num_type* projected, const num_type* mapped_vec, size_t length);
-num_type* proj_unrolling(const num_type* projected, const num_type* mapped_vec, size_t length);
+vector<num_type> vector_proj(const vector<num_type>& projected, const vector<num_type>& mapped_vec);
+
+void proj(const num_type* projected, const num_type* mapped_vec, num_type* proj, size_t length);
+void proj_simd(const num_type* projected, const num_type* mapped_vec, num_type* projection, size_t length);
+void proj_unrolling(const num_type* projected, const num_type* mapped_vec, num_type* projection, size_t length);
+
+using proj_function = std::function<void(const num_type*, const num_type*, num_type*, size_t)>;
 
 vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>& vec_system);
 
 vector_num gram_schmidt_matrix_simple(vector_num& transposed_matrix, size_t row_count, size_t column_count);
 vector_num gram_schmidt_matrix_simd(vector_num& transposed_matrix, size_t row_count, size_t column_count);
 vector_num gram_schmidt_matrix_unrolling(vector_num& transposed_matrix, size_t row_count, size_t column_count);
+
+vector_num gram_schmidt_matrix_common(vector_num& transposed_matrix, proj_function foo,size_t row_count, size_t column_count);
 
 void check_matrix(vector_num& transposed_matrix, size_t row_count, size_t column_count);

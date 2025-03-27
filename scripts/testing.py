@@ -9,7 +9,7 @@ from compilation import compile_sources
 
 LOGGER = logging.getLogger(__name__)
 
-TEST_COUNT = 54
+TEST_COUNT = 74
 
 
 def run_tests(bin_path: Path):
@@ -19,7 +19,7 @@ def run_tests(bin_path: Path):
     output = proc.communicate()
     if output[1]:
         stderr = output[1].decode("utf-8")
-        critical_message(f"Errors in test:\n{stderr}")
+        critical_message(f"Errors in test:\n{stderr}") # can't get previous stdout if any error occured
     returncode = proc.returncode
     stdout = output[0].decode("utf-8")
     if returncode:

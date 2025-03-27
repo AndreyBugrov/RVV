@@ -9,6 +9,8 @@ std::string Exception::get_eror_type(ErrorType enum_type) noexcept{
         return "ValueError";
     case ErrorType::kIncorrectArgumentCount:
         return "WrongArgumentCount";
+    case ErrorType::kIncorrectLengthRatio:
+        return "IncorrectLengthRatio";
     default:
         return "UnknownError";
     }
