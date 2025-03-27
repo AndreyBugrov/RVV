@@ -46,7 +46,7 @@ def experiment(args):
 def plotting(args):
     result_directories = get_result_directories(args.output_dir, args.patterns)
     for result_directory in result_directories:
-        create_plots(plot_format=args.plot_format, result_directory=result_directory, device_name=args.device_name)
+        create_plots(plot_format=args.plot_format, result_directory=result_directory, device_name=args.device_name, base_title=args.base_title, dot_title=args.dot_title)
 
 
 def testing(args):
@@ -74,6 +74,8 @@ if __name__ == '__main__':
     parent_compilation_parser.add_argument('--no-recompile', help="Do not recompile sources", action="store_true")
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
+    parent_plotting_parser.add_argument('--dot-title', help="Dot product plot title", default="Основные алгоритмы")
+    parent_plotting_parser.add_argument('--base-title', help="Base algorithms plot title", default="Скалярное произведение векторов")
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)
     parent_optimization_parser.add_argument('-n', '--exp-count', help="Number of experiments with equal parameters", type=int, required=True)
     parent_optimization_parser.add_argument('--optimization-classes', help="Optimization classes", choices=list(OPTIMIZATIONS.keys()) + ['all'], nargs='*')
@@ -92,8 +94,6 @@ if __name__ == '__main__':
     smoke_test_parser.set_defaults(func=smoke_test)
     plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser, parent_result_parser], help="Result directory plotting")
     plotting_parser.add_argument('-p', '--patterns', help="Directory name part patterns", required=True, nargs="+")
-    plotting_parser.add_argument('--dot-title', help="Dot product plot title", default="Основные алгоритмы")
-    plotting_parser.add_argument('--base-title', help="Base algorithms plot title", default="Скалярное произведение векторов")
     plotting_parser.set_defaults(func=plotting)
     
     experiment_parser = subparsers.add_parser("experiment", parents=[base_parent_parser, parent_compilation_parser, parent_plotting_parser, parent_result_parser, parent_suffix_parser, parent_optimization_parser], help="Full experiment run")

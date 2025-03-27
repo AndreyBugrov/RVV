@@ -48,7 +48,7 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         std::pair<std::string, FunctionIndex>("gs_p_sim", FunctionIndex::kGramSchmidtSimple),
         std::pair<std::string, FunctionIndex>("gs_p_row_sim", FunctionIndex::kGramSchmidtRow),
         std::pair<std::string, FunctionIndex>("gs_p_simd", FunctionIndex::kGramSchmidtSimd),
-        std::pair<std::string, FunctionIndex>("gs_p_simd", FunctionIndex::kGramSchmidtUnrolling),
+        std::pair<std::string, FunctionIndex>("gs_p_urol", FunctionIndex::kGramSchmidtUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_sim", FunctionIndex::kQRSimple),
         std::pair<std::string, FunctionIndex>("qr_d_row_sim", FunctionIndex::kQRRow),
         std::pair<std::string, FunctionIndex>("qr_d_row_row", FunctionIndex::kQRRowRow),

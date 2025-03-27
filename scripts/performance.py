@@ -10,7 +10,7 @@ from experiment import get_current_sizes_by_operation_class, terminate_experimen
 
 
 LOGGER = logging.getLogger(__name__)
-QR_ROW_LENGTH = 1000
+QR_ROW_LENGTH = 2000
 
 
 def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilation_profile: str, device_name: str, result_directory: Path) -> Path:

@@ -130,9 +130,13 @@ def _create_function_dict() -> dict[str, set[str]]:
     # add support for operations
     function_names_dict['vector'] = {OPERATIONS['vector'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['vector']+ '_' + OPTIMIZATIONS['std']}
     function_names_dict['matrix'] = {OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['matrix'] + '_' + OPTIMIZATIONS['row']}
-    function_names_dict['gram_schmidt'] = {OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['row']}
+    function_names_dict['gram_schmidt'] = {OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['simple'],
+                                           OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['row'],
+                                           OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['simd'],
+                                           OPERATIONS['gram_schmidt'] + '_' + OPTIMIZATIONS['unrolling']}
     function_names_dict['qr'] = {OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['row'], 
-                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['full_row'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simd']}
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['full_row'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simd'],
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['unrolling']}
     # add support for optimizations
     for key in OPTIMIZATIONS.keys():
         function_names_dict[key] = set()
