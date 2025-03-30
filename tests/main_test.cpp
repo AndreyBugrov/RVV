@@ -79,7 +79,10 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "row simple QR decomposition"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRowRow, "row simple + matrix Gram-Schmidt QR decomposition"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "QR decomposition with omp simd"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "QR decomposition with loop unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "QR decomposition with half-unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kDoubleUnrolling, "QR decomposition with full unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "QR decomposition with block matrix product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "QR decomposition with block optimal matrix product"),
             }
         ),
     };

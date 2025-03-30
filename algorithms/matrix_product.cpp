@@ -34,32 +34,36 @@ void matrix_product_row_simple(const vector<num_type>& a, const vector<num_type>
     }
 }
 
-void matrix_product_row_unrolling(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
+void matrix_product_row_scalar(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
-    const  num_type* a_matrix = a.data();
-    const num_type* b_matrix = b.data();
-    num_type* c_matrix = c.data();
-    
+
     for(size_t i=0;i<a_row_count;++i){
         for(size_t j=0;j<a_column_count;++j){
-            for(size_t k=0;k<b_column_count;k+=4){
-                c_matrix[i*b_column_count+k]+=a_matrix[i*a_column_count+j]*b_matrix[j*b_column_count+k];
-                c_matrix[i*b_column_count+k+1]+=a_matrix[i*a_column_count+j]*b_matrix[j*b_column_count+k+1];
-                c_matrix[i*b_column_count+k+2]+=a_matrix[i*a_column_count+j]*b_matrix[j*b_column_count+k+2];
-                c_matrix[i*b_column_count+k+3]+=a_matrix[i*a_column_count+j]*b_matrix[j*b_column_count+k+3];
-            }
+            num_type multiplier = a[i*a_column_count+j];
+            matrix_multiply_vector_by_number_optimal(b.data() + j * b_column_count, c.data() + i * b_column_count, multiplier, b_column_count);
         }
     }
 }
 
-void matrix_product_row_simd(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
+void matrix_product_row_block(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
-    for(size_t i=0;i<a_row_count;++i){
-        for(size_t j=0;j<a_column_count;++j){
-            #pragma omp simd
-            for(size_t k=0;k<b_column_count;++k){
-                c[i*b_column_count+k]+=a[i*a_column_count+j]*b[j*b_column_count+k];
-            }
-        }
-    }
+    for(size_t jk = 0; jk < a_row_count; jk += kBlockSize)
+        for(size_t kk = 0; kk < a_column_count; kk += kBlockSize)
+            for(size_t ik = 0; ik < b_column_count; ik += kBlockSize)  
+                for(size_t j = 0; j < kBlockSize; ++j)
+                    for(size_t k = 0; k < kBlockSize; ++k)
+                        for(size_t i = 0; i < kBlockSize; ++i){
+                            c[(jk + j) * b_column_count + (ik + i)] += a[(jk + j) * a_column_count + (kk + k)] * b[(kk + k) * b_column_count + (ik + i)];
+                        }
+}
+
+void matrix_product_row_block_scalar(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
+    check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
+    for(size_t jk = 0; jk < a_row_count; jk += kBlockSize)
+        for(size_t kk = 0; kk < a_column_count; kk += kBlockSize)
+            for(size_t ik = 0; ik < b_column_count; ik += kBlockSize)  
+                for(size_t j = 0; j < kBlockSize; ++j)
+                    for(size_t k = 0; k < kBlockSize; ++k){
+                        matrix_multiply_vector_by_number_optimal(&b[(kk + k) * b_column_count + ik], &c[(jk + j) * b_column_count + ik], a[(jk + j) * a_column_count + (kk + k)], kBlockSize);
+                    }
 }

@@ -16,25 +16,21 @@ void proj(const num_type* projected, const num_type* mapped_vec, num_type* proje
 void proj_simd(const num_type* projected, const num_type* mapped_vec, num_type* projection, size_t length){
     num_type a_b = inner_dot_product_simd(projected, mapped_vec, length);
     num_type b_b = inner_dot_product_simd(mapped_vec, mapped_vec, length);
-    inner_multiply_vector_by_number(mapped_vec, projection, a_b/b_b, length);
+    inner_multiply_vector_by_number_simd(mapped_vec, projection, a_b/b_b, length);
 }
 
 void proj_unrolling(const num_type* projected, const num_type* mapped_vec, num_type* projection, size_t length){
     num_type a_b = inner_dot_product_unrolling(projected, mapped_vec, length);
     num_type b_b = inner_dot_product_unrolling(mapped_vec, mapped_vec, length);
-    inner_multiply_vector_by_number(mapped_vec, projection, a_b/b_b, length);
-}
-
-void orthogonalize_vector(num_type* transposed_matrix, num_type* orthogonal_matrix, proj_function foo, size_t column_count, size_t vec_index, size_t proj_index){
-    num_type* projection = new num_type[column_count]; 
-    foo(&transposed_matrix[vec_index*column_count], &orthogonal_matrix[proj_index*column_count], projection, column_count);
-    sub_vector_from_vector_inplace(&orthogonal_matrix[vec_index*column_count], projection, column_count);
-    delete[] projection;
+    inner_multiply_vector_by_number_unrolling(mapped_vec, projection, a_b/b_b, length);
 }
 
 vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>& vec_system){
     if(vec_system.size()==0){
         return vec_system;
+    }
+    if (vec_system.size() > vec_system[0].size()){
+        throw Exception(ErrorType::kIncorrectLengthRatio, generate_string("Vector system size (", vec_system.size(), ") is more than vector length (", vec_system[0].size(), ")"));
     }
     size_t vec_system_size = vec_system.size();
     vector<vector<num_type>> orthogonal_system(vec_system.size());
@@ -42,32 +38,35 @@ vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>
         orthogonal_system[vec_index] = vec_system[vec_index];
         for(size_t proj_index=0;proj_index<vec_index;++proj_index){
             vector<num_type> projection = vector_proj(vec_system[vec_index], orthogonal_system[proj_index]);
-            sub_vector_from_vector_inplace(orthogonal_system[vec_index], projection);
+            sub_vector_from_vector_inplace_vector(orthogonal_system[vec_index], projection);
         }
     }
     return orthogonal_system;
 }
 
 vector_num gram_schmidt_matrix_simple(vector_num& transposed_matrix, size_t row_count, size_t column_count){
-    return gram_schmidt_matrix_common(transposed_matrix, proj, row_count, column_count);
+    return gram_schmidt_matrix_common(transposed_matrix, row_count, column_count, proj, sub_vector_from_vector_inplace);
 }
 
 vector_num gram_schmidt_matrix_simd(vector_num& transposed_matrix, size_t row_count, size_t column_count){
-    return gram_schmidt_matrix_common(transposed_matrix, proj_simd, row_count, column_count);
+    // applying sub_vector_from_vector_inplace_simd instead of sub_vector_from_vector_inplace leads to little slowdown
+    return gram_schmidt_matrix_common(transposed_matrix, row_count, column_count, proj_simd, sub_vector_from_vector_inplace);
 }
 
 vector_num gram_schmidt_matrix_unrolling(vector_num& transposed_matrix, size_t row_count, size_t column_count){
-    return gram_schmidt_matrix_common(transposed_matrix, proj_unrolling, row_count, column_count);
+    // applying sub_vector_from_vector_inplace_simd instead of sub_vector_from_vector_inplace does not lead to any change
+    // autovectorization is not applied
+    return gram_schmidt_matrix_common(transposed_matrix, row_count, column_count, proj_unrolling, sub_vector_from_vector_inplace);
 }
 
-vector_num gram_schmidt_matrix_common(vector_num& transposed_matrix, proj_function foo,size_t row_count, size_t column_count){
+vector_num gram_schmidt_matrix_common(vector_num& transposed_matrix, size_t row_count, size_t column_count, proj_function proj_foo, sub_function sub_foo){
     check_matrix(transposed_matrix, row_count, column_count);
     vector_num orthogonal_matrix = transposed_matrix;
     for(size_t vec_index=0;vec_index<row_count;++vec_index){
         for(size_t proj_index=0;proj_index<vec_index;++proj_index){
             num_type* projection = new num_type[column_count]; 
-            foo(&transposed_matrix[vec_index*column_count], &orthogonal_matrix[proj_index*column_count], projection, column_count);
-            sub_vector_from_vector_inplace(&orthogonal_matrix[vec_index*column_count], projection, column_count);
+            proj_foo(&transposed_matrix[vec_index*column_count], &orthogonal_matrix[proj_index*column_count], projection, column_count);
+            sub_foo(&orthogonal_matrix[vec_index*column_count], projection, column_count);
             delete[] projection;
         }
     }

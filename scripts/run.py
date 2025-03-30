@@ -20,14 +20,17 @@ def compilation(args):
         for_perf = True
     elif compilation_type == "test":
         is_test = True
-    compile_sources(args.compilation_profile, args.device_name, is_test, for_perf)
+    bin_path = compile_sources(args.compilation_profile, args.device_name, is_test, for_perf)
+    print(f"Path to binary file: {bin_path}")
 
 
 def smoke_test(args):
     function_names_set = get_function_name_set(["all"], [], [])
     for compilation_profile in translate_compilation_profiles(args.compilation_profiles):
         LOGGER.info(f"Compilation profile: {compilation_profile}")
-        full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set, sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir, suffix=args.suffix)
+        full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set,
+                             sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir,
+                             suffix=args.suffix, base_title=args.base_title, dot_title=args.dot_title)
 
 
 def experiment(args):
@@ -40,7 +43,8 @@ def experiment(args):
         critical_message("\"min_n\" should be less or equal \"max_n\"!")
     function_names_set = get_function_name_set(args.functions, args.operation_classes, args.optimization_classes)
     LOGGER.debug(f"Chosen functions: {function_names_set}")
-    full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count, args.device_name, args.output_dir, args.suffix)
+    full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count,
+                         args.device_name, args.output_dir, args.suffix, args.base_title, args.dot_title)
 
 
 def plotting(args):

@@ -22,6 +22,18 @@ void QR_decomposition_unrolling(const vector<num_type>& matrix, vector<num_type>
     QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_unrolling, matrix_product_row_simple);
 }
 
+void QR_decomposition_double_unrolling(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_unrolling, matrix_product_row_scalar);
+}
+
+void QR_decomposition_block(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_unrolling, matrix_product_row_block);
+}
+
+void QR_decomposition_block_scalar(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_unrolling, matrix_product_row_block_scalar);
+}
+
 void QR_decomposition_non_matrix_common(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count, matrix_product_function matrix_foo){
     // checks
     if(! perform_QR(matrix, Q_matrix, R_matrix, row_count, column_count)){
@@ -60,7 +72,7 @@ void QR_decomposition_matrix_common(const vector<num_type>& matrix, vector<num_t
     vector<num_type> Q_matrix_transposed = transpose_matrix(matrix, row_count, column_count);
     Q_matrix_transposed = gs_process(Q_matrix_transposed, column_count, row_count);
     for(size_t vec_num = 0;vec_num<column_count;++vec_num){
-        normalize_vector_inplace(&Q_matrix_transposed[vec_num*row_count], get_vector_norm_simd(&Q_matrix_transposed[vec_num*row_count], row_count), row_count);
+        normalize_vector_inplace(&Q_matrix_transposed[vec_num*row_count], get_vector_norm(&Q_matrix_transposed[vec_num*row_count], row_count), row_count);
     }
     // count R matrix (R = Q^T * A)
     matrix_foo(Q_matrix_transposed, matrix, R_matrix, column_count, row_count, column_count);

@@ -29,6 +29,9 @@ enum class FunctionOptimizationType{
     kRowIntrinsic,
     kSimd,
     kUnrolling,
+    kDoubleUnrolling,
+    kBlock,
+    kBlockScalar,
     kUnsafe,
     kNoThrowing,
 };

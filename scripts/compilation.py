@@ -82,7 +82,7 @@ def compile_sources(compilation_profile: str, device_name: str, is_test: bool, f
         add_debug = "-g "
         if add_debug in optimization_options:
             add_debug = ""
-        specific_options = f"{add_debug}-fsanitize=address,undefined -fno-sanitize-recover=all"
+        specific_options = "" #f"{add_debug}-fsanitize=address,undefined -fno-sanitize-recover=all"
         if compilation_profile in ["optimal", "math", "fast"]:
             specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
     else:

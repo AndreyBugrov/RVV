@@ -38,6 +38,9 @@ enum class FunctionIndex{
     kQRRowRow,
     kQRSimd,
     kQRUnrolling,
+    kQRDoubleUnrolling,
+    kQRBlock,
+    kQRBlockScalar,
     kQREnd, // end
 };
 

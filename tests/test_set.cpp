@@ -366,14 +366,22 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     // generation
     size_t row_count = 0;
     size_t column_count = 0;
-    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){ 
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty && static_cast<int>(input.algebra_object_version) < static_cast<int>(FunctionOptimizationType::kBlock)){
         column_count = kUnrollCoefficient * generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
         row_count = kUnrollCoefficient * generate_rand_length(column_count / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
-    }    
+    }else{
+        if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+            // column_count = kBlockSize * generate_rand_length(1, 2);
+            // row_count = kBlockSize * generate_rand_length(1, 2);
+
+            column_count = kBlockSize * 2;
+            row_count = kBlockSize * 2;
+        }
+    }
     resize_and_generate_matrix(matrix, row_count, column_count, input.algebra_object_version, input.min_value, input.max_value);
     resize_and_generate_matrix(Q_matrix, row_count, column_count);
     resize_and_generate_matrix(R_matrix, column_count, column_count);
-    
+
     std::function<void (const vector<num_type>&, vector<num_type>&, vector<num_type>&, size_t, size_t)> foo;
     switch (input.function_type)
     {
@@ -391,6 +399,15 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kUnrolling:
         foo = QR_decomposition_unrolling;
+        break;
+    case FunctionOptimizationType::kDoubleUnrolling:
+        foo = QR_decomposition_double_unrolling;
+        break;
+    case FunctionOptimizationType::kBlock:
+        foo = QR_decomposition_block;
+        break;
+    case FunctionOptimizationType::kBlockScalar:
+        foo = QR_decomposition_block_scalar;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
