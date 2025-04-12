@@ -1,5 +1,7 @@
 #include "matrix_product.hpp"
 
+#include <iostream>
+
 static void check_length(size_t a_size, size_t b_size, size_t c_size, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     if(a_size != a_row_count * a_column_count){
         throw Exception(ErrorType::kUnequalLengthError, generate_string("1st matrix size (", a_size, ") is not equal to given length (", a_row_count, " * ", a_column_count, ")"));
@@ -39,31 +41,39 @@ void matrix_product_row_scalar(const vector<num_type>& a, const vector<num_type>
 
     for(size_t i=0;i<a_row_count;++i){
         for(size_t j=0;j<a_column_count;++j){
-            num_type multiplier = a[i*a_column_count+j];
-            matrix_multiply_vector_by_number_optimal(b.data() + j * b_column_count, c.data() + i * b_column_count, multiplier, b_column_count);
+            matrix_multiply_vector_by_number_optimal(b.data() + j * b_column_count, c.data() + i * b_column_count, a[i*a_column_count+j], b_column_count);
         }
     }
 }
 
 void matrix_product_row_block(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
-    for(size_t jk = 0; jk < a_row_count; jk += kBlockSize)
-        for(size_t kk = 0; kk < a_column_count; kk += kBlockSize)
-            for(size_t ik = 0; ik < b_column_count; ik += kBlockSize)  
-                for(size_t j = 0; j < kBlockSize; ++j)
-                    for(size_t k = 0; k < kBlockSize; ++k)
-                        for(size_t i = 0; i < kBlockSize; ++i){
-                            c[(jk + j) * b_column_count + (ik + i)] += a[(jk + j) * a_column_count + (kk + k)] * b[(kk + k) * b_column_count + (ik + i)];
+    for(size_t ik = 0; ik < a_row_count; ik += kBlockSize){
+        for(size_t jk = 0; jk < a_column_count; jk += kBlockSize){
+            for(size_t kk = 0; kk < b_column_count; kk += kBlockSize){
+                for(size_t i = 0; i < kBlockSize; ++i){
+                    for(size_t j = 0; j < kBlockSize; ++j){
+                        for(size_t k = 0; k < kBlockSize; ++k){
+                            c[(ik + i) * b_column_count + (kk + k)] += a[(ik + i) * a_column_count + (jk + j)] * b[(jk + j) * b_column_count + (kk + k)];
                         }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void matrix_product_row_block_scalar(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
-    for(size_t jk = 0; jk < a_row_count; jk += kBlockSize)
-        for(size_t kk = 0; kk < a_column_count; kk += kBlockSize)
-            for(size_t ik = 0; ik < b_column_count; ik += kBlockSize)  
-                for(size_t j = 0; j < kBlockSize; ++j)
-                    for(size_t k = 0; k < kBlockSize; ++k){
-                        matrix_multiply_vector_by_number_optimal(&b[(kk + k) * b_column_count + ik], &c[(jk + j) * b_column_count + ik], a[(jk + j) * a_column_count + (kk + k)], kBlockSize);
+    for(size_t ik = 0; ik < a_row_count; ik += kBlockSize){
+        for(size_t jk = 0; jk < a_column_count; jk += kBlockSize){
+            for(size_t kk = 0; kk < b_column_count; kk += kBlockSize){
+                for(size_t i = 0; i < kBlockSize; ++i){
+                    for(size_t j = 0; j < kBlockSize; ++j){
+                        matrix_multiply_vector_by_number_optimal(b.data() + (jk + j) * b_column_count + (kk), c.data() + (ik + i) * b_column_count + (kk), a[(ik + i) * a_column_count + (jk + j)], kBlockSize);
                     }
+                }  
+            }
+        }
+    }
 }

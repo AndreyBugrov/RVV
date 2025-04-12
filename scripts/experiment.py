@@ -14,9 +14,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 OPERATIONS = {'vector': 'vec_p', 'matrix': 'mat_p', 'gram_schmidt': 'gs_p', 'qr': 'qr_d'}
-OPTIMIZATIONS = {'simple': 'sim', 'std': 'std', 'row': 'row_sim', 'scalar': 'sca', 'simd': 'simd',
+OPTIMIZATIONS = {'simple': 'sim', 'std': 'std', 'row': 'row_sim', 'dot': 'dot', 'simd': 'simd',
                  'hl_opt': 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row',
-                 'unrolling': 'urol', 'double_unrolling': 'drol', 'block': 'block'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized
+                 'unrolling': 'urol', 'double_unrolling': 'drol', 'block': 'block', 'inline': 'inl', 'matrix': 'matr'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized
 
 
 def terminate_experiment(error_msg: str):
@@ -141,7 +141,8 @@ def _create_function_dict() -> dict[str, set[str]]:
     function_names_dict['qr'] = {OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simple'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['row'], 
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['full_row'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simd'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['unrolling'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['double_unrolling'],
-                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['block'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['scalar']}
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['block'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['dot'],
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['inline'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['matrix'],}
     # add support for optimizations
     for key in OPTIMIZATIONS.keys():
         function_names_dict[key] = set()

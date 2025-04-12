@@ -28,3 +28,5 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
 void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
 
 void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
+
+void inner_element_wise_multiply_vector_by_vector_unrolling(const num_type* a, const num_type* b, num_type* result, size_t length);

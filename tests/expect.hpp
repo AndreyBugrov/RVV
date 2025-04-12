@@ -115,7 +115,7 @@ namespace expect{
         }
         if(wrong_value_number){
             double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0; // only double, not num_type
-            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Absolute min relative difference: ", min_difference ,". Absolute max relative difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
+            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Absolute min difference: ", min_difference ,". Absolute max difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
         }else{
             return ExpectationResult(true);
         }

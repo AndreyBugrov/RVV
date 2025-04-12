@@ -78,20 +78,6 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
     }
 }
 
-// void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
-//     memcpy(mutiplied_vec, vec, length*sizeof(num_type));
-//     size_t pre_length = length - length % kUnrollCoefficient; 
-//     for(size_t i=0;i<pre_length;i+=kUnrollCoefficient){
-//         mutiplied_vec[i]*=number;
-//         mutiplied_vec[i+1]*=number;
-//         mutiplied_vec[i+2]*=number;
-//         mutiplied_vec[i+3]*=number;
-//     }
-//     for(size_t i = pre_length; i<length; ++i){
-//         mutiplied_vec[i] *= number;
-//     }
-// }
-
 void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
     for(size_t i=0;i<length;i+=kUnrollCoefficient){
         mutiplied_vec[i] = vec[i] * number;
@@ -101,12 +87,27 @@ void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mu
     }
 }
 
-void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
+void inner_element_wise_multiply_vector_by_vector_unrolling(const num_type* a, const num_type* b, num_type* result, size_t length){
     for(size_t i=0;i<length;i+=kUnrollCoefficient){
-        mutiplied_vec[i] += vec[i] * number;
-        mutiplied_vec[i+1] += vec[i+1] * number;
-        mutiplied_vec[i+2] += vec[i+2] * number;
-        mutiplied_vec[i+3] += vec[i+3] * number;
+        result[i] = a[i] * b[i];
+        result[i+1] = a[i+1] * b[i+1];
+        result[i+2] = a[i+2] * b[i+2];
+        result[i+3] = a[i+3] * b[i+3];
+    }
+}
+
+void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
+    num_type tmp_vec[kUnrollCoefficient];
+    for(size_t i=0;i<length;i+=kUnrollCoefficient){
+        tmp_vec[0] = vec[i] * number;
+        tmp_vec[1] = vec[i+1] * number;
+        tmp_vec[2] = vec[i+2] * number;
+        tmp_vec[3] = vec[i+3] * number;
+
+        mutiplied_vec[i] += tmp_vec[0];
+        mutiplied_vec[i+1] += tmp_vec[1];
+        mutiplied_vec[i+2] += tmp_vec[2];
+        mutiplied_vec[i+3] += tmp_vec[3];
     }
 }
 

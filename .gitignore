@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+bin/
+build/
+
+# Assembly code
+*.asm
+
+# Python
+/venv/
+__pycache__/
+
+# VS Code
+/.vscode/

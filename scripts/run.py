@@ -66,6 +66,12 @@ def perf_measurements(args):
     measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name, args.output_dir, args.suffix)
 
 
+def disasm(args):
+    bin_path = 1
+    
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="QR decomposition run automation")
 
@@ -111,6 +117,9 @@ if __name__ == '__main__':
 
     performance_parser = subparsers.add_parser("perf", parents=[base_parent_parser, parent_multicompilation_parser, parent_optimization_parser, parent_result_parser, parent_suffix_parser], help="Performance measurements using Linux Perf")
     performance_parser.set_defaults(func=perf_measurements)
+
+    disasm_parser = subparsers.add_parser("disasm", parents=[base_parent_parser, parent_multicompilation_parser], help="Disassembling using Linux Perf")
+    disasm_parser.set_defaults(func=disasm)
 
     args = parser.parse_args()
     set_logger_level(args.logger_level)

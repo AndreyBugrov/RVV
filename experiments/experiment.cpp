@@ -56,7 +56,10 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
         std::pair<std::string, FunctionIndex>("qr_d_urol", FunctionIndex::kQRUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_drol", FunctionIndex::kQRDoubleUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_block", FunctionIndex::kQRBlock),
-        std::pair<std::string, FunctionIndex>("qr_d_sca", FunctionIndex::kQRBlockScalar),
+        std::pair<std::string, FunctionIndex>("qr_d_dot", FunctionIndex::kQRBlockScalar),
+        std::pair<std::string, FunctionIndex>("qr_d_inl", FunctionIndex::kQRInline),
+        std::pair<std::string, FunctionIndex>("qr_d_matr", FunctionIndex::kQRMatrix),
+        
     };
     enum ArgumentNumber{
         kDotProduct = 1,
@@ -207,6 +210,12 @@ BaseTaskOutput run_experiment(int experiment_count, std::string function_name, s
             break;
         case FunctionIndex::kQRBlockScalar:
             foo = QR_decomposition_block_scalar;
+            break;
+        case FunctionIndex::kQRInline:
+            foo = QR_decomposition_block_scalar_inline;
+            break;
+        case FunctionIndex::kQRMatrix:
+            foo = QR_decomposition_full_matrix;
             break;
         default:
             break;

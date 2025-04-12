@@ -9,7 +9,7 @@ from compilation import compile_sources
 
 LOGGER = logging.getLogger(__name__)
 
-TEST_COUNT = 74
+TEST_COUNT = 96
 
 
 def run_tests(bin_path: Path):

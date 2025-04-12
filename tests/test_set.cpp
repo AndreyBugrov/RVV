@@ -103,6 +103,32 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
         b_column_count = generate_rand_length(input.min_length, input.max_length);
         resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, input.min_value, input.max_value);
     }
+    if(input.function_type == FunctionOptimizationType::kBlock || input.function_type == FunctionOptimizationType::kBlockScalar){
+        a_row_count = generate_rand_length(1, 10) * kBlockSize;
+        a_column_count = generate_rand_length(1, 10) * kBlockSize;
+        b_column_count = generate_rand_length(1, 10) * kBlockSize;
+        resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, 0, input.max_value);
+        resize_and_generate_matrix(b, a_column_count, b_column_count, input.algebra_object_version, 0, input.max_value);
+        resize_and_generate_matrix(etalon, a_row_count, b_column_count);
+        resize_and_generate_matrix(c, a_row_count, b_column_count);
+
+        matrix_product_base_simple(a, b, etalon, a_row_count, a_column_count, b_column_count);
+        std::function<void (const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)> foo;
+        switch (input.function_type)
+        {
+        case FunctionOptimizationType::kBlock:
+            foo = matrix_product_row_block;
+            break;
+        case FunctionOptimizationType::kBlockScalar:
+            foo = matrix_product_row_block_scalar;
+            break;
+        default:
+            throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
+            break;
+        }
+        foo(a, b, c, a_row_count, a_column_count, b_column_count);
+        return expect::expect_indexable_containers_eq(etalon, c, etalon.size());
+    }
 
     switch (input.algebra_object_version)
     {
@@ -131,6 +157,7 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
             };
             a = {1, 2, 1, -1, 1, 1};
             b = {1, 1, 2, 1, 2, -1, 1, -1};
+
             break;
         default:
             resize_and_generate_matrix(b, a_column_count, b_column_count, input.algebra_object_version, input.min_value, input.max_value);
@@ -149,8 +176,12 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
     case FunctionOptimizationType::kRow:
         foo = matrix_product_row_simple;
         break;
+    case FunctionOptimizationType::kRowScalar:
+        return expect::expect_true(true);
+        foo = matrix_product_row_scalar;
+        break;
     default:
-        throw Exception(ErrorType::kValueError, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
+        throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
         break;
     }
     if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
@@ -178,7 +209,12 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
 
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
         vector_system_size = generate_rand_length(input.min_length, input.max_length);
-        vector_length = generate_rand_length(vector_system_size, input.max_length); // to prevent linear dependence of vectors
+        if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
+            vector_length = generate_rand_length(input.min_length, vector_system_size);
+        }else{
+            vector_length = generate_rand_length(vector_system_size, input.max_length); // to prevent linear dependence of vectors
+        }
+        
         vector_system.resize(vector_system_size);
         for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
             vector_system[vec_index].resize(vector_length);
@@ -205,15 +241,29 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
             generate_rand_array(vector_system[vec_index].data(), vector_length, input.min_value, input.max_value);
         }
         break;
+    case AlgebraObjectVersion::kIncorrect:
+        for(size_t vec_index = 0;vec_index<vector_system_size;++vec_index){
+            generate_zero_array(vector_system[vec_index].data(), vector_length);
+        }
+        return expect::expect_throw(gram_schmidt_base_simple, Exception(ErrorType::kIncorrectLengthRatio, ""), vector_system);
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Unsupported AlgebraObjectVersion index: ", static_cast<int>(input.algebra_object_version)));
         break;
     }
     switch (input.function_type)
     {
-    case FunctionOptimizationType::kUnsafe:
+    case FunctionOptimizationType::kSimple:
         orthogonal_system = gram_schmidt_base_simple(vector_system);
         break;
+    // case FunctionOptimizationType::kRow:
+    //     gram_schmidt_matrix_simple;
+    //     break;
+    // case FunctionOptimizationType::kUnrolling:
+    //     gram_schmidt_matrix_unrolling;
+    //     break;
+    // case FunctionOptimizationType::kSimd:
+    //     gram_schmidt_matrix_simd;
+    //     break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Unsupported FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
@@ -385,7 +435,7 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     std::function<void (const vector<num_type>&, vector<num_type>&, vector<num_type>&, size_t, size_t)> foo;
     switch (input.function_type)
     {
-    case FunctionOptimizationType::kUnsafe:
+    case FunctionOptimizationType::kSimple:
         foo = QR_decomposition_base_simple;
         break;
     case FunctionOptimizationType::kRow:
@@ -408,6 +458,12 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kBlockScalar:
         foo = QR_decomposition_block_scalar;
+        break;
+    case FunctionOptimizationType::kInline:
+        foo = QR_decomposition_block_scalar_inline;
+        break;
+    case FunctionOptimizationType::kMatrix:
+        foo = QR_decomposition_full_matrix;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));

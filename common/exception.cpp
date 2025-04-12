@@ -11,6 +11,8 @@ std::string Exception::get_eror_type(ErrorType enum_type) noexcept{
         return "WrongArgumentCount";
     case ErrorType::kIncorrectLengthRatio:
         return "IncorrectLengthRatio";
+    case ErrorType::kUnexpectedCase:
+        return "UnexpectedCase";
     default:
         return "UnknownError";
     }

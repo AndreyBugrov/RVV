@@ -9,8 +9,8 @@
 // from RVV directory:
 // g++ -O3 -I ../eigen-3.4.0/ extra_test.cpp algorithms/dot_product.cpp algorithms/gram_schmidt.cpp algorithms/matrix_operations.cpp algorithms/matrix_product.cpp algorithms/qr_decomposition.cpp algorithms/vector_operations.cpp common/exception.cpp common/generators.cpp -o test_eigen.out
 
-const size_t row_num = 2000;
-const size_t column_num = 2000;
+const size_t row_num = 5000;
+const size_t column_num = 5000;
 const num_type kMin = -100.0;
 const num_type kMax = 100.0;
 
@@ -32,7 +32,7 @@ int main()
     std::vector<num_type> my_q(row_num*column_num);
     std::vector<num_type> my_r(column_num*column_num);
     const auto start_test{std::chrono::steady_clock::now()};
-    QR_decomposition_unrolling(my_matrix, my_q, my_r, row_num, column_num);
+    QR_decomposition_block_scalar(my_matrix, my_q, my_r, row_num, column_num);
     const auto end_test{std::chrono::steady_clock::now()};
     vector_num my_check_matrix(row_num * column_num);
     const std::chrono::duration<double> test_seconds = end_test - start_test;
