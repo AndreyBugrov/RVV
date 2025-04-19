@@ -90,12 +90,9 @@ vector_num gram_schmidt_matrix_inline(vector_num& transposed_matrix, size_t row_
     return orthogonal_matrix;
 }
 
-void vector_matrix_product(const num_type* vec, const num_type* transposed_matrix, num_type* result_vec, size_t row_count, size_t column_count){
-    int row_count_int = static_cast<int>(row_count);
-    int column_count_int = static_cast<int>(column_count);
-    
-    for(int vec_index = 0; vec_index < row_count_int; ++vec_index){
-        result_vec[vec_index] = inner_dot_product_unrolling(&transposed_matrix[vec_index*column_count_int], vec, column_count);
+void vector_matrix_product(const num_type* vec, const num_type* transposed_matrix, num_type* result_vec, size_t row_count, size_t column_count){  
+    for(size_t vec_index = 0; vec_index < row_count; ++vec_index){
+        result_vec[vec_index] = inner_dot_product_unrolling(&transposed_matrix[vec_index*column_count], vec, column_count);
     }
 }
 
@@ -106,9 +103,12 @@ vector_num gram_schmidt_full_matrix(vector_num& transposed_matrix, size_t row_co
     vector_num vector_matrix_products(row_count);
     vector_num multipliers(row_count);
     for(size_t vec_index=1;vec_index<row_count;++vec_index){
-        square_ort_reciprocals[vec_index-1] = num_type(1.0) / inner_dot_product_unrolling(&orthogonal_matrix[(vec_index-1)*column_count], &orthogonal_matrix[(vec_index-1)*column_count], column_count);
+        square_ort_reciprocals[vec_index-1] = 1.0 / inner_dot_product_unrolling(&orthogonal_matrix[(vec_index-1)*column_count], &orthogonal_matrix[(vec_index-1)*column_count], column_count);
         vector_matrix_product(&transposed_matrix[vec_index * column_count], orthogonal_matrix.data(), vector_matrix_products.data(), vec_index, column_count);
-        inner_element_wise_multiply_vector_by_vector_unrolling(vector_matrix_products.data(), square_ort_reciprocals.data(), multipliers.data(), vec_index);
+        // inner_element_wise_multiply_vector_by_vector_unrolling(vector_matrix_products.data(), square_ort_reciprocals.data(), multipliers.data(), vec_index);
+        for(size_t i = 0; i < vec_index; i++){
+            multipliers[i] = vector_matrix_products[i] * square_ort_reciprocals[i];
+        }
         
         for(size_t proj_index=0;proj_index<vec_index;++proj_index){
             num_type* projection = new num_type[column_count];

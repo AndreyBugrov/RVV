@@ -11,9 +11,9 @@ LOGGER = logging.getLogger(__name__)
 COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "math", "lto", "native", "optimal"]
 COMMON_FLAGS = '-fopenmp-simd'
 OPTIMIZATION_LEVELS = {
-    COMPILATION_PROFILES[0]: f"-O0 -g {COMMON_FLAGS}",
+    COMPILATION_PROFILES[0]: f"-O0 {COMMON_FLAGS}",
     COMPILATION_PROFILES[1]: f"-O2 {COMMON_FLAGS}",
-    COMPILATION_PROFILES[2]: f"-O3 -g {COMMON_FLAGS}",
+    COMPILATION_PROFILES[2]: f"-O3 {COMMON_FLAGS}",
     COMPILATION_PROFILES[3]: f"-Ofast {COMMON_FLAGS}",
 }
 BASE_OPTIMIZATION_LEVEL = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[2]]
@@ -76,17 +76,12 @@ def compile_sources(compilation_profile: str, device_name: str, is_test: bool, f
 
     optimization_options = _get_compilation_options(compilation_profile, device_name)
 
-    if for_perf:
-        specific_options = "-fno-omit-frame-pointer"
-    elif is_test:
-        add_debug = "-g "
-        if add_debug in optimization_options:
-            add_debug = ""
-        specific_options = f"{add_debug}-fsanitize=address,undefined -fno-sanitize-recover=all"
+    specific_options = "-g -fno-omit-frame-pointer"
+
+    if is_test:
+        specific_options += " -fsanitize=address,undefined -fno-sanitize-recover=all"
         if compilation_profile in ["optimal", "math", "fast"]:
             specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
-    else:
-        specific_options = ""
 
     args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {optimization_options} {specific_options} " + " ".join(source_file_list) + f" -o {bin_path}"
     cmd = shlex.split(args)

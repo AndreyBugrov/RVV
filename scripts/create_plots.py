@@ -25,6 +25,8 @@ FILE_BEGINS_TO_GRAPH_NAMES={
     "qr_d_drol_" : "5. Размотка цикла в обеих подзадачах",
     "qr_d_block_" : "6. Блочное умножение без размотки цикла",
     "qr_d_dot_" : "7. Блочное умножение с размоткой цикла",
+    "qr_d_inline_" : "8. ",
+    "qr_d_matr" : "",
     "vec_p_sim_" : "0. Базовый алгоритм",
     "vec_p_std_" : "1. Inner product",
     "vec_p_simd_" : "2. SIMD",
