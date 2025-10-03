@@ -20,12 +20,17 @@ def compilation(args):
         for_perf = True
     elif compilation_type == "test":
         is_test = True
-    compile_sources(args.compilation_profile, is_test, for_perf)
+    bin_path = compile_sources(args.compilation_profile, args.device_name, is_test, for_perf)
+    print(f"Path to binary file: {bin_path}")
 
 
 def smoke_test(args):
     function_names_set = get_function_name_set(["all"], [], [])
-    full_experiment_pass(compilation_profile=args.compilation_profile, plot_format="png", function_names_set=function_names_set, sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir, suffix=args.suffix)
+    for compilation_profile in translate_compilation_profiles(args.compilation_profiles):
+        LOGGER.info(f"Compilation profile: {compilation_profile}")
+        full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set,
+                             sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir,
+                             suffix=args.suffix, base_title=args.base_title, dot_title=args.dot_title)
 
 
 def experiment(args):
@@ -38,13 +43,14 @@ def experiment(args):
         critical_message("\"min_n\" should be less or equal \"max_n\"!")
     function_names_set = get_function_name_set(args.functions, args.operation_classes, args.optimization_classes)
     LOGGER.debug(f"Chosen functions: {function_names_set}")
-    full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count, args.device_name, args.output_dir, args.suffix)
+    full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count,
+                         args.device_name, args.output_dir, args.suffix, args.base_title, args.dot_title)
 
 
 def plotting(args):
     result_directories = get_result_directories(args.output_dir, args.patterns)
     for result_directory in result_directories:
-        create_plots(plot_format=args.plot_format, result_directory=result_directory, device_name=args.device_name)
+        create_plots(plot_format=args.plot_format, result_directory=result_directory, device_name=args.device_name, base_title=args.base_title, dot_title=args.dot_title)
 
 
 def testing(args):
@@ -60,6 +66,12 @@ def perf_measurements(args):
     measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name, args.output_dir, args.suffix)
 
 
+def disasm(args):
+    bin_path = 1
+    
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="QR decomposition run automation")
 
@@ -69,8 +81,11 @@ if __name__ == '__main__':
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
     parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile", choices=COMPILATION_PROFILES, required=True)
+    parent_compilation_parser.add_argument('--no-recompile', help="Do not recompile sources", action="store_true")
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
+    parent_plotting_parser.add_argument('--dot-title', help="Dot product plot title", default="Скалярное произведение векторов")
+    parent_plotting_parser.add_argument('--base-title', help="Base algorithms plot title", default="Оптимизации QR-разложения")
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)
     parent_optimization_parser.add_argument('-n', '--exp-count', help="Number of experiments with equal parameters", type=int, required=True)
     parent_optimization_parser.add_argument('--optimization-classes', help="Optimization classes", choices=list(OPTIMIZATIONS.keys()) + ['all'], nargs='*')
@@ -85,7 +100,7 @@ if __name__ == '__main__':
     compilation_parser = subparsers.add_parser("compilation", parents=[base_parent_parser, parent_compilation_parser], help="Sourse files compilation")
     compilation_parser.add_argument("--type", help="Compilation_target", choices=["experiment", "perf", "test"], required=True)
     compilation_parser.set_defaults(func=compilation)
-    smoke_test_parser = subparsers.add_parser("smoke_test", parents=[base_parent_parser, parent_compilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
+    smoke_test_parser = subparsers.add_parser("smoke-test", parents=[base_parent_parser, parent_multicompilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)
     plotting_parser = subparsers.add_parser("plot", parents=[base_parent_parser, parent_plotting_parser, parent_result_parser], help="Result directory plotting")
     plotting_parser.add_argument('-p', '--patterns', help="Directory name part patterns", required=True, nargs="+")
@@ -102,6 +117,9 @@ if __name__ == '__main__':
 
     performance_parser = subparsers.add_parser("perf", parents=[base_parent_parser, parent_multicompilation_parser, parent_optimization_parser, parent_result_parser, parent_suffix_parser], help="Performance measurements using Linux Perf")
     performance_parser.set_defaults(func=perf_measurements)
+
+    disasm_parser = subparsers.add_parser("disasm", parents=[base_parent_parser, parent_multicompilation_parser], help="Disassembling using Linux Perf")
+    disasm_parser.set_defaults(func=disasm)
 
     args = parser.parse_args()
     set_logger_level(args.logger_level)

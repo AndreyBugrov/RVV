@@ -1,9 +1,11 @@
 #include "test_runner.hpp"
 
-const std::string delimiter = "--------------------------------------------------------------------------------\n";
+const std::string delimiter = "---------------------------------------------------------------------------------\n";
 
-const double kMinValue = -100.0;
-const double kMaxValue = 100.0;
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+
 const size_t kMinLength = 256;
 const size_t kMaxLength = 512;
 
@@ -19,19 +21,17 @@ static void print_header(std::ostream& stream) {
 }
 
 static void parse_passed_test_output(double test_time, std::ostream& stream){
-    stream<<"PASSED\n";
+    stream<< GREEN << "PASSED\n" << RESET;
     stream<<"TIME: "<<test_time<<" seconds\n";
 }
 
 static void parse_failed_test_output(const TestOutput& test_output, const std::string& test_task_name, std::vector<std::string>& wrong_test_names, std::ostream& stream) {
     wrong_test_names.push_back(test_task_name);
-    stream<<"FAILED DUE TO ";
+    stream<< RED << "FAILED\n" << RESET;
     if(test_output.ended()){
-        stream<<"ERROR\n";
         stream<<"TIME: "<<test_output.time()<<" seconds\n";
         stream<<"ERROR: "<<test_output.error_message()<<"\n";
     }else{
-        stream<<"EXCEPTION\n";
         stream<<"EXCEPTION TYPE: "<<test_output.what()<<"\n";
         stream<<"EXCEPTION MESSAGE: "<<test_output.error_message()<<"\n";
     }
@@ -60,7 +60,7 @@ size_t run_tests(const std::vector<TestTask>& test_tasks, size_t task_count, std
     const auto end_task{std::chrono::steady_clock::now()};
     std::chrono::duration<double> all_task_seconds = end_task - start_task;
     double total_seconds = all_task_seconds.count();
-    stream<<"TOTAL:\n"<<"RUN:    "<<task_count<<"\nPASSED: "<<passed<<"\nFAILED: "<<failed<<"\nTIME:   "<<total_seconds<<"\n";
+    stream<<"TOTAL"<<"\nPASSED: "<<passed<<"\nFAILED: "<<failed<<"\nALL:    "<<task_count<<"\nTIME:   "<<total_seconds<<"\n";
     if(failed){
         stream << delimiter;
         stream<<"FAILED TESTS: \n";

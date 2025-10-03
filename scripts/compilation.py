@@ -9,13 +9,14 @@ from common_defs import critical_message, PARENT_DIRECTORY, X86_NAME, KENDRYTE_N
 LOGGER = logging.getLogger(__name__)
 
 COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "math", "lto", "native", "optimal"]
-BASE_OPTIMIZATION_LEVEL = "-O2"
+COMMON_FLAGS = '-fopenmp-simd'
 OPTIMIZATION_LEVELS = {
-    COMPILATION_PROFILES[0]: "-O0",
-    COMPILATION_PROFILES[1]: "-O2",
-    COMPILATION_PROFILES[2]: "-O3",
-    COMPILATION_PROFILES[3]: "-Ofast",
+    COMPILATION_PROFILES[0]: f"-O0 {COMMON_FLAGS}",
+    COMPILATION_PROFILES[1]: f"-O2 {COMMON_FLAGS}",
+    COMPILATION_PROFILES[2]: f"-O3 {COMMON_FLAGS}",
+    COMPILATION_PROFILES[3]: f"-Ofast {COMMON_FLAGS}",
 }
+BASE_OPTIMIZATION_LEVEL = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[2]]
 EXTRA_OPTIONS_OFFSET = 4
 EXTRA_OPTIMIZATIONS = {
     COMPILATION_PROFILES[EXTRA_OPTIONS_OFFSET]: "-ffast-math",
@@ -74,15 +75,15 @@ def compile_sources(compilation_profile: str, device_name: str, is_test: bool, f
     LOGGER.debug("Source file list: " + " ".join(source_file_list))
 
     optimization_options = _get_compilation_options(compilation_profile, device_name)
-    if is_test and compilation_profile in ["optimal", "math", "fast"]:
-        optimization_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
 
-    if for_perf:
-        perf_argument = "-fno-omit-frame-pointer"
-    else:
-        perf_argument = ""
+    specific_options = "-g -fno-omit-frame-pointer"
 
-    args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {perf_argument} {optimization_options} " + " ".join(source_file_list) + f" -o {bin_path}"
+    if is_test:
+        specific_options += " -fsanitize=address,undefined -fno-sanitize-recover=all"
+        if compilation_profile in ["optimal", "math", "fast"]:
+            specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
+
+    args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {optimization_options} {specific_options} " + " ".join(source_file_list) + f" -o {bin_path}"
     cmd = shlex.split(args)
     LOGGER.debug("Compilation command line: " + " ".join(cmd))
 

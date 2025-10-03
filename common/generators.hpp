@@ -7,10 +7,13 @@
 
 #include "defines.hpp"  // num_type
 
-void generate_rand_array(num_type* arr, size_t n, num_type min, num_type max);
-int generate_rand_integer_number(int min, int max);
-void generate_zero_array(num_type* arr, size_t n);
+void generate_rand_array(num_type* arr, size_t arr_size, num_type min, num_type max);
+size_t generate_rand_length(size_t min, size_t max);
+void generate_zero_array(num_type* arr, size_t arr_size);
+
 void generate_identity_matrix(num_type* matrix, size_t row_num, size_t column_num);
+
+num_type generate_rand_value(num_type min, num_type max);
 
 template <typename T>
 static void inner_string_generator(std::ostream& o, T t)

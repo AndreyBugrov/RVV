@@ -9,7 +9,7 @@ from compilation import compile_sources
 
 LOGGER = logging.getLogger(__name__)
 
-TEST_COUNT = 39
+TEST_COUNT = 96
 
 
 def run_tests(bin_path: Path):
@@ -19,7 +19,7 @@ def run_tests(bin_path: Path):
     output = proc.communicate()
     if output[1]:
         stderr = output[1].decode("utf-8")
-        critical_message(f"Errors in test:\n{stderr}")
+        critical_message(f"Errors in test:\n{stderr}") # can't get previous stdout if any error occured
     returncode = proc.returncode
     stdout = output[0].decode("utf-8")
     if returncode:
@@ -39,7 +39,7 @@ def full_test(compilation_profiles: list[str], device_name: str):
     all_failed_test_count = 0
     failed_profiles = set()
     for compilation_profile in compilation_profiles:
-        LOGGER.info(f"Compilation_profile: {compilation_profile}")
+        LOGGER.info(f"Compilation profile: {compilation_profile}")
         bin_path = compile_sources(compilation_profile, device_name, is_test=True, for_perf=False)
         LOGGER.info(f"Running tests")
         current_failed_test_count = run_tests(bin_path)

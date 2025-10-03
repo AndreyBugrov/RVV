@@ -12,7 +12,7 @@
 #include "../common/single_logger.hpp" // logging
 #include "../common/generators.hpp"  // only to generate error message
 
-#include "../algorithms/scalar_product.hpp"
+#include "../algorithms/dot_product.hpp"
 #include "../algorithms/matrix_product.hpp"
 #include "../algorithms/gram_schmidt.hpp"
 #include "../algorithms/qr_decomposition.hpp"
@@ -20,11 +20,30 @@
 #include "reset.hpp"
 
 enum class FunctionIndex{
-    kScalarProductSimple,
-    kScalarProductStd,
+    kDotProductSimple,
+    kDotProductStd,
+    kDotProductSimd,
+    kDotProductUnrolling,
+    kDotProductEnd, // end
     kMatrixProductSimple,
+    kMatrixProductRow,
+    kMatrixProductEnd, // end
     kGramSchmidtSimple,
+    kGramSchmidtRow,
+    kGramSchmidtSimd,
+    kGramSchmidtUnrolling,
+    kGramSchmidtEnd, // end
     kQRSimple,
+    kQRRow,
+    kQRRowRow,
+    kQRSimd,
+    kQRUnrolling,
+    kQRDoubleUnrolling,
+    kQRBlock,
+    kQRBlockScalar,
+    kQRInline,
+    kQRMatrix,
+    kQREnd, // end
 };
 
 // experiment_count is of int type because there are only std::stoi, not std::stoui
@@ -36,12 +55,12 @@ double count_seconds(std::vector<double>& seconds);
 
 // reset does not return anything so ResetFoo type != Foo type in general
 template<typename Foo, typename ResetFoo, typename... Args>
-BaseTaskOutput run_experiment_task(int experiment_num, Foo task, ResetFoo reset, Args... args){
+BaseTaskOutput run_experiment_task(int experiment_count, Foo task, ResetFoo reset, Args... args){
     bool ended = false;
     std::string error_type = "NoError";
     std::string error_message = "Something went wrong";
-    std::vector<double> seconds(experiment_num);
-    for(int i=0;i<experiment_num;++i){
+    std::vector<double> seconds(experiment_count);
+    for(int i=0;i<experiment_count;++i){
         try{
             ended = false;
             const auto start_test{std::chrono::steady_clock::now()};

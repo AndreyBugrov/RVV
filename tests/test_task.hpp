@@ -4,6 +4,8 @@
 #include "../common/exception.hpp"  // Exception
 #include "expect.hpp"  // ExpectationResult
 
+const num_type kMinValue = -100.0;
+const num_type kMaxValue = 100.0;
 
 struct TestFunctionInput{
 public:
@@ -20,11 +22,17 @@ public:
 
 enum class FunctionOptimizationType{
     kSimple,
-    kSimpleStd,
+    kStd,
     kRow,
-    kRowStd,
-    kSimpleIntrinsic,
-    kRowIntrinsic,
+    kRowRow,
+    kRowScalar,
+    kSimd,
+    kUnrolling,
+    kDoubleUnrolling,
+    kBlock,
+    kBlockScalar,
+    kInline,
+    kMatrix,
     kUnsafe,
     kNoThrowing,
 };
@@ -34,7 +42,7 @@ enum class AlgebraObjectVersion{
     kZero,
     kIdentity, // one object is identity
     kGeneral,
-    kWrong, // check throws or not in wrong input case
+    kIncorrect, // check throws or not in wrong input case
 };
 
 struct TestFunctionInputExtended: TestFunctionInput{
