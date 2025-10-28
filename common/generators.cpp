@@ -23,7 +23,7 @@ void generate_zero_array(num_type* arr, size_t arr_size){
 void generate_identity_matrix(num_type* matrix, size_t row_count, size_t column_count){
     size_t diag_length = std::min(row_count, column_count);
     generate_zero_array(matrix, row_count * column_count);
-    for(size_t i = 0;i < diag_length; ++i){
+    for(size_t i = 0; i < diag_length; ++i){
         matrix[i * column_count + i] = num_type(1.0);
     }
 }

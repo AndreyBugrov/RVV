@@ -83,7 +83,7 @@ def compile_sources(compilation_profile: str, device_name: str, is_test: bool, f
         if compilation_profile in ["optimal", "math", "fast"]:
             specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
 
-    args = f"g++ -Wall -Werror -Wsign-compare -std=c++20 {optimization_options} {specific_options} " + " ".join(source_file_list) + f" -o {bin_path}"
+    args = f"ccache g++ -Wall -Werror -Wsign-compare -std=c++20 {optimization_options} {specific_options} " + " ".join(source_file_list) + f" -o {bin_path}"
     cmd = shlex.split(args)
     LOGGER.debug("Compilation command line: " + " ".join(cmd))
 
@@ -91,6 +91,7 @@ def compile_sources(compilation_profile: str, device_name: str, is_test: bool, f
     compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
     if compiler_errors:
         critical_message('Compilation errors:\n'+compiler_errors.decode('utf-8'))
+    LOGGER.info('Compilation done')
     return bin_path
 
 

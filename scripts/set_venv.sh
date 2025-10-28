@@ -10,3 +10,4 @@ if [ ! -d "${VENV_DIR}" ]; then
 else
     source "${VENV_DIR}/bin/activate"
 fi
+export CCACHE_DIR=${BASE_DIR}/cache_dir

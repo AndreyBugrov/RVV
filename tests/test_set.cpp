@@ -428,6 +428,10 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
             row_count = kBlockSize * 2;
         }
     }
+    column_count = row_count;
+    //----------------------------------------
+    // column_count = row_count;
+    //----------------------------------------
     resize_and_generate_matrix(matrix, row_count, column_count, input.algebra_object_version, input.min_value, input.max_value);
     resize_and_generate_matrix(Q_matrix, row_count, column_count);
     resize_and_generate_matrix(R_matrix, column_count, column_count);
@@ -464,6 +468,9 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kMatrix:
         foo = QR_decomposition_full_matrix;
+        break;
+    case FunctionOptimizationType::kHouseholder:
+        foo = QR_decomposition_base_householder;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
