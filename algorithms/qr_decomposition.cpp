@@ -1,6 +1,6 @@
 #include "qr_decomposition.hpp"
 
-#include <iostream>
+// #include <iostream>
 
 void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
     QR_decomposition_non_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, matrix_product_base_simple);
@@ -40,6 +40,10 @@ void QR_decomposition_block_scalar_inline(const vector<num_type>& matrix, vector
 
 void QR_decomposition_full_matrix(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
     QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_full_matrix, matrix_product_row_block_scalar);
+}
+
+void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count) {
+    QR_decomposition_householder_common(matrix, Q_matrix, R_matrix, row_count, column_count, recalculate_q_matrix, recalculate_r_matrix);
 }
 
 void QR_decomposition_non_matrix_common(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count, matrix_product_function matrix_foo){
@@ -88,58 +92,7 @@ void QR_decomposition_matrix_common(const vector<num_type>& matrix, vector<num_t
     Q_matrix = transpose_matrix(Q_matrix_transposed, column_count, row_count);
 }
 
-void create_householder_vector(const num_type* x, int n, num_type* householder_vector) {   
-    memset(householder_vector, 0, n*sizeof(x[0]));
-    householder_vector[0] = get_vector_norm(x, n);
-
-    for (int i = 0; i < n; ++i){
-        householder_vector[i] = x[i] - householder_vector[i];
-    }
-
-    double householder_norm = get_vector_norm(householder_vector, n);
-    for (int i = 0; i < n; ++i){
-        householder_vector[i] /= householder_norm;
-    }
-}
-
-
-void hhMulRight(const double* u, int k, size_t row_count, size_t column_count, int n, vector_num& Q_matrix, double* tmp) {
-    generate_zero_array(tmp, row_count);
-
-    for(size_t i = 0; i < row_count; ++i) {
-        for(size_t j = k; j < column_count; ++j) {
-            tmp[i] += Q_matrix[i*n + j] * u[j-k];
-        }
-    }
-
-    for(size_t i = 0; i < row_count; ++i) {
-        for(size_t j = k; j < column_count; ++j) {
-            Q_matrix[i*n + j] -= 2*tmp[i] * u[j-k];
-        }
-    }
-}
- 
-void hhMulLeft(const double* u, int k, size_t row_count, size_t column_count, int n, vector_num& R_matrix, double* tmp) {
-    generate_zero_array(tmp, column_count);
-
-    for(size_t j = k; j < column_count; ++j) {
-        for(size_t i = 0; i < column_count; ++i) {
-            tmp[i] += R_matrix[j*n + i] * u[j-k];
-        }
-    }
-
-    for(size_t j = k; j < column_count; ++j) {
-        for(size_t i = 0; i < column_count; ++i) {
-            R_matrix[j*n + i] -= 2*tmp[i] * u[j-k];
-        }
-    }
-}
-
-void QR_decomposition_base_householder(const std::vector<num_type>& matrix,
-    std::vector<num_type>& Q_matrix,
-    std::vector<num_type>& R_matrix,
-    size_t row_count,
-    size_t column_count) {
+void QR_decomposition_householder_common(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count, recalculate_matrix_function q_function, recalculate_matrix_function r_function){
     if(! perform_QR(matrix, Q_matrix, R_matrix, row_count, column_count)){
         return;
     }
@@ -149,7 +102,7 @@ void QR_decomposition_base_householder(const std::vector<num_type>& matrix,
     generate_identity_matrix(Q_matrix.data(), row_count, column_count);
 
     //qr
-    num_type vec_i[n] = {0};   
+    num_type vec_i[n] = {0};
     num_type householder_vector[n] = {0};
     num_type tmp[std::max(row_count, column_count)] = {0};
 
@@ -158,8 +111,8 @@ void QR_decomposition_base_householder(const std::vector<num_type>& matrix,
             vec_i[j - i] = R_matrix[j*n + i];
         }
         create_householder_vector(vec_i, n - i, householder_vector);
-        hhMulLeft(householder_vector, i, row_count, column_count, n, R_matrix, tmp);
-        hhMulRight(householder_vector, i, row_count, column_count, n, Q_matrix, tmp);
+        r_function(householder_vector, i, row_count, column_count, n, R_matrix, tmp);
+        q_function(householder_vector, i, row_count, column_count, n, Q_matrix, tmp);
     }
 }
 
