@@ -92,7 +92,7 @@ void QR_decomposition_matrix_common(const vector<num_type>& matrix, vector<num_t
     Q_matrix = transpose_matrix(Q_matrix_transposed, column_count, row_count);
 }
 
-void QR_decomposition_householder_common(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count, recalculate_matrix_function q_function, recalculate_matrix_function r_function){
+void QR_decomposition_householder_common(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count, recalculate_matrix_function q_function, recalculate_matrix_function r_function) {
     if(! perform_QR(matrix, Q_matrix, R_matrix, row_count, column_count)){
         return;
     }
@@ -106,13 +106,13 @@ void QR_decomposition_householder_common(const vector_num& matrix, vector_num& Q
     num_type householder_vector[n] = {0};
     num_type tmp[std::max(row_count, column_count)] = {0};
 
-    for(int i = 0; i < n - 1; ++i){
-        for(int j = i; j < n; ++j){
-            vec_i[j - i] = R_matrix[j*n + i];
+    for(int diagonal_index = 0; diagonal_index < n - 1; ++diagonal_index){
+        for(int r_row_index = diagonal_index; r_row_index < n; ++r_row_index){
+            vec_i[r_row_index - diagonal_index] = R_matrix[r_row_index*n + diagonal_index];
         }
-        create_householder_vector(vec_i, n - i, householder_vector);
-        r_function(householder_vector, i, row_count, column_count, n, R_matrix, tmp);
-        q_function(householder_vector, i, row_count, column_count, n, Q_matrix, tmp);
+        create_householder_vector(vec_i, n - diagonal_index, householder_vector);
+        r_function(householder_vector, diagonal_index, row_count, column_count, n, R_matrix, tmp);
+        q_function(householder_vector, diagonal_index, row_count, column_count, n, Q_matrix, tmp);
     }
 }
 

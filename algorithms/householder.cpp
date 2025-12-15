@@ -1,12 +1,8 @@
 #include "householder.hpp"
 
-void create_householder_vector(const num_type* x, int n, num_type* householder_vector) {   
-    memset(householder_vector, 0, n*sizeof(x[0]));
-    householder_vector[0] = get_vector_norm(x, n);
-
-    for (int i = 0; i < n; ++i){
-        householder_vector[i] = x[i] - householder_vector[i];
-    }
+void create_householder_vector(const num_type* x, int n, num_type* householder_vector) {
+    memcpy(householder_vector, x, n * sizeof(num_type));
+    householder_vector[0] -= get_vector_norm(x, n);
 
     double householder_norm = get_vector_norm(householder_vector, n);
     for (int i = 0; i < n; ++i){
