@@ -4,7 +4,7 @@ import subprocess # necessary
 
 from pathlib import Path
 
-from common_defs import critical_message, PARENT_DIRECTORY, X86_NAME, KENDRYTE_NAME
+from common_defs import critical_message, PARENT_DIRECTORY, X86_NAME, RISC_NAME
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ EXTRA_OPTIMIZATIONS = {
 }
 DEVICE_OPTIMIZATIONS = {
     X86_NAME: "-march=native",
-    KENDRYTE_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicsr_zifencei_zihpm_zba_zbb_zbc_zbs_svpbmt"
+    RISC_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt_sscofpmf_sstc_svinval_svnapot_svpbmt"
 }
 
 
