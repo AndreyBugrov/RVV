@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     base_parent_parser = argparse.ArgumentParser(add_help=False)
     base_parent_parser.add_argument('-l', '--logger-level', help="Level of supported logger messages", choices=['debug', 'info', 'warning', 'error', 'critical'], default='info')
-    base_parent_parser.set_defaults('--device_name', choices=['x86', 'risc_v'], default=None)
+    base_parent_parser.add_argument('--device-name', choices=['x86', 'risc_v'], default=None)
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
     parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile", choices=COMPILATION_PROFILES, required=True)
