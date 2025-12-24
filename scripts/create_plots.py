@@ -73,7 +73,7 @@ def _get_length_list(result_directory: Path, mat_names: list[str], gs_names: lis
 
 
 def _plot_graph(times_dict: dict, dimension_size_list: list[int], result_directory: Path, device_name: str, plot_format: str, title: str, is_vector: bool):
-    pyplot_module_name = "pyplot"
+    pyplot_module_name = "matplotlib.pyplot"
     try:
         plt = import_module(pyplot_module_name)
     except Exception as e:
