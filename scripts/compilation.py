@@ -8,16 +8,18 @@ from common_defs import critical_message, PARENT_DIRECTORY, X86_NAME, RISC_NAME
 
 LOGGER = logging.getLogger(__name__)
 
-COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "math", "lto", "native", "optimal"]
+COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "base", "math", "lto", "native", "optimal"]
 COMMON_FLAGS = '-fopenmp-simd'
+
 OPTIMIZATION_LEVELS = {
     COMPILATION_PROFILES[0]: f"-O0 {COMMON_FLAGS}",
     COMPILATION_PROFILES[1]: f"-O2 {COMMON_FLAGS}",
     COMPILATION_PROFILES[2]: f"-O3 {COMMON_FLAGS}",
     COMPILATION_PROFILES[3]: f"-Ofast {COMMON_FLAGS}",
 }
-BASE_OPTIMIZATION_LEVEL = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[2]]
-EXTRA_OPTIONS_OFFSET = 4
+OPTIMIZATION_LEVELS[COMPILATION_PROFILES[4]] = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[1]]
+BASE_OPTIMIZATION_LEVEL = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[4]]
+EXTRA_OPTIONS_OFFSET = 5
 EXTRA_OPTIMIZATIONS = {
     COMPILATION_PROFILES[EXTRA_OPTIONS_OFFSET]: "-ffast-math",
     COMPILATION_PROFILES[EXTRA_OPTIONS_OFFSET + 1]: "-flto=auto -fuse-linker-plugin",
@@ -46,6 +48,13 @@ def _create_bin_directory() -> Path:
     return bin_directory
 
 
+def _get_bin_path(bin_directory: Path, compilation_profile: str, is_test: bool) -> Path:
+    bin_name = (f'test' if is_test else 'experiment') + f"_{compilation_profile}.out"
+    # bin = bin_name.replace("/", "_").replace("\\", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("<", "_").replace(">", "_").replace("|", "_").replace('"', '_').replace("'", '_').replace(" ", "_").lower()
+    bin_path = bin_directory / bin_name
+    return bin_path
+
+
 def _get_source_files_list(is_test: bool) -> list[str]:
     source_file_list = []
     source_file_list.extend([str(item) for item in Path("algorithms").glob("*.cpp")])
@@ -57,17 +66,14 @@ def _get_source_files_list(is_test: bool) -> list[str]:
     return source_file_list
 
 
-def compile_sources(compilation_profile: str, device_name: str, is_test: bool, for_perf: bool) -> Path:
+def compile_sources(compilation_profile: str, device_name: str, is_test: bool, eigen_path: Path | None, no_recompile: bool) -> Path:
     """
     Returns:
-        path to execution file
+        Path: path to the binary execution file
     """
     bin_directory = _create_bin_directory()
-    if is_test:
-        bin_path = bin_directory / "test.out"
-    else:
-        bin_path = bin_directory / "experiment.out"
-    if not compilation_profile:
+    bin_path = _get_bin_path(bin_directory, compilation_profile, is_test)
+    if no_recompile:
         LOGGER.warning('Compilation is skipped')
         return bin_path
     

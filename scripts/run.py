@@ -14,13 +14,13 @@ LOGGER = logging.getLogger(__name__)
 
 def compilation(args):
     compilation_type = args.type
+    no_recompile = args.no_recompile
     is_test=False
-    for_perf=False
-    if compilation_type == "perf":
-        for_perf = True
-    elif compilation_type == "test":
+    if compilation_type == "test":
         is_test = True
-    bin_path = compile_sources(args.compilation_profile, args.device_name, is_test, for_perf)
+    else:
+        is_test = False
+    bin_path = compile_sources(args.compilation_profile, args.device_name, is_test, no_recompile)
     print(f"Path to binary file: {bin_path}")
 
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     base_parent_parser.add_argument('--device-name', choices=['x86', 'risc_v'], default=None)
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
-    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile", choices=COMPILATION_PROFILES, required=True)
+    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation optimization profile", choices=COMPILATION_PROFILES, required=True)
     parent_compilation_parser.add_argument('--no-recompile', help="Do not recompile sources", action="store_true")
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     subparsers = parser.add_subparsers()
     compilation_parser = subparsers.add_parser("compilation", parents=[base_parent_parser, parent_compilation_parser], help="Sourse files compilation")
-    compilation_parser.add_argument("--type", help="Compilation_target", choices=["experiment", "perf", "test"], required=True)
+    compilation_parser.add_argument("--type", help="Type of check binary to compile", choices=["experiment", "perf", "test"], required=True)
     compilation_parser.set_defaults(func=compilation)
     smoke_test_parser = subparsers.add_parser("smoke-test", parents=[base_parent_parser, parent_multicompilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)
