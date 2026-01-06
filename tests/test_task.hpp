@@ -34,6 +34,7 @@ enum class FunctionOptimizationType{
     kInline,
     kMatrix,
     kUnsafe,
+    kHouseholder,
     kNoThrowing,
 };
 

@@ -1,8 +1,6 @@
 from pathlib import Path
 import logging
-
-from matplotlib import pyplot as plt
-import pandas as pd
+from importlib import import_module
 
 from common_defs import critical_message
 
@@ -27,6 +25,7 @@ FILE_BEGINS_TO_GRAPH_NAMES={
     "qr_d_dot_" : "7. Блочное умножение с размоткой цикла",
     "qr_d_inl_" : "8. Уменьшение умножений в процессе Грама-Шмидта",
     "qr_d_matr_" : "9. Векторно-матричные операции в процессе Грама-Шмидта",
+    "qr_d_hh_" : "10. Базовые отражения Хаусхолдера",
     "vec_p_sim_" : "0. Базовый алгоритм",
     "vec_p_std_" : "1. Inner product",
     "vec_p_simd_" : "2. SIMD",
@@ -49,6 +48,11 @@ def _get_curve_name(file_name: str) -> str | None:
 
 
 def _get_length_list(result_directory: Path, mat_names: list[str], gs_names: list[str], qr_names: list[str]) -> list[int]:
+    pd_module_name = "pandas"
+    try:
+        pd = import_module(pd_module_name)
+    except Exception as e:
+        critical_message(f"Import error while importing {pd_module_name}: {e}")
     for path_item in result_directory.glob("*.csv"):
         column_names = []
         file_name = path_item.name
@@ -69,6 +73,16 @@ def _get_length_list(result_directory: Path, mat_names: list[str], gs_names: lis
 
 
 def _plot_graph(times_dict: dict, dimension_size_list: list[int], result_directory: Path, device_name: str, plot_format: str, title: str, is_vector: bool):
+    pyplot_module_name = "matplotlib.pyplot"
+    try:
+        plt = import_module(pyplot_module_name)
+    except Exception as e:
+        critical_message(f"Import error while importing {pyplot_module_name}: {e}")
+    pd_module_name = "pandas"
+    try:
+        pd = import_module(pd_module_name)
+    except Exception as e:
+        critical_message(f"Import error while importing {pd_module_name}: {e}")
     df = pd.DataFrame.from_dict(times_dict)
     _, ax = plt.subplots(figsize=(10, 8), dpi=100)
     for plot_index, column in enumerate(df.columns):
@@ -90,6 +104,11 @@ def _plot_graph(times_dict: dict, dimension_size_list: list[int], result_directo
 
 
 def _add_time_series_to_times_dict(current_names: list[str], path_item: Path, file_name: str, time_name: str, times_dict: dict):
+    pd_module_name = "pandas"
+    try:
+        pd = import_module(pd_module_name)
+    except Exception as e:
+        critical_message(f"Import error while importing {pd_module_name}: {e}")
     types_dict = {}
     for i in range(len(current_names)-1):
         types_dict[current_names[i]] = int
@@ -125,7 +144,12 @@ def _save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_dire
 
 
 
-def _save_vec_plots(plot_format: str, time_name: str, result_directory: Path, device_name: str, dot_title: str, vec_names: list[str]): 
+def _save_vec_plots(plot_format: str, time_name: str, result_directory: Path, device_name: str, dot_title: str, vec_names: list[str]):
+    pd_module_name = "pandas"
+    try:
+        pd = import_module(pd_module_name)
+    except Exception as e:
+        critical_message(f"Import error while importing {pd_module_name}: {e}")
     result_directories = [item for item in result_directory.glob("vec*.csv")]
     if not result_directories:
         LOGGER.warning(f"There is no supported vector results files in \"{result_directory}\" directory")

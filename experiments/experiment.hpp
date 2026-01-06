@@ -43,6 +43,7 @@ enum class FunctionIndex{
     kQRBlockScalar,
     kQRInline,
     kQRMatrix,
+    kQRHouseholderSimple,
     kQREnd, // end
 };
 

@@ -42,3 +42,6 @@ __pycache__/
 
 # VS Code
 /.vscode/
+
+# cache
+cache_dir/

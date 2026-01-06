@@ -1,6 +1,6 @@
 #include "qr_decomposition.hpp"
 
-#include <iostream>
+// #include <iostream>
 
 void QR_decomposition_base_simple(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
     QR_decomposition_non_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, matrix_product_base_simple);
@@ -40,6 +40,10 @@ void QR_decomposition_block_scalar_inline(const vector<num_type>& matrix, vector
 
 void QR_decomposition_full_matrix(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
     QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_full_matrix, matrix_product_row_block_scalar);
+}
+
+void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count) {
+    QR_decomposition_householder_common(matrix, Q_matrix, R_matrix, row_count, column_count, recalculate_q_matrix, recalculate_r_matrix);
 }
 
 void QR_decomposition_non_matrix_common(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count, matrix_product_function matrix_foo){
@@ -86,6 +90,30 @@ void QR_decomposition_matrix_common(const vector<num_type>& matrix, vector<num_t
     matrix_foo(Q_matrix_transposed, matrix, R_matrix, column_count, row_count, column_count);
     // get Q^T matrix from Q
     Q_matrix = transpose_matrix(Q_matrix_transposed, column_count, row_count);
+}
+
+void QR_decomposition_householder_common(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count, recalculate_matrix_function q_function, recalculate_matrix_function r_function) {
+    if(! perform_QR(matrix, Q_matrix, R_matrix, row_count, column_count)){
+        return;
+    }
+    int n = std::min(row_count, column_count);
+    R_matrix = matrix;
+
+    generate_identity_matrix(Q_matrix.data(), row_count, column_count);
+
+    //qr
+    num_type vec_i[n] = {0};
+    num_type householder_vector[n] = {0};
+    num_type tmp[std::max(row_count, column_count)] = {0};
+
+    for(int diagonal_index = 0; diagonal_index < n - 1; ++diagonal_index){
+        for(int r_row_index = diagonal_index; r_row_index < n; ++r_row_index){
+            vec_i[r_row_index - diagonal_index] = R_matrix[r_row_index*n + diagonal_index];
+        }
+        create_householder_vector(vec_i, n - diagonal_index, householder_vector);
+        r_function(householder_vector, diagonal_index, row_count, column_count, n, R_matrix, tmp);
+        q_function(householder_vector, diagonal_index, row_count, column_count, n, Q_matrix, tmp);
+    }
 }
 
 bool perform_QR(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){

@@ -4,3 +4,5 @@ sudo su <<sudo_end # https://stackoverflow.com/questions/24640340/why-cant-i-use
 echo -1 > /proc/sys/kernel/perf_event_paranoid
 echo 0 > /proc/sys/kernel/kptr_restrict
 sudo_end
+BASE_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[1]}" )" &> /dev/null && pwd )
+export CCACHE_DIR=${BASE_DIR}/cache_dir

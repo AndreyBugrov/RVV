@@ -14,13 +14,13 @@ LOGGER = logging.getLogger(__name__)
 
 def compilation(args):
     compilation_type = args.type
+    no_recompile = args.no_recompile
     is_test=False
-    for_perf=False
-    if compilation_type == "perf":
-        for_perf = True
-    elif compilation_type == "test":
+    if compilation_type == "test":
         is_test = True
-    bin_path = compile_sources(args.compilation_profile, args.device_name, is_test, for_perf)
+    else:
+        is_test = False
+    bin_path = compile_sources(args.compilation_profile, args.device_name, is_test, no_recompile)
     print(f"Path to binary file: {bin_path}")
 
 
@@ -44,7 +44,7 @@ def experiment(args):
     function_names_set = get_function_name_set(args.functions, args.operation_classes, args.optimization_classes)
     LOGGER.debug(f"Chosen functions: {function_names_set}")
     full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count,
-                         args.device_name, args.output_dir, args.suffix, args.base_title, args.dot_title)
+                         args.device_name, args.output_dir, args.suffix, args.base_title, args.dot_title, args.no_plotting)
 
 
 def plotting(args):
@@ -77,10 +77,10 @@ if __name__ == '__main__':
 
     base_parent_parser = argparse.ArgumentParser(add_help=False)
     base_parent_parser.add_argument('-l', '--logger-level', help="Level of supported logger messages", choices=['debug', 'info', 'warning', 'error', 'critical'], default='info')
-    base_parent_parser.set_defaults(device_name="unknown")
+    base_parent_parser.add_argument('--device-name', choices=['x86', 'risc_v'], default=None)
     
     parent_compilation_parser = argparse.ArgumentParser(add_help=False)
-    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation profile", choices=COMPILATION_PROFILES, required=True)
+    parent_compilation_parser.add_argument('-c', '--compilation-profile', help="Compilation optimization profile", choices=COMPILATION_PROFILES, required=True)
     parent_compilation_parser.add_argument('--no-recompile', help="Do not recompile sources", action="store_true")
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     subparsers = parser.add_subparsers()
     compilation_parser = subparsers.add_parser("compilation", parents=[base_parent_parser, parent_compilation_parser], help="Sourse files compilation")
-    compilation_parser.add_argument("--type", help="Compilation_target", choices=["experiment", "perf", "test"], required=True)
+    compilation_parser.add_argument("--type", help="Type of check binary to compile", choices=["experiment", "perf", "test"], required=True)
     compilation_parser.set_defaults(func=compilation)
     smoke_test_parser = subparsers.add_parser("smoke-test", parents=[base_parent_parser, parent_multicompilation_parser, parent_result_parser, parent_suffix_parser], help="Small experiment validation")
     smoke_test_parser.set_defaults(func=smoke_test)
@@ -110,6 +110,7 @@ if __name__ == '__main__':
     experiment_parser.add_argument('--operation-classes', help="Operation classes", choices=list(OPERATIONS.keys()) + ['all'], nargs='*')
     experiment_parser.add_argument('-f', '--functions', help="Specific functions", choices=list(FUNCTION_NAMES_DICT['all']) + ['all'], nargs='*')   
     experiment_parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=("MIN_SIZE", "MAX_SIZE", "STEP"), type=int, nargs=3, required=True)
+    experiment_parser.add_argument('--no-plotting', help="Do not create plots", default=False, action="store_true")
     experiment_parser.set_defaults(func=experiment)
 
     testing_parser = subparsers.add_parser("test", parents=[base_parent_parser, parent_multicompilation_parser], help="Tests for all compilation option sets")
@@ -123,7 +124,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     set_logger_level(args.logger_level)
-    args.device_name = get_device_name()
+    args.device_name = args.device_name if args.device_name is not None else get_device_name()
     if hasattr(args, "func"):
         args.func(args)
     else:

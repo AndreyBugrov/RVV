@@ -16,7 +16,8 @@ LOGGER = logging.getLogger(__name__)
 OPERATIONS = {'vector': 'vec_p', 'matrix': 'mat_p', 'gram_schmidt': 'gs_p', 'qr': 'qr_d'}
 OPTIMIZATIONS = {'simple': 'sim', 'std': 'std', 'row': 'row_sim', 'dot': 'dot', 'simd': 'simd',
                  'hl_opt': 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row',
-                 'unrolling': 'urol', 'double_unrolling': 'drol', 'block': 'block', 'inline': 'inl', 'matrix': 'matr'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized
+                 'unrolling': 'urol', 'double_unrolling': 'drol', 'block': 'block', 'inline': 'inl', 'matrix': 'matr',
+                 'hh': 'hh'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized, hh - householder
 
 
 def terminate_experiment(error_msg: str):
@@ -104,7 +105,7 @@ def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_cou
 
 def full_experiment_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], 
                          exp_count: int, device_name: str, output_dir: str, suffix: str, base_title: str,
-                         dot_title: str):
+                         dot_title: str, no_plotting: bool):
     LOGGER.info("Start of preprocessing phase")
     result_directory = prepare_result_directory(output_dir, suffix)
     bin_path = compile_sources(compilation_profile, device_name, is_test=False, for_perf=False)
@@ -125,6 +126,8 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
         critical_message('Experiment was interrupted')
     for core in core_nums:
         set_min_core_frequency_limit(min_frequenciy, core)
+    if no_plotting:
+        return
     create_plots(plot_format=plot_format, result_directory=result_directory, device_name=device_name, base_title=base_title, dot_title=dot_title)
 
 
@@ -142,7 +145,8 @@ def _create_function_dict() -> dict[str, set[str]]:
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['full_row'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['simd'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['unrolling'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['double_unrolling'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['block'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['dot'],
-                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['inline'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['matrix'],}
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['inline'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['matrix'],
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['hh']}
     # add support for optimizations
     for key in OPTIMIZATIONS.keys():
         function_names_dict[key] = set()

@@ -20,7 +20,7 @@ def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilati
     perf_object_name = "Perf record"
     LOGGER.debug(f"{perf_object_name} line: {args}")
     cmd = shlex.split(args)
-    LOGGER.info(f"{perf_object_name} launching")
+    LOGGER.info(f"{perf_object_name} running")
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     LOGGER.debug(f"{perf_object_name} trace was saved to {perf_data_path}")
     output = proc.communicate()

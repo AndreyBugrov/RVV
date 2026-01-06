@@ -6,7 +6,7 @@ LOGGER = logging.getLogger(__name__)
 PARENT_DIRECTORY = Path(".").parent.parent
 
 X86_NAME = "x86"
-KENDRYTE_NAME = "kendryte"
+RISC_NAME = "risc_v"
 
 def critical_message(msg: str):
     LOGGER.critical(f"{msg}")
@@ -20,7 +20,7 @@ def get_device_name() -> str:
         import cpuinfo
     except ImportError:
         critical_message("ImportError while importing cpuinfo")
-    device_name = KENDRYTE_NAME
+    device_name = RISC_NAME
     arch = cpuinfo.get_cpu_info().get("arch")
     if arch == "X86_64":
         device_name = X86_NAME
