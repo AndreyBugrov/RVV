@@ -30,7 +30,8 @@ def smoke_test(args):
         LOGGER.info(f"Compilation profile: {compilation_profile}")
         full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set,
                              sizes=[4, 8, 4], exp_count=3, device_name=args.device_name, output_dir=args.output_dir,
-                             suffix=args.suffix, base_title=args.base_title, dot_title=args.dot_title)
+                             suffix=args.suffix, base_title=args.base_title, dot_title=args.dot_title, no_plotting=args.no_plotting,
+                             no_recompile=args.no_recompile)
 
 
 def experiment(args):
@@ -44,7 +45,8 @@ def experiment(args):
     function_names_set = get_function_name_set(args.functions, args.operation_classes, args.optimization_classes)
     LOGGER.debug(f"Chosen functions: {function_names_set}")
     full_experiment_pass(args.compilation_profile, args.plot_format, function_names_set, sizes, args.exp_count,
-                         args.device_name, args.output_dir, args.suffix, args.base_title, args.dot_title, args.no_plotting)
+                         args.device_name, args.output_dir, args.suffix, args.base_title, args.dot_title, args.no_plotting,
+                         no_recompile=args.no_recompile)
 
 
 def plotting(args):
@@ -68,8 +70,6 @@ def perf_measurements(args):
 
 def disasm(args):
     bin_path = 1
-    
-
 
 
 if __name__ == '__main__':

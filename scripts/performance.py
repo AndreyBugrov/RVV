@@ -117,7 +117,7 @@ def measure_performance(optimization_classes: set[str], compilation_profiles: li
     min_frequenciy, max_frequency = get_min_max_frequencies()
     for compilation_profile in compilation_profiles:
         LOGGER.info(f"Compilation_profile: {compilation_profile}")
-        bin_path = compile_sources(compilation_profile, device_name, is_test=False, for_perf=True)
+        bin_path = compile_sources(compilation_profile, device_name, is_test=False, eigen_path=None, no_recompile=False)
         for function_name in function_names:
             LOGGER.info(f'Process \"{function_name}\" function')
             _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory)
