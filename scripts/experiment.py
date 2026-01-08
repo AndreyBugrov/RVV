@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 from common_defs import critical_message
-from compilation import compile_sources
+from compilation import get_binary_path
 from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
 from create_plots import create_plots
 
@@ -108,7 +108,7 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
                          dot_title: str, no_plotting: bool, no_recompile: bool):
     LOGGER.info("Start of preprocessing phase")
     result_directory = prepare_result_directory(output_dir, suffix)
-    bin_path = compile_sources(compilation_profile, device_name, is_test=False, eigen_path=None, no_recompile=no_recompile)
+    bin_path = get_binary_path(compilation_profile, device_name, compilation_type="experiment", eigen_path=None, no_recompile=no_recompile)
     core_nums = get_available_cores()
     min_frequenciy, max_frequency = get_min_max_frequencies()
     try:

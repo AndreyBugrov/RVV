@@ -5,7 +5,7 @@ from pathlib import Path
 
 from common_defs import critical_message
 from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
-from compilation import compile_sources
+from compilation import get_binary_path
 from experiment import get_current_sizes_by_operation_class, terminate_experiment, OPERATIONS, OPTIMIZATIONS, FUNCTION_NAMES_DICT
 
 
@@ -110,14 +110,15 @@ def _measure_performance_for_function(function_name, core_nums, min_frequenciy, 
     _create_flame_graph(perf_script_path, perf_beginning, is_icicle=True)
 
 
-def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int, device_name: str, output_dir: str, suffix: str) -> list[str]:
+def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int,
+                        device_name: str, output_dir: str, suffix: str, no_recompile: bool) -> list[str]:
     result_directory = prepare_result_directory(output_dir, suffix)
     function_names = _get_qr_function_names_from_optimization_class(optimization_classes)
     core_nums = get_available_cores()
     min_frequenciy, max_frequency = get_min_max_frequencies()
     for compilation_profile in compilation_profiles:
         LOGGER.info(f"Compilation_profile: {compilation_profile}")
-        bin_path = compile_sources(compilation_profile, device_name, is_test=False, eigen_path=None, no_recompile=False)
+        bin_path = get_binary_path(compilation_profile, device_name, compilation_type="perf", eigen_path=None, no_recompile=no_recompile)
         for function_name in function_names:
             LOGGER.info(f'Process \"{function_name}\" function')
             _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory)
