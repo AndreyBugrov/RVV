@@ -4,9 +4,9 @@ import shlex
 import logging
 from pathlib import Path
 
-from common_defs import critical_message
+from common_defs import abort_with_message, do_not_setup_frequency, VEC_COLUMN_NAMES, MAT_COLUMN_NAMES, GS_COLUMN_NAMES, QR_COLUMN_NAMES
 from compilation import get_binary_path
-from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency
 from create_plots import create_plots
 
 
@@ -65,30 +65,24 @@ def get_current_sizes_by_operation_class(current_size: int, operation_class: str
     return output[:-1]
 
 
-VEC_NAMES = ["Experiments count", "Length", "Time"]
-MAT_NAMES = ["Experiments count", "1st row count", "1st column count", "2nd column count", "Time"]
-GS_NAMES = ["Experiments count", "Vector system size", "Vector length", "Time"]
-QR_NAMES = ["Experiments count", "Row count", "Column count", "Time"]
-
-
-def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_count: int, device_type: str, frequency: int, result_directory: Path):
+def _run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_count: int, device_type: str, frequency_repr: str, result_directory: Path):
     min_n = sizes[0]
     max_n = sizes[1] + 1
     step_n = sizes[2]
 
     operation_class = function_name.split("_")[0] + "_" + function_name.split("_")[1]
 
-    csv_file_name = result_directory / Path(function_name + '_' + device_type + '_' + str(frequency / (1000*1000)) + 'GHz' + '.csv')
+    csv_file_name = result_directory / Path(function_name + '_' + device_type + '_' + frequency_repr + '.csv')
 
     header = []
     if operation_class == OPERATIONS['vector']:
-        header.extend(VEC_NAMES)
+        header.extend(VEC_COLUMN_NAMES)
     elif operation_class == OPERATIONS['matrix']:
-        header.extend(MAT_NAMES)
+        header.extend(MAT_COLUMN_NAMES)
     elif operation_class == OPERATIONS['gram_schmidt']:
-        header.extend(GS_NAMES)
+        header.extend(GS_COLUMN_NAMES)
     elif operation_class == OPERATIONS['qr']:
-        header.extend(QR_NAMES)
+        header.extend(QR_COLUMN_NAMES)
     with open(csv_file_name, 'w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(header)
@@ -99,36 +93,47 @@ def run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_cou
         with open(csv_file_name, 'a', encoding='utf-8') as f:
             writer = csv.writer(f, delimiter=';')
             writer.writerow(row)
-        LOGGER.debug(f'Experiment with {current_sizes} sizes of {function_name} was carried out\n')
+        LOGGER.debug(f'Run with {current_sizes} sizes of {function_name} was carried out\n')
     LOGGER.info(f'Results were saved to {csv_file_name}')
+
+
+def _get_frequency_repr(set_frequency: int | None) -> str:
+    if type(set_frequency) == int:
+        f"{set_frequency / (1000 * 1000)}_GHz"
+    elif set_frequency is None:
+        return "unknown_frequency"
+    else:
+        raise terminate_experiment(f"Unexpected frequency type: {type(set_frequency)}")
 
 
 def full_experiment_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], 
                          exp_count: int, device_name: str, output_dir: str, suffix: str, base_title: str,
-                         dot_title: str, no_plotting: bool, no_recompile: bool):
+                         dot_title: str, no_plotting: bool, no_recompile: bool, eigen_path: Path | None):
     LOGGER.info("Start of preprocessing phase")
     result_directory = prepare_result_directory(output_dir, suffix)
-    bin_path = get_binary_path(compilation_profile, device_name, compilation_type="experiment", eigen_path=None, no_recompile=no_recompile)
-    core_nums = get_available_cores()
-    min_frequenciy, max_frequency = get_min_max_frequencies()
+    bin_path = get_binary_path(compilation_profile, device_name, compilation_type="experiment", eigen_path=eigen_path, no_recompile=no_recompile)
+    if do_not_setup_frequency(device_name):
+        core_indeces = None
+        min_frequency, max_frequency = None, None
+    else:
+        core_indeces = get_available_cores()
+        min_frequency, max_frequency = get_min_max_frequencies()
+    interrupted = False
     try:
-        LOGGER.info("Frequency setting")
-        for core in core_nums:  
-            set_min_core_frequency_limit(max_frequency, core)
-        LOGGER.debug(f"Frequency is {max_frequency}")
+        setup_frequency(max_frequency, core_indeces, device_name)
         LOGGER.info("Experiment execution")
         for function_item in function_names_set:
             LOGGER.info(f'Process \"{function_item}\" function')
-            run_experiment(bin_path, function_item, sizes, exp_count, device_name, max_frequency, result_directory)
+            _run_experiment(bin_path, function_item, sizes, exp_count, device_name, _get_frequency_repr(max_frequency), result_directory)
     except KeyboardInterrupt:
-        for core in core_nums:
-            set_min_core_frequency_limit(min_frequenciy, core)
-        critical_message('Experiment was interrupted')
-    for core in core_nums:
-        set_min_core_frequency_limit(min_frequenciy, core)
-    if no_plotting:
-        return
-    create_plots(plot_format=plot_format, result_directory=result_directory, device_name=device_name, base_title=base_title, dot_title=dot_title)
+        interrupted = True
+    else:
+        if not no_plotting:  # there should be no return statements here because we want to go to the finally section
+            create_plots(plot_format=plot_format, result_directory=result_directory, device_name=device_name, base_title=base_title, dot_title=dot_title)
+    finally:
+        setup_frequency(min_frequency, core_indeces, device_name)
+        if interrupted:
+            abort_with_message('Experiment was interrupted')
 
 
 def _create_function_dict() -> dict[str, set[str]]:

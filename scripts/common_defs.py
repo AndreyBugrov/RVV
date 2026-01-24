@@ -6,9 +6,18 @@ LOGGER = logging.getLogger(__name__)
 PARENT_DIRECTORY = Path(".").parent.parent
 
 X86_NAME = "x86"
-RISC_NAME = "risc_v"
+RISC_V_NAME = "risc_v"
+VM_NAME = "vm"
 
-def critical_message(msg: str):
+TIME_NAME = "Time"
+REF_TIME_NAME = "Eigen Time"
+VEC_COLUMN_NAMES = ["Experiments count", "Length", TIME_NAME, REF_TIME_NAME]
+MAT_COLUMN_NAMES = ["Experiments count", "1st row count", "1st column count", "2nd column count", TIME_NAME, REF_TIME_NAME]
+GS_COLUMN_NAMES = ["Experiments count", "Vector system size", "Vector length", TIME_NAME, REF_TIME_NAME]
+QR_COLUMN_NAMES = ["Experiments count", "Row count", "Column count", TIME_NAME, REF_TIME_NAME]
+
+
+def abort_with_message(msg: str):
     LOGGER.critical(f"{msg}")
     sys.exit(-1)
 
@@ -19,11 +28,14 @@ def get_device_name() -> str:
         LOGGER.debug("\"cpuinfo\" import")
         import cpuinfo
     except ImportError:
-        critical_message("ImportError while importing cpuinfo")
-    device_name = RISC_NAME
+        abort_with_message("ImportError while importing cpuinfo")
+    device_name = RISC_V_NAME
     arch = cpuinfo.get_cpu_info().get("arch")
     if arch == "X86_64":
-        device_name = X86_NAME
+        if Path('/sys/devices/system/cpu/cpu').is_dir():
+            device_name = X86_NAME
+        else:
+            device_name = VM_NAME
     LOGGER.info(f"\"{device_name}\" device name was chosen")
     return device_name
 
@@ -41,3 +53,7 @@ def set_logger_level(logger_level):
     elif logger_level == 'critical':
         logger_level_paramenter = logging.CRITICAL
     logging.basicConfig(level=logger_level_paramenter, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
+
+
+def do_not_setup_frequency(device_name):
+    return device_name == VM_NAME

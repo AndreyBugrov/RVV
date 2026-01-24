@@ -3,7 +3,7 @@ import shlex
 import logging
 from pathlib import Path
 
-from common_defs import critical_message
+from common_defs import abort_with_message
 from compilation import get_binary_path
 
 
@@ -19,7 +19,7 @@ def run_tests(bin_path: Path):
     output = proc.communicate()
     if output[1]:
         stderr = output[1].decode("utf-8")
-        critical_message(f"Errors in test:\n{stderr}") # can't get previous stdout if any error occured
+        abort_with_message(f"Errors in test:\n{stderr}") # can't get previous stdout if any error occured
     returncode = proc.returncode
     stdout = output[0].decode("utf-8")
     if returncode:

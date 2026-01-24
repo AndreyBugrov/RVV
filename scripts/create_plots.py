@@ -2,7 +2,7 @@ from pathlib import Path
 import logging
 from importlib import import_module
 
-from common_defs import critical_message
+from common_defs import abort_with_message, TIME_NAME, REF_TIME_NAME, VEC_COLUMN_NAMES, MAT_COLUMN_NAMES, GS_COLUMN_NAMES, QR_COLUMN_NAMES
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,12 +32,6 @@ FILE_BEGINS_TO_GRAPH_NAMES={
     "vec_p_urol_" : "3. Размотка цикла"
 }
 
-TIME_NAME = "Time"
-VEC_COLUMN_NAMES = ["Experiments count", "Length", TIME_NAME]
-MAT_COLUMN_NAMES = ["Experiments count", "1st row count", "1st column count", "2nd column count", TIME_NAME]
-GS_COLUMN_NAMES = ["Experiments count", "Vector system size", "Vector length", TIME_NAME]
-QR_COLUMN_NAMES = ["Experiments count", "Row count", "Column count", TIME_NAME]
-
 
 def _get_curve_name(file_name: str) -> str | None:
     for key in FILE_BEGINS_TO_GRAPH_NAMES.keys():
@@ -52,7 +46,7 @@ def _get_length_list(result_directory: Path, mat_names: list[str], gs_names: lis
     try:
         pd = import_module(pd_module_name)
     except Exception as e:
-        critical_message(f"Import error while importing {pd_module_name}: {e}")
+        abort_with_message(f"Import error while importing {pd_module_name}: {e}")
     for path_item in result_directory.glob("*.csv"):
         column_names = []
         file_name = path_item.name
@@ -65,7 +59,7 @@ def _get_length_list(result_directory: Path, mat_names: list[str], gs_names: lis
         elif file_name.startswith("qr"):
             column_names = qr_names
         else:
-            critical_message(f"Unsupported begin of the file name \"{file_name}\"")
+            abort_with_message(f"Unsupported begin of the file name \"{file_name}\"")
         return [int(item) for item in pd.read_csv(path_item, sep=';', decimal='.', header=0)[column_names[1]].to_list()]
     else:
         LOGGER.warning(f"There is no supported non-vector results files in \"{result_directory}\" directory")
@@ -77,12 +71,12 @@ def _plot_graph(times_dict: dict, dimension_size_list: list[int], result_directo
     try:
         plt = import_module(pyplot_module_name)
     except Exception as e:
-        critical_message(f"Import error while importing {pyplot_module_name}: {e}")
+        abort_with_message(f"Import error while importing {pyplot_module_name}: {e}")
     pd_module_name = "pandas"
     try:
         pd = import_module(pd_module_name)
     except Exception as e:
-        critical_message(f"Import error while importing {pd_module_name}: {e}")
+        abort_with_message(f"Import error while importing {pd_module_name}: {e}")
     df = pd.DataFrame.from_dict(times_dict)
     _, ax = plt.subplots(figsize=(10, 8), dpi=100)
     for plot_index, column in enumerate(df.columns):
@@ -108,7 +102,7 @@ def _add_time_series_to_times_dict(current_names: list[str], path_item: Path, fi
     try:
         pd = import_module(pd_module_name)
     except Exception as e:
-        critical_message(f"Import error while importing {pd_module_name}: {e}")
+        abort_with_message(f"Import error while importing {pd_module_name}: {e}")
     types_dict = {}
     for i in range(len(current_names)-1):
         types_dict[current_names[i]] = int
@@ -143,13 +137,12 @@ def _save_no_vec_plots_and_init_ax(plot_format: str, time_name: str, result_dire
     _plot_graph(times_dict, dimension_size_list, result_directory, device_name, plot_format, base_title, is_vector=False)
 
 
-
 def _save_vec_plots(plot_format: str, time_name: str, result_directory: Path, device_name: str, dot_title: str, vec_names: list[str]):
     pd_module_name = "pandas"
     try:
         pd = import_module(pd_module_name)
     except Exception as e:
-        critical_message(f"Import error while importing {pd_module_name}: {e}")
+        abort_with_message(f"Import error while importing {pd_module_name}: {e}")
     result_directories = [item for item in result_directory.glob("vec*.csv")]
     if not result_directories:
         LOGGER.warning(f"There is no supported vector results files in \"{result_directory}\" directory")
@@ -165,9 +158,9 @@ def _save_vec_plots(plot_format: str, time_name: str, result_directory: Path, de
 
 
 def create_plots(plot_format: str, result_directory: Path, device_name: str, base_title: str, 
-                 dot_title: str, time_name: str=TIME_NAME, vec_column_names: list=VEC_COLUMN_NAMES,
-                 mat_column_names: list=MAT_COLUMN_NAMES, gs_column_names: list=GS_COLUMN_NAMES,
-                 qr_column_names: list=QR_COLUMN_NAMES):
+                 dot_title: str, time_name: str=TIME_NAME, ref_time_name: str=REF_TIME_NAME,
+                 vec_column_names: list=VEC_COLUMN_NAMES, mat_column_names: list=MAT_COLUMN_NAMES,
+                 gs_column_names: list=GS_COLUMN_NAMES, qr_column_names: list=QR_COLUMN_NAMES):
     LOGGER.info(f"Creating plots for \"{result_directory}\"")
     LOGGER.info("Creating non-vector plots")
     _save_no_vec_plots_and_init_ax(plot_format, time_name, result_directory, device_name, base_title, mat_names=mat_column_names, gs_names=gs_column_names, qr_names=qr_column_names)
