@@ -1,5 +1,6 @@
 import logging
 import sys
+from importlib import import_module
 from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
@@ -22,13 +23,16 @@ def abort_with_message(msg: str):
     sys.exit(-1)
 
 
-def get_device_name() -> str:
-    LOGGER.info("Getting device name")
+def import_module_by_name(name: str):
+    LOGGER.debug(f"\"{name}\" import")
     try:
-        LOGGER.debug("\"cpuinfo\" import")
-        import cpuinfo
-    except ImportError:
-        abort_with_message("ImportError while importing cpuinfo")
+        return import_module(name)
+    except ImportError as e:
+        abort_with_message(f"Import error while importing {name}: {e}")
+
+
+def get_device_name() -> str:
+    cpuinfo = import_module_by_name("cpuinfo")
     device_name = RISC_V_NAME
     arch = cpuinfo.get_cpu_info().get("arch")
     if arch == "X86_64":
