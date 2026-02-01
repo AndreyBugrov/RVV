@@ -6,7 +6,7 @@ from pathlib import Path
 
 from common_defs import abort_with_message, do_not_setup_frequency, VEC_COLUMN_NAMES, MAT_COLUMN_NAMES, GS_COLUMN_NAMES, QR_COLUMN_NAMES
 from compilation import get_binary_path
-from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency, check_output_dir
 from create_plots import create_plots
 
 
@@ -112,7 +112,7 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
                          exp_count: int, device_name: str, output_dir: str, suffix: str, base_title: str,
                          dot_title: str, no_plotting: bool, no_recompile: bool, eigen_path: Path | None):
     LOGGER.info("Start of preprocessing phase")
-    result_directory = prepare_result_directory(output_dir, suffix)
+    check_output_dir(output_dir)
     bin_path = get_binary_path(compilation_profile, device_name, compilation_type="experiment", eigen_path=eigen_path, no_recompile=no_recompile)
     if do_not_setup_frequency(device_name):
         core_indeces = None
@@ -121,9 +121,11 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
         core_indeces = get_available_cores()
         min_frequency, max_frequency = get_min_max_frequencies()
     LOGGER.debug(f"Core indeces: {core_indeces}, min frequency: {min_frequency}, max frequency: {max_frequency}")
+    result_directory = prepare_result_directory(output_dir, suffix)
     LOGGER.info("End of preprocessing phase")
     interrupted = False
     try:
+        LOGGER.info("Setup frequency")
         setup_frequency(max_frequency, core_indeces, device_name)
         LOGGER.info("Experiment execution")
         for function_item in function_names_set:
@@ -135,6 +137,7 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
         if not no_plotting:  # there should be no return statements here because we want to go to the finally section
             create_plots(plot_format=plot_format, result_directory=result_directory, device_name=device_name, base_title=base_title, dot_title=dot_title)
     finally:
+        LOGGER.info("Unsetup frequency")
         setup_frequency(min_frequency, core_indeces, device_name)
         if interrupted:
             abort_with_message('Experiment was interrupted')

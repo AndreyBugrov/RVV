@@ -45,7 +45,7 @@ def setup_frequency(frequency: int | None, core_indeces: list[int] | None, devic
         return
     if frequency is None or core_indeces is None:
         abort_with_message("Frequency or core indeces are None. Aborting.")
-    LOGGER.info(f"Setting up frequency to {frequency}")
+    LOGGER.debug(f"Setting up frequency to {frequency} for cores{core_indeces} on {device_name}")
     for core_index in core_indeces:
         _set_min_core_frequency_limit(frequency, core_index)
 

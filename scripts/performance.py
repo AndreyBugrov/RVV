@@ -94,11 +94,13 @@ def _get_qr_function_names_from_optimization_class(optimization_classes: str) ->
 def _measure_performance_for_function(function_name, core_indeces, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory):
     interrupted = False
     try:
+        LOGGER.info("Setup frequency")
         setup_frequency(max_frequency, core_indeces, device_name)
         perf_data_path = _get_perf_data(bin_path, function_name, exp_count, compilation_profile, device_name, result_directory)
     except KeyboardInterrupt:
         interrupted = True
     finally:
+        LOGGER.info("Unsetup frequency")
         setup_frequency(min_frequenciy, core_indeces, device_name)
         if interrupted:
             abort_with_message("Program has been interrupted")
