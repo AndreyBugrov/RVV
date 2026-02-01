@@ -3,9 +3,9 @@ import shlex
 import logging
 from pathlib import Path
 
-from common_defs import critical_message
-from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, set_min_core_frequency_limit
-from compilation import compile_sources
+from common_defs import abort_with_message, do_not_setup_frequency
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency
+from compilation import get_binary_path
 from experiment import get_current_sizes_by_operation_class, terminate_experiment, OPERATIONS, OPTIMIZATIONS, FUNCTION_NAMES_DICT
 
 
@@ -16,7 +16,7 @@ QR_ROW_LENGTH = 2000
 def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilation_profile: str, device_name: str, result_directory: Path) -> Path:
     sizes = get_current_sizes_by_operation_class(QR_ROW_LENGTH, OPERATIONS["qr"])
     perf_data_path = result_directory / f"{compilation_profile}_{function_name}_{device_name}_perf.data"
-    args = f"perf record -F 99 -a -g -o {perf_data_path} -- {bin_path} {exp_count} {function_name} {sizes} experiments.log"
+    args = f"perf record -F 99 -a -g -o {perf_data_path} -- {bin_path} {exp_count} {function_name} {sizes} experiments.log perf"
     perf_object_name = "Perf record"
     LOGGER.debug(f"{perf_object_name} line: {args}")
     cmd = shlex.split(args)
@@ -51,7 +51,7 @@ def _get_perf_script(perf_data_path: Path, perf_beginning: str):
         perf_script_info = stderr.decode('utf-8')
         LOGGER.warning(f"{perf_object_name} output:\n{perf_script_info}")
     if proc.returncode:
-        critical_message(f"Process has completed with non-zero return code: {proc.returncode}")
+        abort_with_message(f"Process has completed with non-zero return code: {proc.returncode}")
     return perf_script_path
 
 
@@ -71,9 +71,9 @@ def _create_flame_graph(perf_script_path: Path, perf_beginning: str, is_icicle: 
     stderr = output[1]
     if stderr:
         error_message = stderr.decode('utf-8')
-        critical_message(f"{perf_object_name} errors:\n{error_message}")
+        abort_with_message(f"{perf_object_name} errors:\n{error_message}")
     if proc.returncode:
-        critical_message(f"Process has completed with non-zero return code: {proc.returncode}")
+        abort_with_message(f"Process has completed with non-zero return code: {proc.returncode}")
 
 
 def _get_qr_function_names_from_optimization_class(optimization_classes: str) -> list[str]:
@@ -91,33 +91,36 @@ def _get_qr_function_names_from_optimization_class(optimization_classes: str) ->
     return function_names
 
 
-def _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory):
+def _measure_performance_for_function(function_name, core_indeces, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory):
+    interrupted = False
     try:
-        LOGGER.info("Frequency setting")
-        for core in core_nums:  
-            set_min_core_frequency_limit(max_frequency, core)
-        LOGGER.debug(f"Frequency is {max_frequency}")
+        setup_frequency(max_frequency, core_indeces, device_name)
         perf_data_path = _get_perf_data(bin_path, function_name, exp_count, compilation_profile, device_name, result_directory)
     except KeyboardInterrupt:
-        for core in core_nums:
-            set_min_core_frequency_limit(min_frequenciy, core)
-        critical_message("Program has been interrupted")
-    for core in core_nums:
-        set_min_core_frequency_limit(min_frequenciy, core)
+        interrupted = True
+    finally:
+        setup_frequency(min_frequenciy, core_indeces, device_name)
+        if interrupted:
+            abort_with_message("Program has been interrupted")
     perf_beginning = _get_perf_beginning(perf_data_path)
     perf_script_path = _get_perf_script(perf_data_path, perf_beginning)
     _create_flame_graph(perf_script_path, perf_beginning, is_icicle=False)
     _create_flame_graph(perf_script_path, perf_beginning, is_icicle=True)
 
 
-def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int, device_name: str, output_dir: str, suffix: str) -> list[str]:
+def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int,
+                        device_name: str, output_dir: str, suffix: str, no_recompile: bool, eigen_path: Path) -> list[str]:
     result_directory = prepare_result_directory(output_dir, suffix)
     function_names = _get_qr_function_names_from_optimization_class(optimization_classes)
-    core_nums = get_available_cores()
-    min_frequenciy, max_frequency = get_min_max_frequencies()
+    if do_not_setup_frequency(device_name):
+        core_nums = None
+        min_frequency, max_frequency = None, None
+    else:
+        core_nums = get_available_cores()
+        min_frequency, max_frequency = get_min_max_frequencies()
     for compilation_profile in compilation_profiles:
         LOGGER.info(f"Compilation_profile: {compilation_profile}")
-        bin_path = compile_sources(compilation_profile, device_name, is_test=False, for_perf=True)
+        bin_path = get_binary_path(compilation_profile, device_name, compilation_type="perf", eigen_path=eigen_path, no_recompile=no_recompile)
         for function_name in function_names:
             LOGGER.info(f'Process \"{function_name}\" function')
-            _measure_performance_for_function(function_name, core_nums, min_frequenciy, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory)
+            _measure_performance_for_function(function_name, core_nums, min_frequency, max_frequency, bin_path, exp_count, compilation_profile, device_name, result_directory)

@@ -9,14 +9,14 @@
 #include "outer_product.hpp" // outer product
 #include "householder.hpp" // householder operations
 
-#include "../common/generators.hpp"  // generate_identity_matrix for QR_decomposition_base_householder
-
 using std::vector;
 
 const num_type kAlmostZero = 1e-12;
 
 using matrix_product_function = std::function<void(const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)>;
 using orthogonalization_function = std::function<vector_num(vector_num&, size_t, size_t)>;
+
+using recalculate_matrix_function = std::function<void(const num_type*, int, size_t, size_t, int, vector_num&, num_type*)>;
 
 using recalculate_matrix_function = std::function<void(const num_type*, int, size_t, size_t, int, vector_num&, num_type*)>;
 
@@ -34,8 +34,11 @@ void QR_decomposition_full_matrix(const vector<num_type>& matrix, vector<num_typ
 
 void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count);
 
+void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count);
+
 void QR_decomposition_non_matrix_common(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count, matrix_product_function matrix_foo);
 void QR_decomposition_matrix_common(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count, orthogonalization_function gs_process, matrix_product_function matrix_foo);
+void QR_decomposition_householder_common(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count, recalculate_matrix_function q_function, recalculate_matrix_function r_function);
 void QR_decomposition_householder_common(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count, recalculate_matrix_function q_function, recalculate_matrix_function r_function);
 
 bool perform_QR(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count);

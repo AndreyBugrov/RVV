@@ -2,7 +2,7 @@ import logging
 import subprocess
 import shlex
 
-from compilation import compile_sources
+from compilation import get_binary_path
 
 
 LOGGER = logging.getLogger(__name__)

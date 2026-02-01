@@ -45,8 +45,8 @@ public:
             task_(input);
             const auto end_test{std::chrono::steady_clock::now()};
             ended = true;
-            std::chrono::duration<double> test_seconds = end_test - start_test;
-            seconds = test_seconds.count();
+            std::chrono::duration<double> task_seconds = end_test - start_test;
+            seconds = task_seconds.count();
         }
         catch(Exception my_error){
             error_type = my_error.what();

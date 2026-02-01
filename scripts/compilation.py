@@ -1,22 +1,26 @@
 import logging # necessary
 import shlex # necessary
 import subprocess # necessary
+from typing import Generator
 
 from pathlib import Path
 
-from common_defs import critical_message, PARENT_DIRECTORY, X86_NAME, RISC_NAME
+from common_defs import abort_with_message, PARENT_DIRECTORY, X86_NAME, RISC_V_NAME
 
 LOGGER = logging.getLogger(__name__)
 
 COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "base", "math", "lto", "native", "optimal"]
-COMMON_FLAGS = '-fopenmp-simd'
+COMMON_OPTIMIZATION_OPTIONS = '-fopenmp-simd'
 
 OPTIMIZATION_LEVELS = {
-    COMPILATION_PROFILES[0]: f"-O0 {COMMON_FLAGS}",
-    COMPILATION_PROFILES[1]: f"-O2 {COMMON_FLAGS}",
-    COMPILATION_PROFILES[2]: f"-O3 {COMMON_FLAGS}",
-    COMPILATION_PROFILES[3]: f"-Ofast {COMMON_FLAGS}",
+    COMPILATION_PROFILES[0]: f"-O0 {COMMON_OPTIMIZATION_OPTIONS}",
+    COMPILATION_PROFILES[1]: f"-O2 {COMMON_OPTIMIZATION_OPTIONS}",
+    COMPILATION_PROFILES[2]: f"-O3 {COMMON_OPTIMIZATION_OPTIONS}",
+    COMPILATION_PROFILES[3]: f"-Ofast {COMMON_OPTIMIZATION_OPTIONS}",
 }
+OPTIMIZATION_LEVELS[COMPILATION_PROFILES[4]] = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[1]]
+BASE_OPTIMIZATION_LEVEL = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[4]]
+EXTRA_OPTIONS_OFFSET = 5
 OPTIMIZATION_LEVELS[COMPILATION_PROFILES[4]] = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[1]]
 BASE_OPTIMIZATION_LEVEL = OPTIMIZATION_LEVELS[COMPILATION_PROFILES[4]]
 EXTRA_OPTIONS_OFFSET = 5
@@ -26,11 +30,11 @@ EXTRA_OPTIMIZATIONS = {
 }
 DEVICE_OPTIMIZATIONS = {
     X86_NAME: "-march=native",
-    RISC_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt_sscofpmf_sstc_svinval_svnapot_svpbmt"
+    RISC_V_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt_sscofpmf_sstc_svinval_svnapot_svpbmt"
 }
 
 
-def _get_compilation_options(compilation_profile: str, device_name: str):
+def _get_optimization_options(compilation_profile: str, device_name: str) -> str:
     if compilation_profile in OPTIMIZATION_LEVELS:
         return OPTIMIZATION_LEVELS[compilation_profile]
     elif compilation_profile in EXTRA_OPTIMIZATIONS:
@@ -40,6 +44,7 @@ def _get_compilation_options(compilation_profile: str, device_name: str):
     elif compilation_profile == COMPILATION_PROFILES[-1]:
         all_extra_optimizations = " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
         return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]} {all_extra_optimizations}"
+    abort_with_message(f"Invalid compilation profile '{compilation_profile}'")
 
 
 def _create_bin_directory() -> Path:
@@ -48,8 +53,9 @@ def _create_bin_directory() -> Path:
     return bin_directory
 
 
-def _get_bin_path(bin_directory: Path, compilation_profile: str, is_test: bool) -> Path:
-    bin_name = (f'test' if is_test else 'experiment') + f"_{compilation_profile}.out"
+def _get_bin_path(compilation_profile: str, compilation_type: str) -> Path:
+    bin_directory = _create_bin_directory()
+    bin_name = f"{compilation_type}_{compilation_profile}.out"
     # bin = bin_name.replace("/", "_").replace("\\", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("<", "_").replace(">", "_").replace("|", "_").replace('"', '_').replace("'", '_').replace(" ", "_").lower()
     bin_path = bin_directory / bin_name
     return bin_path
@@ -66,42 +72,68 @@ def _get_source_files_list(is_test: bool) -> list[str]:
     return source_file_list
 
 
-def compile_sources(compilation_profile: str, device_name: str, is_test: bool, eigen_path: Path | None, no_recompile: bool) -> Path:
+def _get_specific_options_line(compilation_profile: str, compilation_type: str, eigen_path: Path | None) -> str:
+    if compilation_profile == "test":
+        specific_options = " -fsanitize=address,undefined -fno-sanitize-recover=all"
+        if compilation_profile in ["optimal", "math", "fast"]:
+            specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
+        return specific_options
+    specific_options =  f" -I {eigen_path}"
+    if compilation_type == "perf":
+        specific_options += " -g"
+    return specific_options
+
+
+def _get_compilation_commands(bin_path: Path, compilation_profile: str, device_name: str, compilation_type: str, eigen_path: Path | None) -> list[str]:
+    is_test = compilation_type == "test"
+    source_file_list = _get_source_files_list(is_test)
+    LOGGER.debug("Source file list: " + " ".join(source_file_list))
+
+    optimization_options = _get_optimization_options(compilation_profile, device_name)
+
+    specific_options = _get_specific_options_line(compilation_profile=compilation_profile, compilation_type=compilation_type, eigen_path=eigen_path)
+    if device_name == RISC_V_NAME:
+        specific_options += " -DRISCV_ARCH"
+    else:
+        specific_options += " -DX86_ARCH"
+
+    args = f"ccache g++ -Wall -Werror -Wsign-compare -std=c++20 -fdiagnostics-color=always -fno-omit-frame-pointer {optimization_options} {specific_options} {' '.join(source_file_list)} -o {bin_path}"
+    cmd = shlex.split(args)
+    LOGGER.debug(f"Compilation command line: {args}")
+    return cmd
+
+
+def _compile_sources(cmd: list[str]):
+    LOGGER.info('Compilation...')
+    compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
+    if compiler_errors:
+        abort_with_message(f"Compilation errors:\n{compiler_errors.decode('utf-8')}")
+    LOGGER.info('Compilation done')
+
+
+def get_binary_path(compilation_profile: str, device_name: str, compilation_type: str, eigen_path: Path | None, no_recompile: bool) -> Path:
     """
     Returns:
         Path: path to the binary execution file
     """
-    bin_directory = _create_bin_directory()
-    bin_path = _get_bin_path(bin_directory, compilation_profile, is_test)
+    bin_path = _get_bin_path(compilation_profile, compilation_type)
     if no_recompile:
-        LOGGER.warning('Compilation is skipped')
-        return bin_path
-    
-    source_file_list = _get_source_files_list(is_test)
-    LOGGER.debug("Source file list: " + " ".join(source_file_list))
-
-    optimization_options = _get_compilation_options(compilation_profile, device_name)
-
-    specific_options = "-g -fno-omit-frame-pointer"
-
-    if is_test:
-        specific_options += " -fsanitize=address,undefined -fno-sanitize-recover=all"
-        if compilation_profile in ["optimal", "math", "fast"]:
-            specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
-
-    args = f"ccache g++ -Wall -Werror -Wsign-compare -std=c++20 -fdiagnostics-color=always {optimization_options} {specific_options} " + " ".join(source_file_list) + f" -o {bin_path}"
-    cmd = shlex.split(args)
-    LOGGER.debug("Compilation command line: " + " ".join(cmd))
-
-    LOGGER.info('Compilation')
-    compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
-    if compiler_errors:
-        critical_message('Compilation errors:\n'+compiler_errors.decode('utf-8'))
-    LOGGER.info('Compilation done')
+        if bin_path.exists():
+            LOGGER.warning('Compilation is skipped')
+            return bin_path
+        LOGGER.warning(f'Binary {bin_path} does not exist')
+    if (eigen_path is None or not eigen_path.is_dir()) and compilation_type == "experiment":
+        abort_with_message("Eigen library path must be specified")
+    # if compilation_type == "eigen":
+    #     cmd = ["cmake", "-DCMAKE_BUILD_TYPE=" + compilation_profile.upper(), "-DEIGEN3_INCLUDE_DIR=" + str(eigen_path), "."]
+    # else:
+    #     cmd = ["cmake", "-DCMAKE_BUILD_TYPE=" + compilation_profile.upper(), "."]
+    cmd = _get_compilation_commands(bin_path, compilation_profile, device_name, compilation_type, eigen_path=eigen_path)
+    _compile_sources(cmd)
     return bin_path
 
 
-def translate_compilation_profiles(raw_compilation_profiles: list[str]) -> list[str]:
+def translate_compilation_profiles(raw_compilation_profiles: list[str]) -> Generator:
     if "perf" not in raw_compilation_profiles:
         compilation_profiles = raw_compilation_profiles
     elif "debug" in raw_compilation_profiles:
@@ -109,5 +141,4 @@ def translate_compilation_profiles(raw_compilation_profiles: list[str]) -> list[
     else:
         compilation_profiles = [item for item in COMPILATION_PROFILES if item != "debug"]
     LOGGER.debug(f"Chosen compilation profiles: {compilation_profiles}")
-    return compilation_profiles
-    
+    yield from compilation_profiles
