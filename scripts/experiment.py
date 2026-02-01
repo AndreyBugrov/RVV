@@ -98,7 +98,7 @@ def _run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_co
 
 
 def _get_frequency_repr(set_frequency: int | None) -> str:
-    if set_frequency.isinstance(int):
+    if isinstance(set_frequency, int):
         frequency_repr = f"{set_frequency / (1000 * 1000)}_GHz"
     elif set_frequency is None:
         frequency_repr = "unknown_frequency"
