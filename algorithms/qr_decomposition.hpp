@@ -9,6 +9,8 @@
 #include "outer_product.hpp" // outer product
 #include "householder.hpp" // householder operations
 
+#include "../common/generators.hpp"  // generate_identity_matrix for QR_decomposition_base_householder
+
 using std::vector;
 
 const num_type kAlmostZero = 1e-12;
