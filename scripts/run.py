@@ -127,7 +127,6 @@ if __name__ == '__main__':
     experiment_parser.add_argument('--optimization-classes', **OPTIMIZATION_CLASSES_KWARGS, required=False)
     experiment_parser.add_argument('-f', '--functions', help="Specific functions", choices=list(FUNCTION_NAMES_DICT['all']) + ['all'], nargs='*')   
     experiment_parser.add_argument('-s', "--sizes", help="Sizes that will be passed as function arguments", metavar=("MIN_SIZE", "MAX_SIZE", "STEP"), type=int, nargs=3, required=True)
-    experiment_parser.add_argument('--no-plotting', help="Do not create plots", default=False, action="store_true")
     experiment_parser.set_defaults(func=experiment)
 
     testing_parser = subparsers.add_parser("test", parents=[base_parent_parser, parent_compilation_parser, parent_multicompilation_parser], help="Tests for all compilation option sets")
