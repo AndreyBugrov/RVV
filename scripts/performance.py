@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from common_defs import abort_with_message, do_not_setup_frequency
-from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency, check_output_dir
 from compilation import get_binary_path
 from experiment import get_current_sizes_by_operation_class, terminate_experiment, OPERATIONS, OPTIMIZATIONS, FUNCTION_NAMES_DICT
 
@@ -110,7 +110,7 @@ def _measure_performance_for_function(function_name, core_indeces, min_frequenci
 
 def measure_performance(optimization_classes: set[str], compilation_profiles: list[str], exp_count: int,
                         device_name: str, output_dir: str, suffix: str, no_recompile: bool, eigen_path: Path) -> list[str]:
-    result_directory = prepare_result_directory(output_dir, suffix)
+    check_output_dir(output_dir)
     function_names = _get_qr_function_names_from_optimization_class(optimization_classes)
     if do_not_setup_frequency(device_name):
         core_nums = None
@@ -118,6 +118,7 @@ def measure_performance(optimization_classes: set[str], compilation_profiles: li
     else:
         core_nums = get_available_cores()
         min_frequency, max_frequency = get_min_max_frequencies()
+    result_directory = prepare_result_directory(output_dir, suffix)
     for compilation_profile in compilation_profiles:
         LOGGER.info(f"Compilation_profile: {compilation_profile}")
         bin_path = get_binary_path(compilation_profile, device_name, compilation_type="perf", eigen_path=eigen_path, no_recompile=no_recompile)

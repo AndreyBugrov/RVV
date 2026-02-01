@@ -101,7 +101,7 @@ if __name__ == '__main__':
     parent_multicompilation_parser.add_argument('-c', '--compilation-profiles', help="Compilation profiles. \"perf\" means all profiles except \"debug\"", choices=COMPILATION_PROFILES + ["perf"], nargs="+", required=True)
 
     parent_output_parser = argparse.ArgumentParser(add_help=False)
-    parent_output_parser.add_argument('-o', "--output-dir", help="Path to parent directory for result directory", required=True)
+    parent_output_parser.add_argument('-o', "--output-dir", help="Path to parent directory for result directory", type = Path, required=True)
 
     parent_suffix_parser = argparse.ArgumentParser(add_help=False)
     parent_suffix_parser.add_argument("--suffix", help="Custom directory name part after current date", required=False)

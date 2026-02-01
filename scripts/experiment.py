@@ -98,12 +98,14 @@ def _run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_co
 
 
 def _get_frequency_repr(set_frequency: int | None) -> str:
-    if type(set_frequency) == int:
-        f"{set_frequency / (1000 * 1000)}_GHz"
+    if set_frequency.isinstance(int):
+        frequency_repr = f"{set_frequency / (1000 * 1000)}_GHz"
     elif set_frequency is None:
-        return "unknown_frequency"
+        frequency_repr = "unknown_frequency"
     else:
-        raise terminate_experiment(f"Unexpected frequency type: {type(set_frequency)}")
+        terminate_experiment(f"Unexpected frequency type: {type(set_frequency)}")
+    LOGGER.debug(f"Frequency was set to {set_frequency}")
+    return frequency_repr
 
 
 def full_experiment_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], 
@@ -118,6 +120,8 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
     else:
         core_indeces = get_available_cores()
         min_frequency, max_frequency = get_min_max_frequencies()
+    LOGGER.debug(f"Core indeces: {core_indeces}, min frequency: {min_frequency}, max frequency: {max_frequency}")
+    LOGGER.info("End of preprocessing phase")
     interrupted = False
     try:
         setup_frequency(max_frequency, core_indeces, device_name)
