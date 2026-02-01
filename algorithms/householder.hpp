@@ -2,7 +2,7 @@
 #include <functional> // std::function for QR_decomposition_common
 
 #include "vector_operations.hpp" // get_vector_norm
-#include "../common/generators.hpp"  // generate_identity_matrix for QR_decomposition_base_householder
+#include "../common/generators.hpp"  // generate_identity_matrix for QR_decomposition_base_householder, generate_zero_array
 
 void create_householder_vector(const num_type* x, int n, num_type* householder_vector);
 
