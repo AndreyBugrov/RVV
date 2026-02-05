@@ -121,7 +121,7 @@ def get_binary_path(compilation_profile: str, device_name: str, compilation_type
         if bin_path.exists():
             LOGGER.warning('Compilation is skipped')
             return bin_path
-        LOGGER.warning(f'Binary {bin_path} does not exist')
+        LOGGER.warning(f'Binary {bin_path} does not exist. Compilation will be performed.')
     if (eigen_path is None or not eigen_path.is_dir()) and compilation_type == "experiment":
         abort_with_message("Eigen library path must be specified")
     # if compilation_type == "eigen":

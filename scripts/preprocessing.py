@@ -68,5 +68,5 @@ def prepare_result_directory(output_dir: Path, suffix: str | None) -> Path:
     except FileNotFoundError:
         abort_with_message(f"There are missing parents in path {result_directory}")
     else:
-        LOGGER.info(f"Result directory {result_directory} was created")
+        print(f"Result directory {result_directory} was created")
     return result_directory

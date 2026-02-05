@@ -32,15 +32,19 @@ def import_module_by_name(name: str):
 
 
 def get_device_name() -> str:
+    try:
+        import_module("cpuinfo")
+    except ModuleNotFoundError:
+        return RISC_V_NAME
     cpuinfo = import_module_by_name("cpuinfo")
-    device_name = RISC_V_NAME
     arch = cpuinfo.get_cpu_info().get("arch")
     if arch == "X86_64":
         if Path('/sys/devices/system/cpu/cpu').is_dir():
             device_name = X86_NAME
         else:
             device_name = VM_NAME
-    LOGGER.info(f"\"{device_name}\" device name was chosen")
+    else:
+        device_name = RISC_V_NAME
     return device_name
 
 
