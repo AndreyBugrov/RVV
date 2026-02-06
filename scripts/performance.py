@@ -13,23 +13,24 @@ LOGGER = logging.getLogger(__name__)
 QR_ROW_LENGTH = 2000
 
 
-def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilation_profile: str, device_name: str, result_directory: Path) -> Path:
-    sizes = get_current_sizes_by_operation_class(QR_ROW_LENGTH, OPERATIONS["qr"])
-    perf_data_path = result_directory / f"{compilation_profile}_{function_name}_{device_name}_perf.data"
-    args = f"perf record -e '{{cpu-clock,cycles,instructions}}:S' -F 99 -a -g -o {perf_data_path} -- {bin_path} {exp_count} {function_name} {sizes} experiments.log perf"
-    perf_object_name = "Perf record"
-    LOGGER.debug(f"{perf_object_name} line: {args}")
-    cmd = shlex.split(args)
-    LOGGER.info(f"{perf_object_name} running")
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    LOGGER.debug(f"{perf_object_name} trace was saved to {perf_data_path}")
+def _run_performance_binary(perf_bin_name: str, args: list[str]):
+    LOGGER.debug(f"{perf_bin_name} line: {args}")
+    LOGGER.info(f"{perf_bin_name} launching")
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output = proc.communicate()
     stderr = output[1]
     if stderr:
-        perf_record_info = stderr.decode('utf-8')
-        LOGGER.warning(f"{perf_object_name} output:\n{perf_record_info}")
+        perf_script_info = stderr.decode('utf-8')
+        LOGGER.warning(f"{perf_bin_name} output:\n{perf_script_info}")
     if proc.returncode:
-        terminate_experiment(f"Process has completed with non-zero return code: {proc.returncode}")
+        terminate_experiment(f"{perf_bin_name} process has completed with non-zero return code: {proc.returncode}")
+
+
+def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilation_profile: str, device_name: str, result_directory: Path) -> Path:
+    sizes = get_current_sizes_by_operation_class(QR_ROW_LENGTH, OPERATIONS["qr"])
+    perf_data_path = result_directory / f"{compilation_profile}_{function_name}_{device_name}_perf.data"
+    args = f'perf record -e "{{cpu-clock,cycles,instructions}}:S" -F 99 -a -g -o "{perf_data_path}" -- "{bin_path}" {exp_count} {function_name} {sizes} experiments.log perf'
+    _run_performance_binary("Perf record", args)
     return perf_data_path
 
 
@@ -40,19 +41,8 @@ def _get_perf_file_beginning(perf_data_path: Path) -> str:
 def _get_perf_script(perf_data_path: Path, perf_beginning: str, flamegraph_repo: Path):
     perf_script_path = Path(f"{perf_beginning}_perf.script")
     flamegraph_script_path = flamegraph_repo / "stackcollapse-perf.pl"
-    args = f"perf script -i {perf_data_path} --kallsyms=/proc/kallsyms | {flamegraph_script_path} > {perf_script_path}"
-    perf_object_name = "Perf script"
-    LOGGER.debug(f"{perf_object_name} line: {args}")
-    LOGGER.info(f"{perf_object_name} launching")
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    LOGGER.debug(f"{perf_object_name} trace was saved to {perf_script_path}")
-    output = proc.communicate()
-    stderr = output[1]
-    if stderr:
-        perf_script_info = stderr.decode('utf-8')
-        LOGGER.warning(f"{perf_object_name} output:\n{perf_script_info}")
-    if proc.returncode:
-        abort_with_message(f"Process has completed with non-zero return code: {proc.returncode}")
+    args = f'perf script -i "{perf_data_path}" --kallsyms=/proc/kallsyms | "{flamegraph_script_path}" > "{perf_script_path}"'
+    _run_performance_binary("Perf script", args)
     return perf_script_path
 
 
@@ -61,30 +51,13 @@ def _create_flame_graph(perf_script_path: Path, perf_file_beginning: str, flameg
     if is_icicle:
         extra_graph_options = "--reverse --inverted"
         perf_object_name = "Icicle graph"
-        args = f"{script_path} {extra_graph_options} {perf_script_path} > {perf_file_beginning}_icicle_graph.svg"
-    else:
-        perf_object_name = "Flame graph"
-        args = f"../FlameGraph/flamegraph.pl {perf_script_path} > {perf_file_beginning}_flame_graph.svg"
-    if is_icicle:
-        extra_graph_options = "--reverse --inverted"
-        perf_object_name = "Icicle graph"
         file_name_ending = "icicle_graph"
     else:
         extra_graph_options = ""
         perf_object_name = "Flame graph"
         file_name_ending = "flame_graph"
-    args = f"{script_path} {extra_graph_options} {perf_script_path} > {perf_file_beginning}_{file_name_ending}.svg"
-    LOGGER.debug(f"{perf_object_name} line: {args}")
-    LOGGER.info(f"{perf_object_name} creating")
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    LOGGER.debug(f"{perf_object_name} was saved to {perf_script_path}")
-    output = proc.communicate()
-    stderr = output[1]
-    if stderr:
-        error_message = stderr.decode('utf-8')
-        abort_with_message(f"{perf_object_name} errors:\n{error_message}")
-    if proc.returncode:
-        abort_with_message(f"Process has completed with non-zero return code: {proc.returncode}")
+    args = f'"{script_path}" {extra_graph_options} "{perf_script_path}" > "{perf_file_beginning}_{file_name_ending}.svg"'
+    _run_performance_binary(perf_object_name, args)
 
 
 def _get_qr_function_names_from_optimization_class(optimization_classes: str) -> list[str]:
