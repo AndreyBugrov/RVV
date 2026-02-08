@@ -39,7 +39,7 @@ def get_device_name() -> str:
     cpuinfo = import_module_by_name("cpuinfo")
     arch = cpuinfo.get_cpu_info().get("arch")
     if arch == "X86_64":
-        if Path('/sys/devices/system/cpu/cpu').is_dir():
+        if Path('/sys/devices/system/cpu').is_dir():
             device_name = X86_NAME
         else:
             device_name = VM_NAME

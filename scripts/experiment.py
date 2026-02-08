@@ -17,7 +17,7 @@ OPERATIONS = {'vector': 'vec_p', 'matrix': 'mat_p', 'gram_schmidt': 'gs_p', 'qr'
 OPTIMIZATIONS = {'simple': 'sim', 'std': 'std', 'row': 'row_sim', 'dot': 'dot', 'simd': 'simd',
                  'hl_opt': 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row',
                  'unrolling': 'urol', 'double_unrolling': 'drol', 'block': 'block', 'inline': 'inl', 'matrix': 'matr',
-                 'hh': 'hh'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized, hh - householder
+                 'hh_sim': 'hh_sim', 'hh_unrolling': 'hh_urol'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized, hh - householder
 
 
 def terminate_experiment(error_msg: str):
@@ -158,7 +158,7 @@ def _create_function_dict() -> dict[str, set[str]]:
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['unrolling'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['double_unrolling'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['block'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['dot'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['inline'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['matrix'],
-                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['hh']}
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['hh_sim'], f"{OPERATIONS['qr']}_{OPTIMIZATIONS['hh_unrolling']}"}
     # add support for optimizations
     for key in OPTIMIZATIONS.keys():
         function_names_dict[key] = set()

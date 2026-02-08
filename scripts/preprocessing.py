@@ -58,7 +58,7 @@ def check_output_dir(output_dir: Path):
 
 def prepare_result_directory(output_dir: Path, suffix: str | None) -> Path:
     current_datetime = datetime.today().strftime('%Y%m%d_%H%M%S')
-    result_directory = (output_dir / current_datetime).resolve()
+    result_directory = (output_dir / current_datetime)
     if suffix:
         result_directory = Path(f"{result_directory}_{suffix}")
     try:

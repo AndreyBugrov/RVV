@@ -35,14 +35,14 @@ EXTRA_OPTIMIZATIONS = {
 
 
 def _get_optimization_options(compilation_profile: str, device_name: str) -> str:
-    optimization_options = f"{DEVICE_OPTIMIZATIONS[device_name]} "
+    optimization_options = f"{DEVICE_OPTIMIZATIONS[device_name]}"
     if compilation_profile in OPTIMIZATION_LEVELS.keys():
-        optimization_options += OPTIMIZATION_LEVELS[compilation_profile]
+        optimization_options += f" {OPTIMIZATION_LEVELS[compilation_profile]}"
     elif compilation_profile in EXTRA_OPTIMIZATIONS:
-        optimization_options += f"{BASE_OPTIMIZATION_LEVEL} {EXTRA_OPTIMIZATIONS[compilation_profile]}"
+        optimization_options += f" {BASE_OPTIMIZATION_LEVEL} {EXTRA_OPTIMIZATIONS[compilation_profile]}"
     elif compilation_profile == COMPILATION_PROFILES[-1]:
-        all_extra_optimizations = " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
-        optimization_options +=  f"{BASE_OPTIMIZATION_LEVEL} {all_extra_optimizations}"
+        all_extra_optimizations = " " + " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
+        optimization_options +=  f" {BASE_OPTIMIZATION_LEVEL} {all_extra_optimizations}"
     else:
         abort_with_message(f"Invalid compilation profile '{compilation_profile}'. Available compilation profiles: {', '.join(COMPILATION_PROFILES)}")
     return optimization_options
