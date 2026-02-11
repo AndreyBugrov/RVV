@@ -45,28 +45,32 @@ def setup_frequency(frequency: int | None, core_indeces: list[int] | None, devic
         return
     if frequency is None or core_indeces is None:
         abort_with_message("Frequency or core indeces are None. Aborting.")
-    LOGGER.info(f"Setting up frequency to {frequency}")
+    LOGGER.debug(f"Setting up frequency to {frequency} for cores{core_indeces} on {device_name}")
     for core_index in core_indeces:
         _set_min_core_frequency_limit(frequency, core_index)
 
 
-def _output_dir_exists(output_dir: str):
-    output_dir_path = Path(output_dir)
-    return output_dir_path.is_dir()
-
-
-def prepare_result_directory(output_dir: str, suffix: str | None) -> Path:
+def check_output_dir(output_dir: Path):
     LOGGER.info("Check output directory")
-    if not _output_dir_exists(output_dir):
+    if not output_dir.is_dir():
         abort_with_message(f"Output directory {output_dir} does not exist")
-    parent_directory = Path(output_dir)
+
+
+def print_result_directory(result_directory: Path):
+    print(f"The result directory: {result_directory}")
+
+
+def prepare_result_directory(output_dir: Path, suffix: str | None) -> Path:
     current_datetime = datetime.today().strftime('%Y%m%d_%H%M%S')
-    result_directory = parent_directory / current_datetime
+    result_directory = (output_dir / current_datetime)
     if suffix:
-        result_directory = Path(str(result_directory) + "_" + suffix)
+        result_directory = Path(f"{result_directory}_{suffix}")
     try:
         result_directory.mkdir(parents=False, exist_ok=False)
     except FileExistsError:
-        abort_with_message(f"Directory {result_directory} already exists")
-    LOGGER.info(f"Result directory {result_directory} was created")
+        result_directory = Path(f"{result_directory}_1")
+    except FileNotFoundError:
+        abort_with_message(f"There are missing parents in path {result_directory}")
+    else:
+        print_result_directory(result_directory)
     return result_directory

@@ -9,7 +9,11 @@ from common_defs import abort_with_message, PARENT_DIRECTORY, X86_NAME, RISC_V_N
 
 LOGGER = logging.getLogger(__name__)
 
-COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "base", "math", "lto", "native", "optimal"]
+COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "base", "math", "lto", "optimal"]
+DEVICE_OPTIMIZATIONS = {
+    X86_NAME: "-march=native",
+    RISC_V_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt_sscofpmf_sstc_svinval_svnapot_svpbmt"
+}
 COMMON_OPTIMIZATION_OPTIONS = '-fopenmp-simd'
 
 OPTIMIZATION_LEVELS = {
@@ -28,23 +32,20 @@ EXTRA_OPTIMIZATIONS = {
     COMPILATION_PROFILES[EXTRA_OPTIONS_OFFSET]: "-ffast-math",
     COMPILATION_PROFILES[EXTRA_OPTIONS_OFFSET + 1]: "-flto=auto -fuse-linker-plugin",
 }
-DEVICE_OPTIMIZATIONS = {
-    X86_NAME: "-march=native",
-    RISC_V_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt_sscofpmf_sstc_svinval_svnapot_svpbmt"
-}
 
 
 def _get_optimization_options(compilation_profile: str, device_name: str) -> str:
-    if compilation_profile in OPTIMIZATION_LEVELS:
-        return OPTIMIZATION_LEVELS[compilation_profile]
+    optimization_options = f"{DEVICE_OPTIMIZATIONS[device_name]}"
+    if compilation_profile in OPTIMIZATION_LEVELS.keys():
+        optimization_options += f" {OPTIMIZATION_LEVELS[compilation_profile]}"
     elif compilation_profile in EXTRA_OPTIMIZATIONS:
-        return f"{BASE_OPTIMIZATION_LEVEL} {EXTRA_OPTIMIZATIONS[compilation_profile]}"
-    if compilation_profile == "native":
-        return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]}"
+        optimization_options += f" {BASE_OPTIMIZATION_LEVEL} {EXTRA_OPTIMIZATIONS[compilation_profile]}"
     elif compilation_profile == COMPILATION_PROFILES[-1]:
-        all_extra_optimizations = " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
-        return f"{BASE_OPTIMIZATION_LEVEL} {DEVICE_OPTIMIZATIONS[device_name]} {all_extra_optimizations}"
-    abort_with_message(f"Invalid compilation profile '{compilation_profile}'")
+        all_extra_optimizations = " " + " ".join([option for option in EXTRA_OPTIMIZATIONS.values()])
+        optimization_options +=  f" {BASE_OPTIMIZATION_LEVEL} {all_extra_optimizations}"
+    else:
+        abort_with_message(f"Invalid compilation profile '{compilation_profile}'. Available compilation profiles: {', '.join(COMPILATION_PROFILES)}")
+    return optimization_options
 
 
 def _create_bin_directory() -> Path:
@@ -121,7 +122,7 @@ def get_binary_path(compilation_profile: str, device_name: str, compilation_type
         if bin_path.exists():
             LOGGER.warning('Compilation is skipped')
             return bin_path
-        LOGGER.warning(f'Binary {bin_path} does not exist')
+        LOGGER.warning(f'Binary {bin_path} does not exist. Compilation will be performed.')
     if (eigen_path is None or not eigen_path.is_dir()) and compilation_type == "experiment":
         abort_with_message("Eigen library path must be specified")
     # if compilation_type == "eigen":

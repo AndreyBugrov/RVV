@@ -6,7 +6,7 @@ from pathlib import Path
 
 from common_defs import abort_with_message, do_not_setup_frequency, VEC_COLUMN_NAMES, MAT_COLUMN_NAMES, GS_COLUMN_NAMES, QR_COLUMN_NAMES
 from compilation import get_binary_path
-from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency, check_output_dir, print_result_directory
 from create_plots import create_plots
 
 
@@ -17,7 +17,7 @@ OPERATIONS = {'vector': 'vec_p', 'matrix': 'mat_p', 'gram_schmidt': 'gs_p', 'qr'
 OPTIMIZATIONS = {'simple': 'sim', 'std': 'std', 'row': 'row_sim', 'dot': 'dot', 'simd': 'simd',
                  'hl_opt': 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row',
                  'unrolling': 'urol', 'double_unrolling': 'drol', 'block': 'block', 'inline': 'inl', 'matrix': 'matr',
-                 'hh': 'hh'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized, hh - householder
+                 'hh_sim': 'hh_sim', 'hh_unrolling': 'hh_urol'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized, hh - householder
 
 
 def terminate_experiment(error_msg: str):
@@ -98,19 +98,21 @@ def _run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_co
 
 
 def _get_frequency_repr(set_frequency: int | None) -> str:
-    if type(set_frequency) == int:
-        f"{set_frequency / (1000 * 1000)}_GHz"
+    if isinstance(set_frequency, int):
+        frequency_repr = f"{set_frequency / (1000 * 1000)}_GHz".replace('.', '_')
     elif set_frequency is None:
-        return "unknown_frequency"
+        frequency_repr = "unknown_frequency"
     else:
-        raise terminate_experiment(f"Unexpected frequency type: {type(set_frequency)}")
+        terminate_experiment(f"Unexpected frequency type: {type(set_frequency)}")
+    LOGGER.debug(f"Frequency was set to {set_frequency}")
+    return frequency_repr
 
 
 def full_experiment_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], 
                          exp_count: int, device_name: str, output_dir: str, suffix: str, base_title: str,
                          dot_title: str, no_plotting: bool, no_recompile: bool, eigen_path: Path | None):
     LOGGER.info("Start of preprocessing phase")
-    result_directory = prepare_result_directory(output_dir, suffix)
+    check_output_dir(output_dir)
     bin_path = get_binary_path(compilation_profile, device_name, compilation_type="experiment", eigen_path=eigen_path, no_recompile=no_recompile)
     if do_not_setup_frequency(device_name):
         core_indeces = None
@@ -118,8 +120,12 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
     else:
         core_indeces = get_available_cores()
         min_frequency, max_frequency = get_min_max_frequencies()
+    LOGGER.debug(f"Core indeces: {core_indeces}, min frequency: {min_frequency}, max frequency: {max_frequency}")
+    result_directory = prepare_result_directory(output_dir, suffix)
+    LOGGER.info("End of preprocessing phase")
     interrupted = False
     try:
+        LOGGER.info("Setup frequency")
         setup_frequency(max_frequency, core_indeces, device_name)
         LOGGER.info("Experiment execution")
         for function_item in function_names_set:
@@ -131,9 +137,11 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
         if not no_plotting:  # there should be no return statements here because we want to go to the finally section
             create_plots(plot_format=plot_format, result_directory=result_directory, device_name=device_name, base_title=base_title, dot_title=dot_title)
     finally:
+        LOGGER.info("Unsetup frequency")
         setup_frequency(min_frequency, core_indeces, device_name)
         if interrupted:
             abort_with_message('Experiment was interrupted')
+        print_result_directory(result_directory)
 
 
 def _create_function_dict() -> dict[str, set[str]]:
@@ -151,7 +159,7 @@ def _create_function_dict() -> dict[str, set[str]]:
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['unrolling'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['double_unrolling'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['block'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['dot'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['inline'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['matrix'],
-                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['hh']}
+                                 OPERATIONS['qr'] + '_' + OPTIMIZATIONS['hh_sim'], f"{OPERATIONS['qr']}_{OPTIMIZATIONS['hh_unrolling']}"}
     # add support for optimizations
     for key in OPTIMIZATIONS.keys():
         function_names_dict[key] = set()

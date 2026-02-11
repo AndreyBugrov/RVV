@@ -46,6 +46,10 @@ void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_m
     QR_decomposition_householder_common(matrix, Q_matrix, R_matrix, row_count, column_count, recalculate_q_matrix, recalculate_r_matrix);
 }
 
+void QR_decomposition_householder_unrolling(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count) {
+    QR_decomposition_householder_common(matrix, Q_matrix, R_matrix, row_count, column_count, recalculate_q_matrix_unrolling, recalculate_r_matrix_unrolling);
+}
+
 void QR_decomposition_non_matrix_common(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count, matrix_product_function matrix_foo){
     // checks
     if(! perform_QR(matrix, Q_matrix, R_matrix, row_count, column_count)){
