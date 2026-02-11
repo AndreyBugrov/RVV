@@ -6,7 +6,7 @@ from pathlib import Path
 
 from common_defs import abort_with_message, do_not_setup_frequency, VEC_COLUMN_NAMES, MAT_COLUMN_NAMES, GS_COLUMN_NAMES, QR_COLUMN_NAMES
 from compilation import get_binary_path
-from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency, check_output_dir
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency, check_output_dir, print_result_directory
 from create_plots import create_plots
 
 
@@ -99,7 +99,7 @@ def _run_experiment(bin_path: Path, function_name: str, sizes: list[int], exp_co
 
 def _get_frequency_repr(set_frequency: int | None) -> str:
     if isinstance(set_frequency, int):
-        frequency_repr = f"{set_frequency / (1000 * 1000)}_GHz"
+        frequency_repr = f"{set_frequency / (1000 * 1000)}_GHz".replace('.', '_')
     elif set_frequency is None:
         frequency_repr = "unknown_frequency"
     else:
@@ -141,6 +141,7 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
         setup_frequency(min_frequency, core_indeces, device_name)
         if interrupted:
             abort_with_message('Experiment was interrupted')
+        print_result_directory(result_directory)
 
 
 def _create_function_dict() -> dict[str, set[str]]:

@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from common_defs import abort_with_message, do_not_setup_frequency
-from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency, check_output_dir
+from preprocessing import prepare_result_directory, get_available_cores, get_min_max_frequencies, setup_frequency, check_output_dir, print_result_directory
 from compilation import get_binary_path
 from experiment import get_current_sizes_by_operation_class, terminate_experiment, OPERATIONS, OPTIMIZATIONS, FUNCTION_NAMES_DICT
 
@@ -15,7 +15,7 @@ QR_ROW_LENGTH = 2000
 
 def _run_performance_binary(perf_bin_name: str, args: list[str]):
     LOGGER.debug(f"{perf_bin_name} line: {args}")
-    LOGGER.info(f"{perf_bin_name} launching")
+    LOGGER.info(f"{perf_bin_name} run")
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output = proc.communicate()
     stderr = output[1]
@@ -50,11 +50,11 @@ def _create_flame_graph(perf_script_path: Path, perf_file_beginning: str, flameg
     script_path = flamegraph_repo / "flamegraph.pl"
     if is_icicle:
         extra_graph_options = "--reverse --inverted"
-        perf_object_name = "Icicle graph"
+        perf_object_name = "Icicle graph creation"
         file_name_ending = "icicle_graph"
     else:
         extra_graph_options = ""
-        perf_object_name = "Flame graph"
+        perf_object_name = "Flame graph creation"
         file_name_ending = "flame_graph"
     args = f'"{script_path}" {extra_graph_options} "{perf_script_path}" > "{perf_file_beginning}_{file_name_ending}.svg"'
     _run_performance_binary(perf_object_name, args)
@@ -111,3 +111,4 @@ def measure_performance(optimization_classes: set[str], compilation_profiles: li
         for function_name in function_names:
             LOGGER.info(f'Process \"{function_name}\" function')
             _measure_performance_for_function(function_name, core_nums, min_frequency, max_frequency, bin_path, exp_count, compilation_profile, device_name, flamegraph_repo, result_directory)
+    print_result_directory(result_directory)

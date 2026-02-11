@@ -28,7 +28,7 @@ def compilation(args):
 
 
 def smoke_test(args):
-    function_names_set = get_function_name_set(['qr_d_row_row', 'qr_d_hh'], [], [])
+    function_names_set = get_function_name_set(['qr_d_row_row', 'qr_d_hh_urol'], [], [])
     for compilation_profile in translate_compilation_profiles(args.compilation_profiles):
         LOGGER.info(f"Compilation profile: {compilation_profile}")
         full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set,
