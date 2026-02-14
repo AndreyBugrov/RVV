@@ -60,7 +60,8 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
         std::pair<std::string, FunctionIndex>("qr_d_dot", FunctionIndex::kQRBlockScalar),
         std::pair<std::string, FunctionIndex>("qr_d_inl", FunctionIndex::kQRInline),
         std::pair<std::string, FunctionIndex>("qr_d_matr", FunctionIndex::kQRMatrix),
-        std::pair<std::string, FunctionIndex>("qr_d_hh", FunctionIndex::kQRHouseholderSimple),      
+        std::pair<std::string, FunctionIndex>("qr_d_hh_sim", FunctionIndex::kQRHouseholderSimple),
+        std::pair<std::string, FunctionIndex>("qr_d_hh_urol", FunctionIndex::kQRHouseholderUnrolling),
     };
     enum ArgumentNumber{
         kDotProduct = 1,
@@ -219,6 +220,10 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
             break;
         case FunctionIndex::kQRHouseholderSimple:
             foo = QR_decomposition_base_householder;
+            break;
+        case FunctionIndex::kQRHouseholderUnrolling:
+            foo = QR_decomposition_householder_unrolling;
+            break;
         default:
             break;
         }

@@ -45,6 +45,7 @@ enum class FunctionIndex{
     kQRInline,
     kQRMatrix,
     kQRHouseholderSimple,
+    kQRHouseholderUnrolling,
     kQREnd, // end
 };
 

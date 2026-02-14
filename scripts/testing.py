@@ -39,7 +39,7 @@ def full_test(compilation_profiles: list[str], device_name: str, no_recompile: b
     all_failed_test_count = 0
     failed_profiles = set()
     for compilation_profile in compilation_profiles:
-        LOGGER.info(f"Compilation profile: {compilation_profile}")
+        LOGGER.info(f"Current compilation profile: {compilation_profile}")
         bin_path = get_binary_path(compilation_profile, device_name, compilation_type="test", eigen_path=None, no_recompile=no_recompile)
         LOGGER.info(f"Running tests")
         current_failed_test_count = run_tests(bin_path)

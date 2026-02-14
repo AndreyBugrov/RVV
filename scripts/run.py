@@ -1,5 +1,6 @@
 import argparse
 import logging
+import shutil
 from pathlib import Path
 
 from create_plots import create_plots, get_result_directories
@@ -27,7 +28,7 @@ def compilation(args):
 
 
 def smoke_test(args):
-    function_names_set = get_function_name_set(['qr_d_row_row', 'qr_d_hh'], [], [])
+    function_names_set = get_function_name_set(['qr_d_row_row', 'qr_d_hh_urol'], [], [])
     for compilation_profile in translate_compilation_profiles(args.compilation_profiles):
         LOGGER.info(f"Compilation profile: {compilation_profile}")
         full_experiment_pass(compilation_profile, plot_format="png", function_names_set=function_names_set,
@@ -66,9 +67,18 @@ def perf_measurements(args):
     exp_count = args.exp_count
     if int(exp_count) < 1:
         abort_with_message("Choose at least one experiment!")
+    if shutil.which("perf") is None:
+        abort_with_message("Perf was not found in the PATH!")
+    flamegraph_repo = args.flamegraph
+    if not flamegraph_repo.is_dir():
+        abort_with_message(f"Flamegraph repo is missing! The path is {flamegraph_repo.resolve()}")
+    if  not (flamegraph_repo / 'flamegraph.pl').is_file():
+        abort_with_message("'flamegraph.pl' file is missing!")
+    if not (flamegraph_repo / "stackcollapse-perf.pl").is_file():
+        abort_with_message("'stackcollapse-perf.pl' file is missing!")
     compilation_profiles = translate_compilation_profiles(args.compilation_profiles)
     measure_performance(args.optimization_classes, compilation_profiles, exp_count, args.device_name, args.output_dir,
-                        args.suffix, args.no_recompile, eigen_path=args.lib)
+                        args.suffix, flamegraph_repo, args.no_recompile, eigen_path=args.lib)
 
 
 def disasm(args):
@@ -101,13 +111,13 @@ if __name__ == '__main__':
     parent_multicompilation_parser.add_argument('-c', '--compilation-profiles', help="Compilation profiles. \"perf\" means all profiles except \"debug\"", choices=COMPILATION_PROFILES + ["perf"], nargs="+", required=True)
 
     parent_output_parser = argparse.ArgumentParser(add_help=False)
-    parent_output_parser.add_argument('-o', "--output-dir", help="Path to parent directory for result directory", required=True)
+    parent_output_parser.add_argument('-o', "--output-dir", help="Path to parent directory for result directory", type = Path, required=True)
 
     parent_suffix_parser = argparse.ArgumentParser(add_help=False)
     parent_suffix_parser.add_argument("--suffix", help="Custom directory name part after current date", required=False)
 
     parent_lib_parser = argparse.ArgumentParser(add_help=False)
-    parent_lib_parser.add_argument('--lib', help="Path to Eigen library", default=None, type=Path, required=True)
+    parent_lib_parser.add_argument('--lib', help="Path to Eigen library (perf needs it for compilation)", default=None, type=Path, required=True)
 
     subparsers = parser.add_subparsers()
 
@@ -134,6 +144,7 @@ if __name__ == '__main__':
 
     performance_parser = subparsers.add_parser("perf", parents=[base_parent_parser, parent_compilation_parser, parent_multicompilation_parser, parent_optimization_parser, parent_output_parser, parent_suffix_parser, parent_lib_parser], help="Performance measurements using Linux Perf")
     performance_parser.add_argument('--optimization-classes', **OPTIMIZATION_CLASSES_KWARGS, required=True)
+    performance_parser.add_argument('--flamegraph', type=Path, default=Path("../FlameGraph").resolve(), help="Path to a dir containing flame graph scripts")
     performance_parser.set_defaults(func=perf_measurements)
 
     disasm_parser = subparsers.add_parser("disasm", parents=[base_parent_parser, parent_compilation_parser, parent_multicompilation_parser, parent_lib_parser], help="Disassembling using Linux Perf")
@@ -142,7 +153,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     set_logger_level(args.logger_level)
     args.device_name = args.device_name if args.device_name is not None else get_device_name()
-    args.device_name = args.device_name if args.device_name is not None else get_device_name()
+    LOGGER.info(f"\"{args.device_name}\" device name was chosen")
     if hasattr(args, "func"):
         args.func(args)
     else:
