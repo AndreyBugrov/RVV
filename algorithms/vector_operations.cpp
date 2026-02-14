@@ -120,4 +120,3 @@ void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mut
         mutiplied_vec[i+3] += tmp_vec[3];
     }
 }
-
