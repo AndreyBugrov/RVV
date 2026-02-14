@@ -60,7 +60,7 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
         std::pair<std::string, FunctionIndex>("qr_d_dot", FunctionIndex::kQRBlockScalar),
         std::pair<std::string, FunctionIndex>("qr_d_inl", FunctionIndex::kQRInline),
         std::pair<std::string, FunctionIndex>("qr_d_matr", FunctionIndex::kQRMatrix),
-        std::pair<std::string, FunctionIndex>("qr_d_hh", FunctionIndex::kQRHouseholderSimple),        
+        std::pair<std::string, FunctionIndex>("qr_d_hh", FunctionIndex::kQRHouseholderSimple),      
     };
     enum ArgumentNumber{
         kDotProduct = 1,
@@ -225,6 +225,8 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
         if (is_perf){
             return run_experiment_task(experiment_count, foo, dumb_ref_task, reset_qr, matrix, Q, R, row_num, column_num);
         }
+        int thread_count = omp_get_max_threads();
+        omp_set_num_threads(thread_count);
         return run_experiment_task(experiment_count, foo, eigen_qr_decomposition, reset_qr, matrix, Q, R, row_num, column_num);
     }
     return ExperimentOutput(false, "UnknownError", "Was not ran", 0.0, 0.0);

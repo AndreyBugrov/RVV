@@ -3,7 +3,7 @@
 #include <cmath>  // sqrt for norm
 #include <cstring> // vector copy
 
-#include "omp.h" // simd
+#include "omp.h" // simd + parallel
 
 #include "dot_product.hpp" // scalar_product_unsafe + std::vector
 
@@ -26,6 +26,7 @@ vector<num_type> multiply_vector_by_number(const vector<num_type>& vec, num_type
 void inner_multiply_vector_by_number(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
 void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
 void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
+void inner_multiply_vector_by_number_unrolling_par(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
 
 void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
 

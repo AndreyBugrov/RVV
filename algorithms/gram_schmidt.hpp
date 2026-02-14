@@ -15,6 +15,8 @@ void vector_matrix_product(const num_type* vec, const num_type* transposed_matri
 
 using proj_function = std::function<void(const num_type*, const num_type*, num_type*, size_t)>;
 using sub_function = std::function<void(num_type*, const num_type*, size_t)>;
+using dot_product_function = std::function<num_type(const num_type*, const num_type*, size_t)>;
+using number_mult_function = std::function<void(const num_type*, num_type*, num_type, size_t)>;
 
 vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>& vec_system);
 
@@ -23,6 +25,7 @@ vector_num gram_schmidt_matrix_simd(vector_num& transposed_matrix, size_t row_co
 vector_num gram_schmidt_matrix_unrolling(vector_num& transposed_matrix, size_t row_count, size_t column_count);
 
 vector_num gram_schmidt_matrix_inline(vector_num& transposed_matrix, size_t row_count, size_t column_count);
+vector_num gram_schmidt_matrix_inline_par(vector_num& transposed_matrix, size_t row_count, size_t column_count);
 vector_num gram_schmidt_full_matrix(vector_num& transposed_matrix, size_t row_count, size_t column_count);
 
 vector_num gram_schmidt_matrix_common(vector_num& transposed_matrix, size_t row_count, size_t column_count, proj_function proj_foo, sub_function sub_foo);

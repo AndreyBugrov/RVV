@@ -73,21 +73,30 @@ vector_num gram_schmidt_matrix_common(vector_num& transposed_matrix, size_t row_
     return orthogonal_matrix;
 }
 
-vector_num gram_schmidt_matrix_inline(vector_num& transposed_matrix, size_t row_count, size_t column_count){
+vector_num gram_schmidt_matrix_inline_common(vector_num& transposed_matrix, size_t row_count, size_t column_count, dot_product_function dot_foo, sub_function sub_foo, number_mult_function mult_foo){
     check_matrix(transposed_matrix, row_count, column_count);
     vector_num orthogonal_matrix = transposed_matrix;
     vector_num dot_product_results(row_count);
     for(size_t vec_index=1;vec_index<row_count;++vec_index){
-        dot_product_results[vec_index-1] = inner_dot_product_unrolling(&orthogonal_matrix[(vec_index-1)*column_count], &orthogonal_matrix[(vec_index-1)*column_count], column_count);
+        dot_product_results[vec_index-1] = dot_foo(&orthogonal_matrix[(vec_index-1)*column_count], &orthogonal_matrix[(vec_index-1)*column_count], column_count);
         for(size_t proj_index=0;proj_index<vec_index;++proj_index){
             num_type* projection = new num_type[column_count];
-            num_type multiplier = inner_dot_product_unrolling(&transposed_matrix[vec_index*column_count],  &orthogonal_matrix[proj_index*column_count], column_count);
-            inner_multiply_vector_by_number_unrolling(&orthogonal_matrix[proj_index*column_count], projection, multiplier/dot_product_results[proj_index], column_count);
-            sub_vector_from_vector_inplace(&orthogonal_matrix[vec_index*column_count], projection, column_count);
+            num_type multiplier = dot_foo(&transposed_matrix[vec_index*column_count],  &orthogonal_matrix[proj_index*column_count], column_count);
+            mult_foo(&orthogonal_matrix[proj_index*column_count], projection, multiplier/dot_product_results[proj_index], column_count);
+            sub_foo(&orthogonal_matrix[vec_index*column_count], projection, column_count);
             delete[] projection;
         }
     }
     return orthogonal_matrix;
+}
+
+
+vector_num gram_schmidt_matrix_inline(vector_num& transposed_matrix, size_t row_count, size_t column_count){
+    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace, inner_multiply_vector_by_number_unrolling);
+}
+
+vector_num gram_schmidt_matrix_inline_par(vector_num& transposed_matrix, size_t row_count, size_t column_count){
+    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace, inner_multiply_vector_by_number_unrolling_par);
 }
 
 void vector_matrix_product(const num_type* vec, const num_type* transposed_matrix, num_type* result_vec, size_t row_count, size_t column_count){  
