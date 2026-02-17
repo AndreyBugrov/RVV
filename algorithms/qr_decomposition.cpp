@@ -42,6 +42,10 @@ void QR_decomposition_full_matrix(const vector<num_type>& matrix, vector<num_typ
     QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_full_matrix, matrix_product_row_block_scalar);
 }
 
+void QR_decomposition_block_scalar_inline_par(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline_par, matrix_product_row_block_scalar);
+}
+
 void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count) {
     QR_decomposition_householder_common(matrix, Q_matrix, R_matrix, row_count, column_count, recalculate_q_matrix, recalculate_r_matrix);
 }

@@ -87,13 +87,13 @@ void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mu
     }
 }
 
-void inner_multiply_vector_by_number_unrolling_par(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
+void inner_multiply_vector_by_number_unrolling_par(const num_type* __restrict__ vec, num_type* __restrict__ multiplied_vec, num_type number, size_t length){
     #pragma omp parallel for shared(multiplied_vec, number, length, kUnrollCoefficient)
     for(size_t i=0;i<length;i+=kUnrollCoefficient){
-        mutiplied_vec[i] = vec[i] * number;
-        mutiplied_vec[i+1] = vec[i+1] * number;
-        mutiplied_vec[i+2] = vec[i+2] * number;
-        mutiplied_vec[i+3] = vec[i+3] * number;
+        multiplied_vec[i] = vec[i] * number;
+        multiplied_vec[i+1] = vec[i+1] * number;
+        multiplied_vec[i+2] = vec[i+2] * number;
+        multiplied_vec[i+3] = vec[i+3] * number;
     }
 }
 

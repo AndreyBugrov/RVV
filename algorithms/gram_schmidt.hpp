@@ -29,5 +29,6 @@ vector_num gram_schmidt_matrix_inline_par(vector_num& transposed_matrix, size_t 
 vector_num gram_schmidt_full_matrix(vector_num& transposed_matrix, size_t row_count, size_t column_count);
 
 vector_num gram_schmidt_matrix_common(vector_num& transposed_matrix, size_t row_count, size_t column_count, proj_function proj_foo, sub_function sub_foo);
+vector_num gram_schmidt_matrix_inline_common(vector_num& transposed_matrix, size_t row_count, size_t column_count, dot_product_function dot_foo, sub_function sub_foo, number_mult_function mult_foo);
 
 void check_matrix(vector_num& transposed_matrix, size_t row_count, size_t column_count);
