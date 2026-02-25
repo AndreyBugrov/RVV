@@ -90,6 +90,32 @@ ExpectationResult test_dot_product(TestFunctionInputExtended input){
     return expect::expect_eq(etalon, test_result);
 }
 
+void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_count, size_t& a_column_count, size_t& b_column_count, vector<num_type>& a, vector<num_type>& b, vector<num_type>& c, vector<num_type>& etalon){
+    a_row_count = generate_rand_length(1, 10) * kBlockSize;
+    a_column_count = generate_rand_length(1, 10) * kBlockSize;
+    b_column_count = generate_rand_length(1, 10) * kBlockSize;
+    resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, 0, input.max_value);
+    resize_and_generate_matrix(b, a_column_count, b_column_count, input.algebra_object_version, 0, input.max_value);
+    resize_and_generate_matrix(etalon, a_row_count, b_column_count);
+    resize_and_generate_matrix(c, a_row_count, b_column_count);
+
+    matrix_product_base_simple(a, b, etalon, a_row_count, a_column_count, b_column_count);
+    std::function<void (const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)> foo;
+    switch (input.function_type)
+    {
+    case FunctionOptimizationType::kBlock:
+        foo = matrix_product_row_block;
+        break;
+    case FunctionOptimizationType::kBlockScalar:
+        foo = matrix_product_row_block_scalar;
+        break;
+    default:
+        throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
+        break;
+    }
+    foo(a, b, c, a_row_count, a_column_count, b_column_count);
+}
+
 ExpectationResult test_matrix_product(TestFunctionInputExtended input){
     size_t a_row_count = 0;
     size_t a_column_count = 0;
@@ -104,30 +130,8 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
         resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, input.min_value, input.max_value);
     }
     if(input.function_type == FunctionOptimizationType::kBlock || input.function_type == FunctionOptimizationType::kBlockScalar){
-        a_row_count = generate_rand_length(1, 10) * kBlockSize;
-        a_column_count = generate_rand_length(1, 10) * kBlockSize;
-        b_column_count = generate_rand_length(1, 10) * kBlockSize;
-        resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, 0, input.max_value);
-        resize_and_generate_matrix(b, a_column_count, b_column_count, input.algebra_object_version, 0, input.max_value);
-        resize_and_generate_matrix(etalon, a_row_count, b_column_count);
-        resize_and_generate_matrix(c, a_row_count, b_column_count);
-
-        matrix_product_base_simple(a, b, etalon, a_row_count, a_column_count, b_column_count);
-        std::function<void (const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)> foo;
-        switch (input.function_type)
-        {
-        case FunctionOptimizationType::kBlock:
-            foo = matrix_product_row_block;
-            break;
-        case FunctionOptimizationType::kBlockScalar:
-            foo = matrix_product_row_block_scalar;
-            break;
-        default:
-            throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
-            break;
-        }
-        foo(a, b, c, a_row_count, a_column_count, b_column_count);
-        return expect::expect_indexable_containers_eq(etalon, c, etalon.size());
+        block_matrix_filling(input, a_row_count, a_column_count, b_column_count, a, b, c, etalon);
+        return expect::expect_indexable_containers_near(etalon, c, kRelativeEps, etalon.size(), true);
     }
 
     switch (input.algebra_object_version)
@@ -175,10 +179,6 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kRow:
         foo = matrix_product_row_simple;
-        break;
-    case FunctionOptimizationType::kRowScalar:
-        return expect::expect_true(true);
-        foo = matrix_product_row_scalar;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
@@ -296,7 +296,7 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
                 dot_product_results.at(offset + dot_index) = res;
             }
         }
-        return expect::expect_indexable_containers_near_relative(zero_container, dot_product_results, kRelativeEps, checked_container_length);
+        return expect::expect_indexable_containers_near(zero_container, dot_product_results, kRelativeEps, checked_container_length, true);
     }
     return expect::expect_true(true);
 }
@@ -492,7 +492,7 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     foo(matrix, Q_matrix, R_matrix, row_count, column_count);
     vector<num_type> test_matrix(row_count*column_count);
     matrix_product_base_simple(Q_matrix, R_matrix, test_matrix, row_count, column_count, column_count);
-    return expect::expect_indexable_containers_near_relative(matrix, test_matrix, kRelativeEps, row_count*column_count);
+    return expect::expect_indexable_containers_near(matrix, test_matrix, kRelativeEps, row_count*column_count, true);
 }
 
 void resize_and_generate_matrix(vector_num& matrix, size_t row_count, size_t column_count, AlgebraObjectVersion matrix_version, num_type min_value, num_type max_value){

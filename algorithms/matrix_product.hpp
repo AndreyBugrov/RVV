@@ -4,7 +4,7 @@
 
 #include "../common/exception.hpp"  // Exception
 #include "../common/generators.hpp"  // generate_string, num_type
-#include "vector_operations.hpp" // inner_multiply_vector_by_number_unrolling
+#include "vector_operations.hpp" // inner_multiply_vector_by_number_unrolling, OpenMP
 
 using std::vector;
 

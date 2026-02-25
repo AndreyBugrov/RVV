@@ -1,7 +1,5 @@
 #include "matrix_product.hpp"
 
-#include <iostream>
-
 static void check_length(size_t a_size, size_t b_size, size_t c_size, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     if(a_size != a_row_count * a_column_count){
         throw Exception(ErrorType::kUnequalLengthError, generate_string("1st matrix size (", a_size, ") is not equal to given length (", a_row_count, " * ", a_column_count, ")"));
@@ -65,6 +63,7 @@ void matrix_product_row_block(const vector<num_type>& a, const vector<num_type>&
 
 void matrix_product_row_block_scalar(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
+    // #pragma omp parallel for
     for(size_t ik = 0; ik < a_row_count; ik += kBlockSize){
         for(size_t jk = 0; jk < a_column_count; jk += kBlockSize){
             for(size_t kk = 0; kk < b_column_count; kk += kBlockSize){

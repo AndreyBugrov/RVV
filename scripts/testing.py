@@ -23,6 +23,8 @@ def run_tests(bin_path: Path):
     returncode = proc.returncode
     stdout = output[0].decode("utf-8")
     if returncode:
+        if not stdout or not "FAILED TESTS:" in stdout:
+            abort_with_message(f"Process returned non-zero code {returncode}. Test output:\n{stdout}")
         LOGGER.warning(f"{returncode} tests were failed")
         test_output = stdout.split("FAILED TESTS: \n")[0]
         LOGGER.debug(f"Test output:\n{test_output}")

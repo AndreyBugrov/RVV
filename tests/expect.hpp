@@ -90,55 +90,16 @@ namespace expect{
 
     template<typename Container, typename T>
     requires Indexable<Container> && FabsSupporting<T>
-    ExpectationResult expect_indexable_containers_near(Container expected, Container actual, T eps, size_t length) noexcept {
+    ExpectationResult expect_indexable_containers_near(Container expected, Container actual, T relative_eps, size_t length, bool relative) noexcept {
         T max_difference = 0.0;
-        T min_difference = std::numeric_limits<num_type>::max();
-        size_t wrong_value_number = 0;
-        size_t first_wrong_index = 0;
-        size_t last_wrong_index = 0;
-        for(size_t i = 0; i<length;++i){
-            T difference = std::fabs(expected[i] - actual[i]);
-            if(difference > eps){
-                if(!wrong_value_number){
-                    first_wrong_index = i;
-                }else{
-                    last_wrong_index = i;
-                }
-                ++wrong_value_number;
-                if(difference>max_difference){
-                    max_difference = difference;
-                }
-                if(difference<min_difference){
-                    min_difference = difference;
-                }
-            }
-        }
-        if(wrong_value_number){
-            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0; // only double, not num_type
-            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Absolute min difference: ", min_difference ,". Absolute max difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
-        }else{
-            return ExpectationResult(true);
-        }
-    }
-
-    template<typename Container, typename T=num_type>
-    requires Indexable<Container> && FabsSupporting<T>
-    ExpectationResult expect_indexable_containers_eq(Container expected, Container actual, size_t length) noexcept {
-        return expect_indexable_containers_near(expected, actual, T(0.0), length);
-    }
-
-    template<typename Container, typename T>
-    requires Indexable<Container> && FabsSupporting<T>
-    ExpectationResult expect_indexable_containers_near_relative(Container expected, Container actual, T relative_eps, size_t length) noexcept {
-        T max_difference = 0.0;
-        T min_difference = std::numeric_limits<num_type>::max();
+        T min_difference = std::numeric_limits<T>::max();
         size_t wrong_value_number = 0;
         size_t first_wrong_index = 0;
         size_t last_wrong_index = 0;
         T zero = 0.0;
         T difference = 0.0;
-        for(size_t i = 0; i<length;++i){
-            if(expected[i] == zero){
+        for(size_t i = 0; i < length; ++i){
+            if(expected[i] == zero || !relative){
                 difference = std::fabs(expected[i] - actual[i]);
             }else{
                 difference = std::fabs(expected[i] - actual[i]) / std::fabs(expected[i]);
@@ -160,10 +121,17 @@ namespace expect{
         }
         if(wrong_value_number){
             double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0; // only double, not num_type
-            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. Relative min difference: ", min_difference ,". Relative max difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
-        }else{
+            std::string dif_type = relative? "Relative": "Absolute";
+            return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. ","Diff type: ", dif_type,". Min difference: ", min_difference ,". Max difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
+        } else{
             return ExpectationResult(true);
         }
+    }
+
+    template<typename Container, typename T=num_type>
+    requires Indexable<Container> && FabsSupporting<T>
+    ExpectationResult expect_indexable_containers_eq(Container expected, Container actual, size_t length) noexcept {
+        return expect_indexable_containers_near(expected, actual, T(0.0), length, false);
     }
 
     template<typename T>
@@ -187,4 +155,3 @@ namespace expect{
     ExpectationResult expect_true(bool expression) noexcept;
     ExpectationResult expect_false(bool expression) noexcept;
 }
-
