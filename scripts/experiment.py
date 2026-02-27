@@ -111,6 +111,8 @@ def _get_frequency_repr(set_frequency: int | None) -> str:
 def full_experiment_pass(compilation_profile: str, plot_format: str, function_names_set: set, sizes: list[int], 
                          exp_count: int, device_name: str, output_dir: str, suffix: str, base_title: str,
                          dot_title: str, no_plotting: bool, no_recompile: bool, eigen_path: Path | None):
+    if not function_names_set:
+        abort_with_message('Function names set is empty')
     LOGGER.info("Start of preprocessing phase")
     check_output_dir(output_dir)
     bin_path = get_binary_path(compilation_profile, device_name, compilation_type="experiment", eigen_path=eigen_path, no_recompile=no_recompile)

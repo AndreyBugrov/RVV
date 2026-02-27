@@ -123,7 +123,7 @@ def get_binary_path(compilation_profile: str, device_name: str, compilation_type
             LOGGER.warning('Compilation is skipped')
             return bin_path
         LOGGER.warning(f'Binary {bin_path} does not exist. Compilation will be performed.')
-    if (eigen_path is None or not eigen_path.is_dir()) and compilation_type == "experiment":
+    if (eigen_path is None or not eigen_path.is_dir()) and compilation_type != "test":  # no recompile was checked before
         abort_with_message("Eigen library path must be specified")
     # if compilation_type == "eigen":
     #     cmd = ["cmake", "-DCMAKE_BUILD_TYPE=" + compilation_profile.upper(), "-DEIGEN3_INCLUDE_DIR=" + str(eigen_path), "."]

@@ -117,7 +117,7 @@ if __name__ == '__main__':
     parent_suffix_parser.add_argument("--suffix", help="Custom directory name part after current date", required=False)
 
     parent_lib_parser = argparse.ArgumentParser(add_help=False)
-    parent_lib_parser.add_argument('--lib', help="Path to Eigen library (perf needs it for compilation)", default=None, type=Path, required=True)
+    parent_lib_parser.add_argument('--lib', help="Path to Eigen library (perf needs it for compilation)", default=None, type=Path)
 
     subparsers = parser.add_subparsers()
 
