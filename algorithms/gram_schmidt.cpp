@@ -77,9 +77,11 @@ vector_num gram_schmidt_matrix_inline_common(vector_num& transposed_matrix, size
     check_matrix(transposed_matrix, row_count, column_count);
     vector_num orthogonal_matrix = transposed_matrix;
     vector_num dot_product_results(row_count);
-    for(size_t vec_index=1;vec_index<row_count;++vec_index){
+    size_t vec_index, proj_index;
+    #pragma omp parallel for shared(orthogonal_matrix, dot_product_results, row_count, column_count, dot_foo, sub_foo, mult_foo) private(vec_index, proj_index)
+    for(vec_index=1;vec_index<row_count;++vec_index){
         dot_product_results[vec_index-1] = dot_foo(&orthogonal_matrix[(vec_index-1)*column_count], &orthogonal_matrix[(vec_index-1)*column_count], column_count);
-        for(size_t proj_index=0;proj_index<vec_index;++proj_index){
+        for(proj_index=0;proj_index<vec_index;++proj_index){
             num_type* projection = new num_type[column_count];
             num_type multiplier = dot_foo(&transposed_matrix[vec_index*column_count],  &orthogonal_matrix[proj_index*column_count], column_count);
             mult_foo(&orthogonal_matrix[proj_index*column_count], projection, multiplier/dot_product_results[proj_index], column_count);
