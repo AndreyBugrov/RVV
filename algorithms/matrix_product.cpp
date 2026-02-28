@@ -93,6 +93,55 @@ void matrix_product_row_block_scalar(const vector<num_type>& a, const vector<num
 //     }
 // }
 
+void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
+    num_type tmp_vec[kUnrollCoefficient];
+    for(size_t i=0;i<length;i+=kUnrollCoefficient){
+        tmp_vec[0] = vec[i] * number;
+        tmp_vec[1] = vec[i+1] * number;
+        tmp_vec[2] = vec[i+2] * number;
+        tmp_vec[3] = vec[i+3] * number;
+
+        mutiplied_vec[i] += tmp_vec[0];
+        mutiplied_vec[i+1] += tmp_vec[1];
+        mutiplied_vec[i+2] += tmp_vec[2];
+        mutiplied_vec[i+3] += tmp_vec[3];
+    }
+}
+
+// void matrix_product_row_block_scalar_par(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
+//     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
+//     size_t ik, jk, kk, i, j, k;
+//     #pragma omp parallel for shared(a, b, c, a_row_count, a_column_count, b_column_count, kBlockSize) private(ik, jk, kk, i, j, k)
+//     for(ik = 0; ik < a_row_count; ik += kBlockSize){
+//         for(jk = 0; jk < a_column_count; jk += kBlockSize){
+//             for(kk = 0; kk < b_column_count; kk += kBlockSize){
+//                 for(i = 0; i < kBlockSize; ++i){
+//                     for(j = 0; j < kBlockSize; ++j){
+//                         for(k = 0; k < kBlockSize; ++k){
+//                             c[(ik + i) * b_column_count + (kk + k)] += a[(ik + i) * a_column_count + (jk + j)] * b[(jk + j) * b_column_count + (kk + k)];
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
+void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
+    num_type tmp_vec[kUnrollCoefficient];
+    for(size_t i=0;i<length;i+=kUnrollCoefficient){
+        tmp_vec[0] = vec[i] * number;
+        tmp_vec[1] = vec[i+1] * number;
+        tmp_vec[2] = vec[i+2] * number;
+        tmp_vec[3] = vec[i+3] * number;
+
+        mutiplied_vec[i] += tmp_vec[0];
+        mutiplied_vec[i+1] += tmp_vec[1];
+        mutiplied_vec[i+2] += tmp_vec[2];
+        mutiplied_vec[i+3] += tmp_vec[3];
+    }
+}
+
 void matrix_product_row_block_scalar_par(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
     size_t ik, jk, kk, i, j, k;
@@ -102,9 +151,13 @@ void matrix_product_row_block_scalar_par(const vector<num_type>& a, const vector
             for(kk = 0; kk < b_column_count; kk += kBlockSize){
                 for(i = 0; i < kBlockSize; ++i){
                     for(j = 0; j < kBlockSize; ++j){
-                        for(k = 0; k < kBlockSize; ++k){
-                            c[(ik + i) * b_column_count + (kk + k)] += a[(ik + i) * a_column_count + (jk + j)] * b[(jk + j) * b_column_count + (kk + k)];
+                        for(size_t i=0;i<kBlockSize;i+=kUnrollCoefficient){
+                            c[(ik + i) * b_column_count + (kk) + i] += b[(jk + j) * b_column_count + (kk) + i] * a[(ik + i) * a_column_count + (jk + j)];
                         }
+                        // matrix_multiply_vector_by_number_optimal(b.data() + (jk + j) * b_column_count + (kk), c.data() + (ik + i) * b_column_count + (kk), a[(ik + i) * a_column_count + (jk + j)], kBlockSize);
+                        // for(k = 0; k < kBlockSize; ++k){
+                        //     c[(ik + i) * b_column_count + (kk + k)] += a[(ik + i) * a_column_count + (jk + j)] * b[(jk + j) * b_column_count + (kk + k)];
+                        // }
                     }
                 }
             }
