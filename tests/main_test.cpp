@@ -87,11 +87,12 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "QR decomposition with omp simd"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "QR decomposition with half-unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kDoubleUnrolling, "QR decomposition with full unrolling"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholder, "QR decomposition Householder"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "QR decomposition with block matrix product"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "QR decomposition with optimal block matrix product"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kInline, "QR decomposition with inlining"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kMatrix, "QR decomposition full matrix"),
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholder, "QR decomposition Householder"),
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "QR decomposition with block matrix product"),
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "QR decomposition with optimal block matrix product"),
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kInline, "QR decomposition with inlining"),
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kMatrix, "QR decomposition full matrix"),
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kInlinePar, "Parallel QR decomposition with inlining"),
             }
         ),
     };

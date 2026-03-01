@@ -74,12 +74,12 @@ def _get_source_files_list(is_test: bool) -> list[str]:
 
 
 def _get_specific_options_line(compilation_profile: str, compilation_type: str, eigen_path: Path | None) -> str:
-    if compilation_profile == "test":
-        specific_options = " -fsanitize=address,undefined -fno-sanitize-recover=all"
+    if compilation_type == "test":
+        specific_options = "-fsanitize=address,undefined -fno-sanitize-recover=all"
         if compilation_profile in ["optimal", "math", "fast"]:
             specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
         return specific_options
-    specific_options =  f" -I {eigen_path}"
+    specific_options =  f"-I {eigen_path}"
     if compilation_type == "perf":
         specific_options += " -g"
     return specific_options
@@ -117,6 +117,7 @@ def get_binary_path(compilation_profile: str, device_name: str, compilation_type
     Returns:
         Path: path to the binary execution file
     """
+    LOGGER.debug(f"Compilation type: {compilation_type}")
     bin_path = _get_bin_path(compilation_profile, compilation_type)
     if no_recompile:
         if bin_path.exists():

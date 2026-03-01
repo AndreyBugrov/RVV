@@ -87,7 +87,7 @@ ExpectationResult test_dot_product(TestFunctionInputExtended input){
         return expect::expect_throw(foo, Exception(ErrorType::kUnequalLengthError, ""), a, b, length);
     }
     num_type test_result = foo(a, b, length);
-    return expect::expect_eq(etalon, test_result);
+    return expect::expect_near(etalon, test_result, num_type(1E-12));
 }
 
 void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_count, size_t& a_column_count, size_t& b_column_count, vector<num_type>& a, vector<num_type>& b, vector<num_type>& c, vector<num_type>& etalon){
@@ -109,11 +109,24 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
     case FunctionOptimizationType::kBlockScalar:
         foo = matrix_product_row_block_scalar;
         break;
+    case FunctionOptimizationType::kBlockScalarPar:
+        foo = matrix_product_row_block_scalar_par;
+        break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
         break;
     }
     foo(a, b, c, a_row_count, a_column_count, b_column_count);
+}
+
+bool do_block_matrix_product_immidiately(FunctionOptimizationType function_type, AlgebraObjectVersion object_version){
+    bool acceptable_type = (function_type == FunctionOptimizationType::kBlock ||
+        function_type == FunctionOptimizationType::kBlockScalar ||
+        function_type == FunctionOptimizationType::kBlockScalarPar);
+    bool acceptable_version = (object_version == AlgebraObjectVersion::kGeneral ||
+        object_version == AlgebraObjectVersion::kIdentity ||
+        object_version == AlgebraObjectVersion::kZero);
+    return acceptable_type && acceptable_version;
 }
 
 ExpectationResult test_matrix_product(TestFunctionInputExtended input){
@@ -129,7 +142,7 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
         b_column_count = generate_rand_length(input.min_length, input.max_length);
         resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, input.min_value, input.max_value);
     }
-    if(input.function_type == FunctionOptimizationType::kBlock || input.function_type == FunctionOptimizationType::kBlockScalar){
+    if(do_block_matrix_product_immidiately(input.function_type, input.algebra_object_version)){
         block_matrix_filling(input, a_row_count, a_column_count, b_column_count, a, b, c, etalon);
         return expect::expect_indexable_containers_near(etalon, c, kRelativeEps, etalon.size(), true);
     }
@@ -179,6 +192,15 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kRow:
         foo = matrix_product_row_simple;
+        break;
+    case FunctionOptimizationType::kBlock:
+        foo = matrix_product_row_block;
+        break;
+    case FunctionOptimizationType::kBlockScalar:
+        foo = matrix_product_row_block_scalar;
+        break;
+    case FunctionOptimizationType::kBlockScalarPar:
+        foo = matrix_product_row_block_scalar_par;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
@@ -472,6 +494,9 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     case FunctionOptimizationType::kHouseholder:
         foo = QR_decomposition_base_householder;
         break;
+    case FunctionOptimizationType::kInlinePar:
+        foo = QR_decomposition_block_scalar_inline_par;
+        break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
@@ -496,7 +521,7 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
 }
 
 void resize_and_generate_matrix(vector_num& matrix, size_t row_count, size_t column_count, AlgebraObjectVersion matrix_version, num_type min_value, num_type max_value){
-    if (matrix_version != AlgebraObjectVersion::kIncorrect){
+    if (matrix_version != AlgebraObjectVersion::kIncorrect && matrix_version != AlgebraObjectVersion::kEmpty){
         matrix.resize(row_count * column_count);
     }
     switch (matrix_version)

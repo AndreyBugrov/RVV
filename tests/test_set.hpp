@@ -19,3 +19,5 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input);
 ExpectationResult test_qr_decomposition(TestFunctionInputExtended input);
 
 void resize_and_generate_matrix(vector_num& matrix, size_t row_count = 0, size_t column_count = 0, AlgebraObjectVersion matrix_version = AlgebraObjectVersion::kZero, num_type min_value = 0., num_type max_value = 0.);
+void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_count, size_t& a_column_count, size_t& b_column_count, vector<num_type>& a, vector<num_type>& b, vector<num_type>& c, vector<num_type>& etalon);
+bool do_block_matrix_product_immidiately(FunctionOptimizationType function_type, AlgebraObjectVersion object_version);
