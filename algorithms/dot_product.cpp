@@ -31,9 +31,9 @@ num_type dot_product_simd(const vector<num_type>& a, const vector<num_type>& b, 
 num_type dot_product_unrolling(const vector<num_type>& a, const vector<num_type>& b, size_t length){
     check_length(a.size(), b.size(), length);
     size_t unrolled_data_length = length - length % kUnrollCoefficient;
-    num_type unrolled_result = inner_dot_product_unrolling(a.data(), b.data(), unrolled_data_length);
-    num_type tail_result = inner_simple_dot_product(a.data()+unrolled_data_length, b.data() + unrolled_data_length, length % kUnrollCoefficient);
-    return unrolled_result + tail_result;
+    return inner_dot_product_unrolling(a.data(), b.data(), unrolled_data_length);
+    // num_type tail_result = inner_simple_dot_product(a.data()+unrolled_data_length, b.data() + unrolled_data_length, length % kUnrollCoefficient);
+    // return unrolled_result + tail_result;
 }
 
 num_type inner_dot_product_simd(const num_type* a, const num_type* b, size_t length){
@@ -47,11 +47,15 @@ num_type inner_dot_product_simd(const num_type* a, const num_type* b, size_t len
 
 num_type inner_dot_product_unrolling(const num_type* a, const num_type* b, size_t length){
     num_type prod1 = 0.0, prod2 = 0.0, prod3 = 0.0, prod4 = 0.0;
-    for(size_t i = 0; i < length; i += 4){
+    size_t reduced_length = length - length % kUnrollCoefficient;
+    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
         prod1 += a[i] * b[i];
         prod2 += a[i+1] * b[i+1];
         prod3 += a[i+2] * b[i+2];
         prod4 += a[i+3] * b[i+3];
+    }
+    for(size_t i = reduced_length; i < length; ++i){
+        prod1 += a[i] * b[i];
     }
     return prod1 + prod2 + prod3 + prod4;
 }

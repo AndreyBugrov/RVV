@@ -90,37 +90,37 @@ namespace expect{
 
     template<typename Container, typename T>
     requires Indexable<Container> && FabsSupporting<T>
-    ExpectationResult expect_indexable_containers_near(Container expected, Container actual, T relative_eps, size_t length, bool relative) noexcept {
+    ExpectationResult expect_indexable_containers_near(Container expected, Container actual, T eps, size_t length, bool relative) noexcept {
         T max_difference = 0.0;
         T min_difference = std::numeric_limits<T>::max();
-        size_t wrong_value_number = 0;
+        size_t wrong_value_count = 0;
         size_t first_wrong_index = 0;
         size_t last_wrong_index = 0;
-        T zero = 0.0;
-        T difference = 0.0;
+        T zero = T(0.0);
+        T difference = T(0.0);
         for(size_t i = 0; i < length; ++i){
-            if(expected[i] == zero || !relative){
+            if(!relative || expected[i] == zero){
                 difference = std::fabs(expected[i] - actual[i]);
             }else{
                 difference = std::fabs(expected[i] - actual[i]) / std::fabs(expected[i]);
             }
-            if(difference > relative_eps){
-                if(!wrong_value_number){
+            if(difference > eps) {
+                if(wrong_value_count == 0){
                     first_wrong_index = i;
                 }else{
                     last_wrong_index = i;
                 }
-                ++wrong_value_number;
-                if(difference>max_difference){
+                ++wrong_value_count;
+                if(difference > max_difference){
                     max_difference = difference;
                 }
-                if(difference<min_difference){
+                if(difference < min_difference){
                     min_difference = difference;
                 }
             }
         }
-        if(wrong_value_number){
-            double wrong_value_percentage = double(wrong_value_number) / double(length) * 100.0; // only double, not num_type
+        if(wrong_value_count){
+            double wrong_value_percentage = double(wrong_value_count) / double(length) * 100.0; // only double, not num_type
             std::string dif_type = relative? "Relative": "Absolute";
             return ExpectationResult(false, generate_string("Wrong value percentage: ", wrong_value_percentage, "%. ","Diff type: ", dif_type,". Min difference: ", min_difference ,". Max difference: ", max_difference, ". Container length: ", length, ". First wrong index: ", first_wrong_index, ". Last wrong index: ", last_wrong_index));
         } else{

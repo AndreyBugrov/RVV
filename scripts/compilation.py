@@ -5,13 +5,14 @@ from typing import Generator
 
 from pathlib import Path
 
-from common_defs import abort_with_message, PARENT_DIRECTORY, X86_NAME, RISC_V_NAME
+from common_defs import abort_with_message, PARENT_DIRECTORY, X86_NAME, RISC_V_NAME, VM_NAME
 
 LOGGER = logging.getLogger(__name__)
 
 COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "base", "math", "lto", "optimal"]
 DEVICE_OPTIMIZATIONS = {
     X86_NAME: "-march=native",
+    VM_NAME: "-march=native",
     RISC_V_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt_sscofpmf_sstc_svinval_svnapot_svpbmt"
 }
 COMMON_OPTIMIZATION_OPTIONS = '-fopenmp-simd -fopenmp'

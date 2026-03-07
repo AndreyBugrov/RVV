@@ -226,7 +226,7 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
             foo = QR_decomposition_householder_unrolling;
             break;
         case FunctionIndex::kQRInlinePar:
-            foo = QR_decomposition_block_scalar_inline_par;
+            foo = QR_decomposition_block_inline_par;
             break;
         default:
             break;

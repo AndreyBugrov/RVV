@@ -60,7 +60,7 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "row simple matrix product"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "block row matrix product"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "block row matrix product with unrolling"),
-                
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockPar, "parallel block row matrix product without unrolling"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -73,9 +73,11 @@ void fill_tasks(std::vector<TestTask>& tasks){
             object_indexes::kGramSchmidtProcess,
             map<FunctionOptimizationType, string>{
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimple, "base Gram-Schmidt process"),
-                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "matrix-based Gram-Schmidt process"),
-                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "matrix-based Gram-Schmidt process"),
-                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "Gram-Schmidt process with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "matrix-based Gram-Schmidt process"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "matrix-based Gram-Schmidt process with OpenMP SIMD"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "matrix-based Gram-Schmidt process with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kMatrix, "matrix-based Gram-Schmidt process with full matrix support"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrollingPar, "Parallel matrix-based Gram-Schmidt process with unrolling"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -86,9 +88,9 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRowRow, "row product + row process QR decomposition"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "QR decomposition with omp simd"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "QR decomposition with half-unrolling"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kDoubleUnrolling, "QR decomposition with full unrolling"),
-                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholder, "QR decomposition Householder"),
-                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "QR decomposition with block matrix product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kDoubleUnrolling, "QR decomposition with full unrolling"),  // last fully correct
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholder, "QR decomposition Householder"),  // last part correct
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "QR decomposition with block matrix product"), // first fully incorrect (?)
                 // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "QR decomposition with optimal block matrix product"),
                 // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kInline, "QR decomposition with inlining"),
                 // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kMatrix, "QR decomposition full matrix"),

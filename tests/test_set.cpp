@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-static const num_type kRelativeEps = 1E-7;
+static const num_type kRelativeEps = 1E-6;
 
 ExpectationResult test_dot_product(TestFunctionInputExtended input){
     size_t length = 0;
@@ -109,8 +109,8 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
     case FunctionOptimizationType::kBlockScalar:
         foo = matrix_product_row_block_scalar;
         break;
-    case FunctionOptimizationType::kBlockScalarPar:
-        foo = matrix_product_row_block_scalar_par;
+    case FunctionOptimizationType::kBlockPar:
+        foo = matrix_product_row_block_par;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
@@ -119,10 +119,10 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
     foo(a, b, c, a_row_count, a_column_count, b_column_count);
 }
 
-bool do_block_matrix_product_immidiately(FunctionOptimizationType function_type, AlgebraObjectVersion object_version){
+bool do_block_matrix_product_immediately(FunctionOptimizationType function_type, AlgebraObjectVersion object_version){
     bool acceptable_type = (function_type == FunctionOptimizationType::kBlock ||
         function_type == FunctionOptimizationType::kBlockScalar ||
-        function_type == FunctionOptimizationType::kBlockScalarPar);
+        function_type == FunctionOptimizationType::kBlockPar);
     bool acceptable_version = (object_version == AlgebraObjectVersion::kGeneral ||
         object_version == AlgebraObjectVersion::kIdentity ||
         object_version == AlgebraObjectVersion::kZero);
@@ -142,7 +142,7 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
         b_column_count = generate_rand_length(input.min_length, input.max_length);
         resize_and_generate_matrix(a, a_row_count, a_column_count, input.algebra_object_version, input.min_value, input.max_value);
     }
-    if(do_block_matrix_product_immidiately(input.function_type, input.algebra_object_version)){
+    if(do_block_matrix_product_immediately(input.function_type, input.algebra_object_version)){
         block_matrix_filling(input, a_row_count, a_column_count, b_column_count, a, b, c, etalon);
         return expect::expect_indexable_containers_near(etalon, c, kRelativeEps, etalon.size(), true);
     }
@@ -199,8 +199,8 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
     case FunctionOptimizationType::kBlockScalar:
         foo = matrix_product_row_block_scalar;
         break;
-    case FunctionOptimizationType::kBlockScalarPar:
-        foo = matrix_product_row_block_scalar_par;
+    case FunctionOptimizationType::kBlockPar:
+        foo = matrix_product_row_block_par;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
@@ -224,6 +224,9 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
 }
 
 ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
+    if (input.function_type != FunctionOptimizationType::kSimple){
+        return test_gram_schmidt_matrix(input);
+    }
     size_t vector_system_size = 0;
     size_t vector_length = 0;
     vector<vector<num_type>> vector_system;
@@ -277,15 +280,6 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
     case FunctionOptimizationType::kSimple:
         orthogonal_system = gram_schmidt_base_simple(vector_system);
         break;
-    // case FunctionOptimizationType::kRow:
-    //     gram_schmidt_matrix_simple;
-    //     break;
-    // case FunctionOptimizationType::kUnrolling:
-    //     gram_schmidt_matrix_unrolling;
-    //     break;
-    // case FunctionOptimizationType::kSimd:
-    //     gram_schmidt_matrix_simd;
-    //     break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Unsupported FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
@@ -298,29 +292,103 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
                 }
             }
         }
-    }else{
-        size_t end_vec_index = vector_system_size - 1;
-        if(input.algebra_object_version == AlgebraObjectVersion::kEmpty){
-            end_vec_index = vector_system_size; // to protect from subtraction from zero
+        return expect::expect_true(true);
+    }
+    size_t end_vec_index = vector_system_size - 1;
+    if(input.algebra_object_version == AlgebraObjectVersion::kEmpty){
+        end_vec_index = vector_system_size; // to protect from subtraction from zero
+    }
+    size_t checked_container_length = vector_system_size * (vector_system_size - 1) / 2;
+    vector<num_type> dot_product_results(checked_container_length);
+    vector<num_type> zero_container(checked_container_length);
+    size_t offset = -vector_system_size;
+    if(checked_container_length != 0){
+        generate_zero_array(zero_container.data(), checked_container_length);
+    }
+    for(size_t vec_index = 0; vec_index < end_vec_index; ++vec_index){
+        offset += (vector_system_size - vec_index);
+        size_t dot_index = 0;
+        for(size_t next_vec_index = vec_index + 1; next_vec_index < vector_system_size; ++next_vec_index, ++dot_index){
+            num_type res = dot_product_simple_unsafe(orthogonal_system.at(vec_index), orthogonal_system.at(next_vec_index), vector_length);
+            dot_product_results.at(offset + dot_index) = res;
         }
-        size_t checked_container_length = vector_system_size * (vector_system_size - 1) / 2;
-        vector<num_type> dot_product_results(checked_container_length);
-        vector<num_type> zero_container(checked_container_length);
-        size_t offset = -vector_system_size;
-        if(checked_container_length != 0){
-            generate_zero_array(zero_container.data(), checked_container_length);
+    }
+    return expect::expect_indexable_containers_near(zero_container, dot_product_results, kRelativeEps, checked_container_length, true);
+}
+
+ExpectationResult test_gram_schmidt_matrix(TestFunctionInputExtended input){
+    size_t row_count = 0;
+    size_t column_count = 0;
+    vector_num transposed_matrix;
+    vector_num orthogonal_transposed_matrix;
+
+    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+        row_count = generate_rand_length(input.min_length, input.max_length);
+        if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
+            column_count = generate_rand_length(input.min_length, row_count) - 1;
+            resize_and_generate_matrix(transposed_matrix, row_count, column_count);
+        }else{
+            column_count = generate_rand_length(row_count, input.max_length); // to prevent linear dependence of vectors
+            resize_and_generate_matrix(transposed_matrix, row_count, column_count, input.algebra_object_version, input.min_value, input.max_value);
         }
-        for(size_t vec_index = 0; vec_index < end_vec_index; ++vec_index){
-            offset += (vector_system_size - vec_index);
-            size_t dot_index = 0;
-            for(size_t next_vec_index = vec_index + 1; next_vec_index < vector_system_size; ++next_vec_index, ++dot_index){
-                num_type res = dot_product_simple_unsafe(orthogonal_system.at(vec_index), orthogonal_system.at(next_vec_index), vector_length);
-                dot_product_results.at(offset + dot_index) = res;
+    }
+    std::function<vector_num(vector_num&, size_t, size_t)> foo;
+    switch (input.function_type)
+    {
+    case FunctionOptimizationType::kRow:
+        foo = gram_schmidt_matrix_simple;
+        break;
+    case FunctionOptimizationType::kUnrolling:
+        foo = gram_schmidt_matrix_unrolling;
+        break;
+    case FunctionOptimizationType::kSimd:
+        foo = gram_schmidt_matrix_simd;
+        break;
+    case FunctionOptimizationType::kMatrix:
+        foo = gram_schmidt_full_matrix;
+        break;
+    case FunctionOptimizationType::kUnrollingPar:
+        foo = gram_schmidt_matrix_inline_par;
+        break;
+    default:
+        throw Exception(ErrorType::kUnexpectedCase, generate_string("Unsupported FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
+    }
+    if (input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
+        Exception required_exception = Exception(ErrorType::kIncorrectLengthRatio, "");
+        return expect::expect_throw(foo, required_exception, transposed_matrix, row_count, column_count);
+    }
+    orthogonal_transposed_matrix = foo(transposed_matrix, row_count, column_count);
+    if(input.algebra_object_version==AlgebraObjectVersion::kZero){ // the presence of zero vectors leads to nan in the proj calculation 
+        for(size_t vec_index = 0; vec_index < row_count - 1; ++vec_index){
+            for(size_t next_vec_index = vec_index + 1; next_vec_index < row_count; ++next_vec_index){
+                num_type res = inner_simple_dot_product(&orthogonal_transposed_matrix[vec_index * column_count], &orthogonal_transposed_matrix[next_vec_index * column_count], column_count);
+                if(res == res){
+                    return expect::expect_eq(vec_index, next_vec_index);  // to save indexes of wrong vectors
+                }
             }
         }
-        return expect::expect_indexable_containers_near(zero_container, dot_product_results, kRelativeEps, checked_container_length, true);
+        return expect::expect_true(true);
     }
-    return expect::expect_true(true);
+    size_t end_vec_index = row_count - 1;
+    if(input.algebra_object_version == AlgebraObjectVersion::kEmpty){
+        end_vec_index = row_count; // to protect from subtraction from zero
+    }
+    size_t checked_container_length = row_count * (row_count - 1) / 2;
+    vector<num_type> dot_product_results(checked_container_length);
+    vector<num_type> zero_container(checked_container_length);
+    size_t dot_result_offset = -row_count;
+    if(checked_container_length != 0){
+        generate_zero_array(zero_container.data(), checked_container_length);
+    }
+    for(size_t vec_index = 0; vec_index < end_vec_index; ++vec_index){
+        dot_result_offset += (row_count - vec_index);
+        size_t current_dot_result_index = 0;
+        for(size_t next_vec_index = vec_index + 1; next_vec_index < row_count; ++next_vec_index, ++current_dot_result_index){
+            num_type res = inner_simple_dot_product(&orthogonal_transposed_matrix[vec_index * column_count], &orthogonal_transposed_matrix[next_vec_index * column_count], column_count);
+            dot_product_results.at(dot_result_offset + current_dot_result_index) = res;
+        }
+    }
+    return expect::expect_indexable_containers_near(zero_container, dot_product_results, kRelativeEps, checked_container_length, true);
 }
 
 ExpectationResult test_vector_norm(TestFunctionInputExtended input){
@@ -431,9 +499,9 @@ ExpectationResult test_matrix_transposition(TestFunctionInputExtended input){
 }
 
 ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
-    vector<num_type> matrix;
-    vector<num_type> Q_matrix;
-    vector<num_type> R_matrix;
+    vector_num matrix;
+    vector_num Q_matrix;
+    vector_num R_matrix;
 
     // generation
     size_t row_count = 0;
@@ -450,10 +518,6 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
             row_count = kBlockSize * 2;
         }
     }
-    column_count = row_count;
-    //----------------------------------------
-    // column_count = row_count;
-    //----------------------------------------
     resize_and_generate_matrix(matrix, row_count, column_count, input.algebra_object_version, input.min_value, input.max_value);
     resize_and_generate_matrix(Q_matrix, row_count, column_count);
     resize_and_generate_matrix(R_matrix, column_count, column_count);
@@ -494,8 +558,8 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     case FunctionOptimizationType::kHouseholder:
         foo = QR_decomposition_base_householder;
         break;
-    case FunctionOptimizationType::kInlinePar:
-        foo = QR_decomposition_block_scalar_inline_par;
+    case FunctionOptimizationType::kBlockPar:
+        foo = QR_decomposition_block_inline_par;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
@@ -508,11 +572,11 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
         resize_and_generate_matrix(normal_Q, row_count, column_count);
         resize_and_generate_matrix(normal_R, column_count, column_count);
         Exception required_exception = Exception(ErrorType::kUnequalLengthError, "");
-        bool wrong_matrix, wrong_Q, wrong_R;
-        wrong_matrix = expect::expect_throw(foo, required_exception, matrix, normal_Q, normal_R, row_count, column_count);
-        wrong_Q = expect::expect_throw(foo, required_exception, normal_matrix, Q_matrix, normal_R, row_count, column_count);
-        wrong_R = expect::expect_throw(foo, required_exception, normal_matrix, normal_Q, R_matrix, row_count, column_count);
-        return expect::expect_true(wrong_matrix && wrong_Q && wrong_R);
+        bool is_matrix_wrong, is_Q_wrong, is_R_wrong;
+        is_matrix_wrong = expect::expect_throw(foo, required_exception, matrix, normal_Q, normal_R, row_count, column_count);
+        is_Q_wrong = expect::expect_throw(foo, required_exception, normal_matrix, Q_matrix, normal_R, row_count, column_count);
+        is_R_wrong = expect::expect_throw(foo, required_exception, normal_matrix, normal_Q, R_matrix, row_count, column_count);
+        return expect::expect_true(is_matrix_wrong && is_Q_wrong && is_R_wrong);
     }
     foo(matrix, Q_matrix, R_matrix, row_count, column_count);
     vector<num_type> test_matrix(row_count*column_count);

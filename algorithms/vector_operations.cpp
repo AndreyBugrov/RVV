@@ -79,11 +79,15 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
 }
 
 void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
-    for(size_t i=0;i<length;i+=kUnrollCoefficient){
+    size_t reduced_length = length - length % kUnrollCoefficient;
+    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
         mutiplied_vec[i] = vec[i] * number;
         mutiplied_vec[i+1] = vec[i+1] * number;
         mutiplied_vec[i+2] = vec[i+2] * number;
         mutiplied_vec[i+3] = vec[i+3] * number;
+    }
+    for(size_t i = reduced_length; i < length; ++i){
+        mutiplied_vec[i] = vec[i] * number;
     }
 }
 
