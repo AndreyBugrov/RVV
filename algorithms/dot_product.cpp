@@ -30,8 +30,7 @@ num_type dot_product_simd(const vector<num_type>& a, const vector<num_type>& b, 
 
 num_type dot_product_unrolling(const vector<num_type>& a, const vector<num_type>& b, size_t length){
     check_length(a.size(), b.size(), length);
-    size_t unrolled_data_length = length - length % kUnrollCoefficient;
-    return inner_dot_product_unrolling(a.data(), b.data(), unrolled_data_length);
+    return inner_dot_product_unrolling(a.data(), b.data(), length);
     // num_type tail_result = inner_simple_dot_product(a.data()+unrolled_data_length, b.data() + unrolled_data_length, length % kUnrollCoefficient);
     // return unrolled_result + tail_result;
 }

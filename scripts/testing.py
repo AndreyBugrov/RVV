@@ -77,7 +77,7 @@ def _get_tests_result(bin_path: Path, show_online: bool) -> tuple[int, int]:
                 extra_line += f".\nFull test output:\n{test_bin_output}"
             abort_with_message(f"Test was failed. Process returned non-zero code {returncode}{extra_line}")
         LOGGER.warning(f"{returncode} tests were failed")
-        failed_tests = test_bin_output.split("FAILED TESTS: \n")[1]
+        failed_tests = test_bin_output.split("FAILED TESTS:")[1].strip()
         LOGGER.warning(f"Failed tests: \n{failed_tests}")
     else:
         LOGGER.info("Tests passed")

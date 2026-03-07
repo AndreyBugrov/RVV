@@ -99,7 +99,7 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
     resize_and_generate_matrix(etalon, a_row_count, b_column_count);
     resize_and_generate_matrix(c, a_row_count, b_column_count);
 
-    matrix_product_base_simple(a, b, etalon, a_row_count, a_column_count, b_column_count);
+    matrix_product_row_scalar(a, b, etalon, a_row_count, a_column_count, b_column_count);
     std::function<void (const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)> foo;
     switch (input.function_type)
     {
@@ -156,8 +156,8 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
                 resize_and_generate_matrix(b, a_column_count, b_column_count, AlgebraObjectVersion::kGeneral, input.min_value, input.max_value);
                 resize_and_generate_matrix(etalon, a_row_count, b_column_count);
                 size_t max_i = std::min(a_row_count, a_column_count); // number of rows in a and in b
-                for(size_t i=0;i<max_i;++i){
-                    for(size_t j=0;j<b_column_count;++j){
+                for(size_t i = 0; i < max_i; ++i){
+                    for(size_t j = 0;j < b_column_count; ++j){
                         etalon[i*b_column_count+j] = a[i*a_column_count+i]*b[i*b_column_count+j];
                     }
                 }
@@ -235,7 +235,7 @@ ExpectationResult test_gram_schmidt(TestFunctionInputExtended input){
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
         vector_system_size = generate_rand_length(input.min_length, input.max_length);
         if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
-            vector_length = generate_rand_length(input.min_length, vector_system_size);
+            vector_length = generate_rand_length(input.min_length, vector_system_size - 1);
         }else{
             vector_length = generate_rand_length(vector_system_size, input.max_length); // to prevent linear dependence of vectors
         }
@@ -325,7 +325,7 @@ ExpectationResult test_gram_schmidt_matrix(TestFunctionInputExtended input){
     if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
         row_count = generate_rand_length(input.min_length, input.max_length);
         if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
-            column_count = generate_rand_length(input.min_length, row_count) - 1;
+            column_count = generate_rand_length(input.min_length, row_count - 1);
             resize_and_generate_matrix(transposed_matrix, row_count, column_count);
         }else{
             column_count = generate_rand_length(row_count, input.max_length); // to prevent linear dependence of vectors
@@ -506,18 +506,7 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     // generation
     size_t row_count = 0;
     size_t column_count = 0;
-    if(input.algebra_object_version != AlgebraObjectVersion::kEmpty && static_cast<int>(input.algebra_object_version) < static_cast<int>(FunctionOptimizationType::kBlock)){
-        column_count = kUnrollCoefficient * generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
-        row_count = kUnrollCoefficient * generate_rand_length(column_count / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
-    }else{
-        if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
-            // column_count = kBlockSize * generate_rand_length(1, 2);
-            // row_count = kBlockSize * generate_rand_length(1, 2);
-
-            column_count = kBlockSize * 2;
-            row_count = kBlockSize * 2;
-        }
-    }
+    set_row_and_column_count(input, row_count, column_count);
     resize_and_generate_matrix(matrix, row_count, column_count, input.algebra_object_version, input.min_value, input.max_value);
     resize_and_generate_matrix(Q_matrix, row_count, column_count);
     resize_and_generate_matrix(R_matrix, column_count, column_count);
@@ -619,3 +608,15 @@ void resize_and_generate_matrix(vector_num& matrix, size_t row_count, size_t col
     }
 }
 
+void set_row_and_column_count(const TestFunctionInputExtended& input, size_t& row_count, size_t& column_count){
+    if (input.algebra_object_version == AlgebraObjectVersion::kEmpty){
+        return;
+    }
+    if(static_cast<int>(input.function_type) < static_cast<int>(FunctionOptimizationType::kBlock)){
+        column_count = kUnrollCoefficient * generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+        row_count = kUnrollCoefficient * generate_rand_length(column_count / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+        return;
+    }
+    column_count = kBlockSize * generate_rand_length(1, 5);
+    row_count = kBlockSize * generate_rand_length(column_count / kBlockSize, 5);
+}
