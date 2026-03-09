@@ -60,7 +60,7 @@ def plotting(args):
 
 def testing(args):
     compilation_profiles = [profile for profile in translate_compilation_profiles(args.compilation_profiles)]
-    full_test(compilation_profiles, args.device_name, args.no_recompile)
+    full_test(compilation_profiles, args.device_name, args.no_recompile, args.online)
 
 
 def perf_measurements(args):
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     parent_suffix_parser.add_argument("--suffix", help="Custom directory name part after current date", required=False)
 
     parent_lib_parser = argparse.ArgumentParser(add_help=False)
-    parent_lib_parser.add_argument('--lib', help="Path to Eigen library (perf needs it for compilation)", default=None, type=Path, required=True)
+    parent_lib_parser.add_argument('--lib', help="Path to Eigen library (perf needs it for compilation)", default=None, type=Path)
 
     subparsers = parser.add_subparsers()
 
@@ -140,6 +140,7 @@ if __name__ == '__main__':
     experiment_parser.set_defaults(func=experiment)
 
     testing_parser = subparsers.add_parser("test", parents=[base_parent_parser, parent_compilation_parser, parent_multicompilation_parser], help="Tests for all compilation option sets")
+    testing_parser.add_argument('--online', help="Show full test output online", action="store_true")
     testing_parser.set_defaults(func=testing)
 
     performance_parser = subparsers.add_parser("perf", parents=[base_parent_parser, parent_compilation_parser, parent_multicompilation_parser, parent_optimization_parser, parent_output_parser, parent_suffix_parser, parent_lib_parser], help="Performance measurements using Linux Perf")

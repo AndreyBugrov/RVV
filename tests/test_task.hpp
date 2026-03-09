@@ -29,12 +29,16 @@ enum class FunctionOptimizationType{
     kSimd,
     kUnrolling,
     kDoubleUnrolling,
+    kUnrollingPar,
     kBlock,
     kBlockScalar,
+    kBlockPar,
     kInline,
     kMatrix,
     kUnsafe,
     kHouseholder,
+    kHouseholderUnrolling,
+    kInlinePar,
     kNoThrowing,
 };
 

@@ -5,16 +5,17 @@ from typing import Generator
 
 from pathlib import Path
 
-from common_defs import abort_with_message, PARENT_DIRECTORY, X86_NAME, RISC_V_NAME
+from common_defs import abort_with_message, PARENT_DIRECTORY, X86_NAME, RISC_V_NAME, VM_NAME
 
 LOGGER = logging.getLogger(__name__)
 
 COMPILATION_PROFILES = ["debug", "release", "O3", "fast", "base", "math", "lto", "optimal"]
 DEVICE_OPTIMIZATIONS = {
     X86_NAME: "-march=native",
+    VM_NAME: "-march=native",
     RISC_V_NAME: "-march=rv64imafdcv_zicbom_zicboz_zicntr_zicond_zicsr_zifencei_zihintpause_zihpm_zfh_zfhmin_zca_zcd_zba_zbb_zbc_zbs_zkt_zve32f_zve32x_zve64d_zve64f_zve64x_zvfh_zvfhmin_zvkt_sscofpmf_sstc_svinval_svnapot_svpbmt"
 }
-COMMON_OPTIMIZATION_OPTIONS = '-fopenmp-simd'
+COMMON_OPTIMIZATION_OPTIONS = '-fopenmp-simd -fopenmp'
 
 OPTIMIZATION_LEVELS = {
     COMPILATION_PROFILES[0]: f"-O0 {COMMON_OPTIMIZATION_OPTIONS}",
@@ -74,12 +75,12 @@ def _get_source_files_list(is_test: bool) -> list[str]:
 
 
 def _get_specific_options_line(compilation_profile: str, compilation_type: str, eigen_path: Path | None) -> str:
-    if compilation_profile == "test":
-        specific_options = " -fsanitize=address,undefined -fno-sanitize-recover=all"
+    if compilation_type == "test":
+        specific_options = "-fsanitize=address,undefined -fno-sanitize-recover=all"
         if compilation_profile in ["optimal", "math", "fast"]:
             specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
         return specific_options
-    specific_options =  f" -I {eigen_path}"
+    specific_options =  f"-I {eigen_path}"
     if compilation_type == "perf":
         specific_options += " -g"
     return specific_options
@@ -117,13 +118,14 @@ def get_binary_path(compilation_profile: str, device_name: str, compilation_type
     Returns:
         Path: path to the binary execution file
     """
+    LOGGER.debug(f"Compilation type: {compilation_type}")
     bin_path = _get_bin_path(compilation_profile, compilation_type)
     if no_recompile:
         if bin_path.exists():
             LOGGER.warning('Compilation is skipped')
             return bin_path
         LOGGER.warning(f'Binary {bin_path} does not exist. Compilation will be performed.')
-    if (eigen_path is None or not eigen_path.is_dir()) and compilation_type == "experiment":
+    if (eigen_path is None or not eigen_path.is_dir()) and compilation_type != "test":  # no recompile was checked before
         abort_with_message("Eigen library path must be specified")
     # if compilation_type == "eigen":
     #     cmd = ["cmake", "-DCMAKE_BUILD_TYPE=" + compilation_profile.upper(), "-DEIGEN3_INCLUDE_DIR=" + str(eigen_path), "."]

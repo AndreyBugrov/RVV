@@ -56,8 +56,12 @@ def check_output_dir(output_dir: Path):
         abort_with_message(f"Output directory {output_dir} does not exist")
 
 
-def print_result_directory(result_directory: Path):
-    print(f"The result directory: {result_directory}")
+def print_result_directory(result_directory: Path, logging=False):
+    line = f"The result directory: {result_directory}"
+    if logging:
+        LOGGER.debug(line)
+    else:
+        print(line)
 
 
 def prepare_result_directory(output_dir: Path, suffix: str | None) -> Path:
@@ -72,5 +76,5 @@ def prepare_result_directory(output_dir: Path, suffix: str | None) -> Path:
     except FileNotFoundError:
         abort_with_message(f"There are missing parents in path {result_directory}")
     else:
-        print_result_directory(result_directory)
+        print_result_directory(result_directory, logging=True)
     return result_directory

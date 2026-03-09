@@ -79,11 +79,26 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
 }
 
 void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
-    for(size_t i=0;i<length;i+=kUnrollCoefficient){
+    size_t reduced_length = length - length % kUnrollCoefficient;
+    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
         mutiplied_vec[i] = vec[i] * number;
         mutiplied_vec[i+1] = vec[i+1] * number;
         mutiplied_vec[i+2] = vec[i+2] * number;
         mutiplied_vec[i+3] = vec[i+3] * number;
+    }
+    for(size_t i = reduced_length; i < length; ++i){
+        mutiplied_vec[i] = vec[i] * number;
+    }
+}
+
+void inner_multiply_vector_by_number_unrolling_par(const num_type* __restrict__ vec, num_type* __restrict__ multiplied_vec, num_type number, size_t length){
+    size_t i;
+    #pragma omp parallel for shared(multiplied_vec, vec, number, length, kUnrollCoefficient) private(i)
+    for(i=0;i<length;i+=kUnrollCoefficient){
+        multiplied_vec[i] = vec[i] * number;
+        multiplied_vec[i+1] = vec[i+1] * number;
+        multiplied_vec[i+2] = vec[i+2] * number;
+        multiplied_vec[i+3] = vec[i+3] * number;
     }
 }
 
@@ -98,7 +113,8 @@ void inner_element_wise_multiply_vector_by_vector_unrolling(const num_type* a, c
 
 void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
     num_type tmp_vec[kUnrollCoefficient];
-    for(size_t i=0;i<length;i+=kUnrollCoefficient){
+    size_t reduced_length = length - length % kUnrollCoefficient;
+    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
         tmp_vec[0] = vec[i] * number;
         tmp_vec[1] = vec[i+1] * number;
         tmp_vec[2] = vec[i+2] * number;
@@ -109,5 +125,7 @@ void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mut
         mutiplied_vec[i+2] += tmp_vec[2];
         mutiplied_vec[i+3] += tmp_vec[3];
     }
+    for(size_t i = reduced_length; i < length; ++i){
+        mutiplied_vec[i] += vec[i] * number;
+    }
 }
-
