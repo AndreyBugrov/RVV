@@ -113,7 +113,8 @@ void inner_element_wise_multiply_vector_by_vector_unrolling(const num_type* a, c
 
 void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
     num_type tmp_vec[kUnrollCoefficient];
-    for(size_t i=0;i<length;i+=kUnrollCoefficient){
+    size_t reduced_length = length - length % kUnrollCoefficient;
+    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
         tmp_vec[0] = vec[i] * number;
         tmp_vec[1] = vec[i+1] * number;
         tmp_vec[2] = vec[i+2] * number;
@@ -123,5 +124,8 @@ void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mut
         mutiplied_vec[i+1] += tmp_vec[1];
         mutiplied_vec[i+2] += tmp_vec[2];
         mutiplied_vec[i+3] += tmp_vec[3];
+    }
+    for(size_t i = reduced_length; i < length; ++i){
+        mutiplied_vec[i] += vec[i] * number;
     }
 }
