@@ -621,7 +621,7 @@ void set_row_and_column_count(const TestFunctionInputExtended& input, size_t& ro
         return;
     }
     if (input.function_type == FunctionOptimizationType::kHouseholder || input.function_type == FunctionOptimizationType::kHouseholderUnrolling){
-        column_count = kUnrollCoefficient * generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+        column_count = generate_rand_length(input.min_length, input.max_length);
         row_count = column_count;
         return;
     }
