@@ -547,6 +547,9 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     case FunctionOptimizationType::kHouseholder:
         foo = QR_decomposition_base_householder;
         break;
+    case FunctionOptimizationType::kHouseholderUnrolling:
+        foo = QR_decomposition_householder_unrolling;
+        break;
     case FunctionOptimizationType::kBlockPar:
         foo = QR_decomposition_block_inline_par;
         break;
@@ -615,6 +618,11 @@ void set_row_and_column_count(const TestFunctionInputExtended& input, size_t& ro
     if(static_cast<int>(input.function_type) < static_cast<int>(FunctionOptimizationType::kBlock)){
         column_count = kUnrollCoefficient * generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
         row_count = kUnrollCoefficient * generate_rand_length(column_count / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+        return;
+    }
+    if (input.function_type == FunctionOptimizationType::kHouseholder || input.function_type == FunctionOptimizationType::kHouseholderUnrolling){
+        column_count = kUnrollCoefficient * generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+        row_count = column_count;
         return;
     }
     column_count = kBlockSize * generate_rand_length(1, 5);
