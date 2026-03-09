@@ -193,6 +193,9 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
     case FunctionOptimizationType::kRow:
         foo = matrix_product_row_simple;
         break;
+    case FunctionOptimizationType::kRowScalar:
+        foo = matrix_product_row_scalar;
+        break;
     case FunctionOptimizationType::kBlock:
         foo = matrix_product_row_block;
         break;

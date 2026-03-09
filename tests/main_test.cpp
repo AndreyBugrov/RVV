@@ -58,6 +58,7 @@ void fill_tasks(std::vector<TestTask>& tasks){
             map<FunctionOptimizationType, string>{
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimple, "base simple matrix product"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "row simple matrix product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRowScalar, "row matrix product with unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "block row matrix product"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "block row matrix product with unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockPar, "parallel block row matrix product without unrolling"),
