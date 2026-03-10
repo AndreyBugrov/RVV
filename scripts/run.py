@@ -8,6 +8,7 @@ from compilation import get_binary_path, COMPILATION_PROFILES, translate_compila
 from experiment import get_function_name_set, full_experiment_pass, FUNCTION_NAMES_DICT, OPERATIONS, OPTIMIZATIONS
 from testing import full_test
 from performance import measure_performance
+from compiler_report import get_compiler_report
 from common_defs import abort_with_message, get_device_name, set_logger_level, X86_NAME, RISC_V_NAME, VM_NAME
 
 
@@ -81,6 +82,11 @@ def perf_measurements(args):
                         args.suffix, flamegraph_repo, args.no_recompile, eigen_path=args.lib)
 
 
+def compiler_report(args):
+    compilation_profiles = translate_compilation_profiles(args.compilation_profiles)
+    get_compiler_report(args.device_name, args.output_dir, args.suffix, compilation_profiles, args.lib)
+
+
 def disasm(args):
     bin_path = 1
 
@@ -147,6 +153,9 @@ if __name__ == '__main__':
     performance_parser.add_argument('--optimization-classes', **OPTIMIZATION_CLASSES_KWARGS, required=True)
     performance_parser.add_argument('--flamegraph', type=Path, default=Path("../FlameGraph").resolve(), help="Path to a dir containing flame graph scripts")
     performance_parser.set_defaults(func=perf_measurements)
+
+    compiler_report_parser = subparsers.add_parser("compiler-report", parents=[base_parent_parser, parent_multicompilation_parser, parent_output_parser, parent_suffix_parser, parent_lib_parser], help="Compiler report")
+    compiler_report_parser.set_defaults(func=compiler_report)
 
     disasm_parser = subparsers.add_parser("disasm", parents=[base_parent_parser, parent_compilation_parser, parent_multicompilation_parser, parent_lib_parser], help="Disassembling using Linux Perf")
     disasm_parser.set_defaults(func=disasm)

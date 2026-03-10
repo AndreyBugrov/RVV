@@ -35,7 +35,7 @@ EXTRA_OPTIMIZATIONS = {
 }
 
 
-def _get_optimization_options(compilation_profile: str, device_name: str) -> str:
+def get_optimization_options(compilation_profile: str, device_name: str) -> str:
     optimization_options = f"{DEVICE_OPTIMIZATIONS[device_name]}"
     if compilation_profile in OPTIMIZATION_LEVELS.keys():
         optimization_options += f" {OPTIMIZATION_LEVELS[compilation_profile]}"
@@ -74,13 +74,18 @@ def _get_source_files_list(is_test: bool) -> list[str]:
     return source_file_list
 
 
-def _get_specific_options_line(compilation_profile: str, compilation_type: str, eigen_path: Path | None) -> str:
+def get_specific_options_line(compilation_profile: str, compilation_type: str, device_name: str, eigen_path: Path | None) -> str:
+    if device_name == RISC_V_NAME:
+        specific_options = "-DRISCV_ARCH "
+    else:
+        specific_options = "-DX86_ARCH "
+
     if compilation_type == "test":
-        specific_options = "-fsanitize=address,undefined -fno-sanitize-recover=all"
+        specific_options += "-fsanitize=address,undefined -fno-sanitize-recover=all"
         if compilation_profile in ["optimal", "math", "fast"]:
             specific_options += " -fno-finite-math-only"  # for nan tests in Gram-Schmidt process
         return specific_options
-    specific_options =  f"-I {eigen_path}"
+    specific_options +=  f"-I {eigen_path}"
     if compilation_type == "perf":
         specific_options += " -g"
     return specific_options
@@ -91,13 +96,8 @@ def _get_compilation_commands(bin_path: Path, compilation_profile: str, device_n
     source_file_list = _get_source_files_list(is_test)
     LOGGER.debug("Source file list: " + " ".join(source_file_list))
 
-    optimization_options = _get_optimization_options(compilation_profile, device_name)
-
-    specific_options = _get_specific_options_line(compilation_profile=compilation_profile, compilation_type=compilation_type, eigen_path=eigen_path)
-    if device_name == RISC_V_NAME:
-        specific_options += " -DRISCV_ARCH"
-    else:
-        specific_options += " -DX86_ARCH"
+    optimization_options = get_optimization_options(compilation_profile, device_name)
+    specific_options = get_specific_options_line(compilation_profile=compilation_profile, compilation_type=compilation_type, device_name=device_name, eigen_path=eigen_path)
 
     args = f"ccache g++ -Wall -Werror -Wsign-compare -std=c++20 -fdiagnostics-color=always -fno-omit-frame-pointer {optimization_options} {specific_options} {' '.join(source_file_list)} -o {bin_path}"
     cmd = shlex.split(args)

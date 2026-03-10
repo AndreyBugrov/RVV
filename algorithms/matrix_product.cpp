@@ -61,7 +61,7 @@ void matrix_product_row_block(const vector<num_type>& a, const vector<num_type>&
     }
 }
 
-void matrix_product_row_block_scalar(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
+void matrix_product_row_block_unrolling(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
     for(size_t ik = 0; ik < a_row_count; ik += kBlockSize){
         for(size_t jk = 0; jk < a_column_count; jk += kBlockSize){
@@ -87,6 +87,53 @@ void matrix_product_row_block_par(const vector<num_type>& a, const vector<num_ty
                     for(j = 0; j < kBlockSize; ++j){
                         for(k = 0; k < kBlockSize; ++k){
                             c[(ik + i) * b_column_count + (kk + k)] += a[(ik + i) * a_column_count + (jk + j)] * b[(jk + j) * b_column_count + (kk + k)];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void product(num_type a_coeff, const num_type __restrict__* start_b_index, num_type __restrict__* start_c_index){
+    num_type coef[kUnrollCoefficient];
+
+    for(size_t k = 0; k < kBlockSize / kUnrollCoefficient; k+=kUnrollCoefficient){
+        coef[0] = a_coeff * start_b_index[k];
+        coef[1] = a_coeff * start_b_index[k + 1];
+        coef[2] = a_coeff * start_b_index[k + 2];
+        coef[3] = a_coeff * start_b_index[k + 3];
+
+        start_c_index[k] += coef[0];
+        start_c_index[k + 1] += coef[1];
+        start_c_index[k + 2] += coef[2];
+        start_c_index[k + 3] += coef[3];
+    }
+}
+
+void matrix_product_row_block_unrolling_par(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
+    check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
+    size_t ik, jk, kk, i, j, k;
+    num_type coef[kUnrollCoefficient];
+    #pragma omp parallel for shared(a, b, c, a_row_count, a_column_count, b_column_count, kBlockSize) private(ik, jk, kk, i, j, k, coef)
+    for(ik = 0; ik < a_row_count; ik += kBlockSize){
+        for(jk = 0; jk < a_column_count; jk += kBlockSize){
+            for(kk = 0; kk < b_column_count; kk += kBlockSize){
+                for(i = 0; i < kBlockSize; ++i){
+                    num_type* start_c_index = c.data() + (ik + i) * b_column_count + kk;
+                    for(j = 0; j < kBlockSize; ++j){
+                        num_type a_coeff = a[(ik + i) * a_column_count + (jk + j)];
+                        const num_type* start_b_index = b.data() + (jk + j) * b_column_count + kk;
+                        for(k = 0; k < kBlockSize / kUnrollCoefficient; k += kUnrollCoefficient){
+                            coef[0] = a_coeff * start_b_index[k];
+                            coef[1] = a_coeff * start_b_index[k + 1];
+                            coef[2] = a_coeff * start_b_index[k + 2];
+                            coef[3] = a_coeff * start_b_index[k + 3];
+
+                            start_c_index[k] += coef[0];
+                            start_c_index[k + 1] += coef[1];
+                            start_c_index[k + 2] += coef[2];
+                            start_c_index[k + 3] += coef[3];
                         }
                     }
                 }

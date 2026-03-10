@@ -57,12 +57,13 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
         std::pair<std::string, FunctionIndex>("qr_d_urol", FunctionIndex::kQRUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_drol", FunctionIndex::kQRDoubleUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_block", FunctionIndex::kQRBlock),
-        std::pair<std::string, FunctionIndex>("qr_d_dot", FunctionIndex::kQRBlockScalar),
+        std::pair<std::string, FunctionIndex>("qr_d_dot", FunctionIndex::kQRBlockUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_inl", FunctionIndex::kQRInline),
         std::pair<std::string, FunctionIndex>("qr_d_matr", FunctionIndex::kQRMatrix),
         std::pair<std::string, FunctionIndex>("qr_d_hh_sim", FunctionIndex::kQRHouseholderSimple),
         std::pair<std::string, FunctionIndex>("qr_d_hh_urol", FunctionIndex::kQRHouseholderUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_inl_par", FunctionIndex::kQRInlinePar),
+        std::pair<std::string, FunctionIndex>("qr_d_inl_urol_par", FunctionIndex::kQRInlineUnrollingPar),
     };
     enum ArgumentNumber{
         kDotProduct = 1,
@@ -210,11 +211,11 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
         case FunctionIndex::kQRBlock:
             foo = QR_decomposition_block;
             break;
-        case FunctionIndex::kQRBlockScalar:
-            foo = QR_decomposition_block_scalar;
+        case FunctionIndex::kQRBlockUnrolling:
+            foo = QR_decomposition_block_unrolling;
             break;
         case FunctionIndex::kQRInline:
-            foo = QR_decomposition_block_scalar_inline;
+            foo = QR_decomposition_block_unrolling_inline;
             break;
         case FunctionIndex::kQRMatrix:
             foo = QR_decomposition_full_matrix;
@@ -227,6 +228,9 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
             break;
         case FunctionIndex::kQRInlinePar:
             foo = QR_decomposition_block_inline_par;
+            break;
+        case FunctionIndex::kQRInlineUnrollingPar:
+            foo = QR_decomposition_block_unrolling_par;
             break;
         default:
             break;

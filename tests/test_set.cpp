@@ -106,11 +106,14 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
     case FunctionOptimizationType::kBlock:
         foo = matrix_product_row_block;
         break;
-    case FunctionOptimizationType::kBlockScalar:
-        foo = matrix_product_row_block_scalar;
+    case FunctionOptimizationType::kBlockUnrolling:
+        foo = matrix_product_row_block_unrolling;
         break;
     case FunctionOptimizationType::kBlockPar:
         foo = matrix_product_row_block_par;
+        break;
+    case FunctionOptimizationType::kBlockUnrollingPar:
+        foo = matrix_product_row_block_unrolling_par;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
@@ -121,7 +124,7 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
 
 bool do_block_matrix_product_immediately(FunctionOptimizationType function_type, AlgebraObjectVersion object_version){
     bool acceptable_type = (function_type == FunctionOptimizationType::kBlock ||
-        function_type == FunctionOptimizationType::kBlockScalar ||
+        function_type == FunctionOptimizationType::kBlockUnrolling ||
         function_type == FunctionOptimizationType::kBlockPar);
     bool acceptable_version = (object_version == AlgebraObjectVersion::kGeneral ||
         object_version == AlgebraObjectVersion::kIdentity ||
@@ -199,11 +202,14 @@ ExpectationResult test_matrix_product(TestFunctionInputExtended input){
     case FunctionOptimizationType::kBlock:
         foo = matrix_product_row_block;
         break;
-    case FunctionOptimizationType::kBlockScalar:
-        foo = matrix_product_row_block_scalar;
+    case FunctionOptimizationType::kBlockUnrolling:
+        foo = matrix_product_row_block_unrolling;
         break;
     case FunctionOptimizationType::kBlockPar:
         foo = matrix_product_row_block_par;
+        break;
+    case FunctionOptimizationType::kBlockUnrollingPar:
+        foo = matrix_product_row_block_unrolling_par;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
@@ -538,11 +544,11 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     case FunctionOptimizationType::kBlock:
         foo = QR_decomposition_block;
         break;
-    case FunctionOptimizationType::kBlockScalar:
-        foo = QR_decomposition_block_scalar;
+    case FunctionOptimizationType::kBlockUnrolling:
+        foo = QR_decomposition_block_unrolling;
         break;
     case FunctionOptimizationType::kInline:
-        foo = QR_decomposition_block_scalar_inline;
+        foo = QR_decomposition_block_unrolling_inline;
         break;
     case FunctionOptimizationType::kMatrix:
         foo = QR_decomposition_full_matrix;
@@ -555,6 +561,9 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kBlockPar:
         foo = QR_decomposition_block_inline_par;
+        break;
+    case FunctionOptimizationType::kBlockUnrollingPar:
+        foo = QR_decomposition_block_unrolling_par;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
