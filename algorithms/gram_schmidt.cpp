@@ -101,6 +101,10 @@ vector_num gram_schmidt_matrix_inline_par(vector_num& transposed_matrix, size_t 
     return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace, inner_multiply_vector_by_number_unrolling, true);
 }
 
+vector_num gram_schmidt_matrix_inline_unrolling_par(vector_num& transposed_matrix, size_t row_count, size_t column_count){
+    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace_unrolling, inner_multiply_vector_by_number_unrolling, true);
+}
+
 void vector_matrix_product(const num_type* vec, const num_type* transposed_matrix, num_type* result_vec, size_t row_count, size_t column_count){  
     for(size_t vec_index = 0; vec_index < row_count; ++vec_index){
         result_vec[vec_index] = inner_dot_product_unrolling(&transposed_matrix[vec_index*column_count], vec, column_count);

@@ -46,6 +46,8 @@ def _process_compilation_profile(profile_dir: Path, optimization_options: list[s
 
 
 def get_compiler_report(device_name: str, output_dir: Path, suffix: str, compilation_profiles: list[str], eigen_path: Path):
+    if not eigen_path:
+        abort_with_message("Specify --lib parameter")
     check_output_dir(output_dir)
     result_directory = prepare_result_directory(output_dir, suffix)
     specific_options = get_specific_options_line(compilation_profile="", compilation_type="report", device_name=device_name, eigen_path=eigen_path)  # compilation profile is not needed here

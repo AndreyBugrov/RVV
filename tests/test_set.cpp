@@ -565,6 +565,9 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     case FunctionOptimizationType::kBlockUnrollingPar:
         foo = QR_decomposition_block_unrolling_par;
         break;
+    case FunctionOptimizationType::kFullUnrolling:
+        foo = QR_decomposition_full_unrolling_par;
+        break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
@@ -636,6 +639,9 @@ void set_row_and_column_count(const TestFunctionInputExtended& input, size_t& ro
         column_count = generate_rand_length(input.min_length, input.max_length);
         row_count = column_count;
         return;
+    }
+    if (input.function_type == FunctionOptimizationType::kBlockUnrollingPar){
+        std::cout<<"\nkBlockUnrollingPar"<<"\n";
     }
     column_count = kBlockSize * generate_rand_length(1, 5);
     row_count = kBlockSize * generate_rand_length(column_count / kBlockSize, 5);

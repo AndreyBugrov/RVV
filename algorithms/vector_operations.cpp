@@ -49,11 +49,15 @@ void sub_vector_from_vector_inplace_simd(num_type* minuend, const num_type* subt
 }
 
 void sub_vector_from_vector_inplace_unrolling(num_type* minuend, const num_type* subtrahend, size_t length){
-    for(size_t i=0;i<length;i+=4){
+    size_t reduced_length = length - length % kUnrollCoefficient;
+    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
+        minuend[i] = minuend[i] - subtrahend[i];
+        minuend[i+1] = minuend[i+1] - subtrahend[i+1];
+        minuend[i+2] = minuend[i+2] - subtrahend[i+2];
+        minuend[i+3] = minuend[i+3] - subtrahend[i+3];
+    }
+    for(size_t i = reduced_length; i < length; ++i){
         minuend[i] -= subtrahend[i];
-        minuend[i+1] -= subtrahend[i+1];
-        minuend[i+2] -= subtrahend[i+2];
-        minuend[i+3] -= subtrahend[i+3];
     }
 }
 
