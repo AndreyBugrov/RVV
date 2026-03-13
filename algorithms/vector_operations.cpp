@@ -105,7 +105,7 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
     }
 }
 
-void inner_multiply_vector_by_number_unrolling(const num_type*__attribute__((aligned(32))) vec, num_type*__attribute__((aligned(32))) mutiplied_vec, num_type number, size_t length){
+void inner_multiply_vector_by_number_unrolling(const num_type*__attribute__((aligned(32))) vec, num_type*__attribute__((aligned(32))) multiplied_vec, num_type number, size_t length){
     #ifdef RISCV_ARCH
         size_t i = 0;
         // LMUL = 2 → работаем с типом vfloat64m2_t (8 double за раз)
