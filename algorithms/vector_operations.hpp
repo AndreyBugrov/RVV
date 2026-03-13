@@ -2,6 +2,9 @@
 
 #include <cmath>  // sqrt for norm
 #include <cstring> // vector copy
+#ifdef RISCV_ARCH
+#include <riscv_vector.h>
+#endif
 
 #include "omp.h" // simd + parallel
 

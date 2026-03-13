@@ -48,17 +48,40 @@ void sub_vector_from_vector_inplace_simd(num_type* minuend, const num_type* subt
     }
 }
 
-void sub_vector_from_vector_inplace_unrolling(num_type* minuend, const num_type* subtrahend, size_t length){
-    size_t reduced_length = length - length % kUnrollCoefficient;
-    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
-        minuend[i] = minuend[i] - subtrahend[i];
-        minuend[i+1] = minuend[i+1] - subtrahend[i+1];
-        minuend[i+2] = minuend[i+2] - subtrahend[i+2];
-        minuend[i+3] = minuend[i+3] - subtrahend[i+3];
-    }
-    for(size_t i = reduced_length; i < length; ++i){
-        minuend[i] -= subtrahend[i];
-    }
+// void sub_vector_from_vector_inplace_unrolling(num_type* minuend, const num_type* subtrahend, size_t length){
+//     size_t reduced_length = length - length % kUnrollCoefficient;
+//     for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
+//         minuend[i] = minuend[i] - subtrahend[i];
+//         minuend[i+1] = minuend[i+1] - subtrahend[i+1];
+//         minuend[i+2] = minuend[i+2] - subtrahend[i+2];
+//         minuend[i+3] = minuend[i+3] - subtrahend[i+3];
+//     }
+//     for(size_t i = reduced_length; i < length; ++i){
+//         minuend[i] -= subtrahend[i];
+//     }
+// }
+
+void sub_vector_from_vector_inplace_unrolling(num_type* __restrict minuend, const num_type* __restrict subtrahend, size_t length){
+    #ifdef RISCV_ARCH
+        size_t i = 0;
+        // Используем LMUL = 2 (vfloat64m2_t). Можно изменить на m1, m4, m8 для большей длины.
+        // vsetvl_e64m1 автоматически выбирает подходящее количество элементов для данного LMUL.
+        while (i < length) {
+            size_t vl = vsetvl_e64m2(length - i);
+            vfloat64m2_t vec_min = vle64_v_f64m2(minuend + i, vl);
+            vfloat64m2_t vec_sub = vle64_v_f64m2(subtrahend + i, vl);
+            vfloat64m2_t vec_res = vfsub_vv_f64m2(vec_min, vec_sub, vl);
+            vse64_v_f64m2(minuend + i, vec_res, vl);
+            i += vl;
+        }
+    #else
+        minuend = static_cast<num_type*>(__builtin_assume_aligned(minuend, 64));
+        subtrahend = static_cast<const num_type*>(__builtin_assume_aligned(subtrahend, 64));
+        #pragma GCC ivdep
+        for(size_t i = 0; i < length; ++i){
+            minuend[i] -= subtrahend[i];
+        }
+    #endif
 }
 
 vector<num_type> multiply_vector_by_number(const vector<num_type>& vec, num_type number){
@@ -82,7 +105,7 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
     }
 }
 
-void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
+void inner_multiply_vector_by_number_unrolling(const num_type*__attribute__((aligned(32))) vec, num_type*__attribute__((aligned(32))) mutiplied_vec, num_type number, size_t length){
     size_t reduced_length = length - length % kUnrollCoefficient;
     for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
         mutiplied_vec[i] = vec[i] * number;

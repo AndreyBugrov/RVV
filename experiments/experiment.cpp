@@ -64,6 +64,7 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
         std::pair<std::string, FunctionIndex>("qr_d_hh_urol", FunctionIndex::kQRHouseholderUnrolling),
         std::pair<std::string, FunctionIndex>("qr_d_inl_par", FunctionIndex::kQRInlinePar),
         std::pair<std::string, FunctionIndex>("qr_d_inl_urol_par", FunctionIndex::kQRInlineUnrollingPar),
+        std::pair<std::string, FunctionIndex>("qr_d_frol", FunctionIndex::kQRFullUnrolling),
     };
     enum ArgumentNumber{
         kDotProduct = 1,
@@ -231,6 +232,9 @@ ExperimentOutput run_experiment(int experiment_count, std::string function_name,
             break;
         case FunctionIndex::kQRInlineUnrollingPar:
             foo = QR_decomposition_block_unrolling_par;
+            break;
+        case FunctionIndex::kQRFullUnrolling:
+            foo = QR_decomposition_full_unrolling_par;
             break;
         default:
             break;
