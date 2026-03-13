@@ -106,16 +106,28 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
 }
 
 void inner_multiply_vector_by_number_unrolling(const num_type*__attribute__((aligned(32))) vec, num_type*__attribute__((aligned(32))) mutiplied_vec, num_type number, size_t length){
-    size_t reduced_length = length - length % kUnrollCoefficient;
-    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
-        mutiplied_vec[i] = vec[i] * number;
-        mutiplied_vec[i+1] = vec[i+1] * number;
-        mutiplied_vec[i+2] = vec[i+2] * number;
-        mutiplied_vec[i+3] = vec[i+3] * number;
-    }
-    for(size_t i = reduced_length; i < length; ++i){
-        mutiplied_vec[i] = vec[i] * number;
-    }
+    #ifdef RISCV_ARCH
+        size_t i = 0;
+        // LMUL = 2 → работаем с типом vfloat64m2_t (8 double за раз)
+        while (i < length) {
+            size_t vl = __riscv_vsetvl_e64m2(length - i); // активная длина для данного LMUL
+            vfloat64m2_t v_vec = __riscv_vle64_v_f64m2(vec + i, vl);          // загружаем вектор
+            vfloat64m2_t v_res = __riscv_vfmul_vf_f64m2(v_vec, number, vl);   // умножаем на скаляр
+            __riscv_vse64_v_f64m2(multiplied_vec + i, v_res, vl);             // сохраняем результат
+            i += vl;
+        }
+    #else
+        size_t reduced_length = length - length % kUnrollCoefficient;
+        for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
+            mutiplied_vec[i] = vec[i] * number;
+            mutiplied_vec[i+1] = vec[i+1] * number;
+            mutiplied_vec[i+2] = vec[i+2] * number;
+            mutiplied_vec[i+3] = vec[i+3] * number;
+        }
+        for(size_t i = reduced_length; i < length; ++i){
+            mutiplied_vec[i] = vec[i] * number;
+        }
+    #endif
 }
 
 void inner_multiply_vector_by_number_unrolling_par(const num_type* __restrict__ vec, num_type* __restrict__ multiplied_vec, num_type number, size_t length){
