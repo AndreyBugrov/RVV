@@ -67,11 +67,11 @@ void sub_vector_from_vector_inplace_unrolling(num_type* __restrict minuend, cons
         // Используем LMUL = 2 (vfloat64m2_t). Можно изменить на m1, m4, m8 для большей длины.
         // vsetvl_e64m1 автоматически выбирает подходящее количество элементов для данного LMUL.
         while (i < length) {
-            size_t vl = vsetvl_e64m2(length - i);
-            vfloat64m2_t vec_min = vle64_v_f64m2(minuend + i, vl);
-            vfloat64m2_t vec_sub = vle64_v_f64m2(subtrahend + i, vl);
-            vfloat64m2_t vec_res = vfsub_vv_f64m2(vec_min, vec_sub, vl);
-            vse64_v_f64m2(minuend + i, vec_res, vl);
+            size_t vl = __riscv_vsetvl_e64m2(length - i);
+            vfloat64m2_t vec_min = __riscv_vle64_v_f64m2(minuend + i, vl);
+            vfloat64m2_t vec_sub = __riscv_vle64_v_f64m2(subtrahend + i, vl);
+            vfloat64m2_t vec_res = __riscv_vfsub_vv_f64m2(vec_min, vec_sub, vl);
+            __riscv_vse64_v_f64m2(minuend + i, vec_res, vl);
             i += vl;
         }
     #else
