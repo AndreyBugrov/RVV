@@ -55,7 +55,7 @@ void QR_decomposition_block_inline_par(const vector<num_type>& matrix, vector<nu
 }
 
 void QR_decomposition_block_unrolling_par(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
-    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline_par, matrix_product_row_block_unrolling_par);
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_test, matrix_product_row_block_unrolling_par);
 }
 
 void QR_decomposition_full_unrolling_par(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){

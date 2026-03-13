@@ -12,10 +12,6 @@ BASE_STR = "ccache g++ -Wall -Werror -Wsign-compare -std=c++20 -fdiagnostics-col
 LOGGER = logging.getLogger(__name__)
 
 
-def _get_source_files_list(dir: Path) -> list[Path]:
-    return [item for item in dir.glob("*.cpp")]
-
-
 def _make_subdir(dir: Path, subdir_name: str, exist_ok=False) -> Path:
     subdir = dir / subdir_name
     subdir.mkdir(exist_ok=exist_ok)
@@ -38,11 +34,12 @@ def _process_src(src_file: Path, base_dir: Path, optimization_options: list[str]
 
 
 def _process_compilation_profile(profile_dir: Path, optimization_options: list[str], specific_options: list[str], result_directory: Path):
-    for dir in ["algorithms", "common", "experiments"]:
+    for dir in ["algorithms", "common"]:
         LOGGER.info(f"Processing directory: {dir}")
         sources_folder_dir = _make_subdir(profile_dir, dir)
         for src_file in Path(dir).glob("*.cpp"):
             _process_src(src_file, sources_folder_dir, optimization_options, specific_options)
+        LOGGER.info(f"Sources folder directory: {sources_folder_dir}")
 
 
 def get_compiler_report(device_name: str, output_dir: Path, suffix: str, compilation_profiles: list[str], eigen_path: Path):
