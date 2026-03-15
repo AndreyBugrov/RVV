@@ -142,6 +142,62 @@ void matrix_product_row_block_unrolling_par(const vector<num_type>& a, const vec
     }
 }
 
+void matrix_product_rvv(const std::vector<double>& a,
+                        const std::vector<double>& b,
+                        std::vector<double>& c,
+                        size_t a_row_count,
+                        size_t a_column_count,
+                        size_t b_column_count) {
+    const size_t block_size = kBlockSize; // например, 64
+
+    // Получаем сырые указатели с restrict для гарантии отсутствия алиасинга
+    const double* __restrict a_ptr = a.data();
+    const double* __restrict b_ptr = b.data();
+    double* __restrict c_ptr = c.data();
+
+    #pragma omp parallel for shared(a_ptr, b_ptr, c_ptr, a_row_count, a_column_count, b_column_count, block_size)
+    for (size_t ik = 0; ik < a_row_count; ik += block_size) {
+        for (size_t jk = 0; jk < a_column_count; jk += block_size) {
+            for (size_t kk = 0; kk < b_column_count; kk += block_size) {
+                size_t max_i = std::min(block_size, a_row_count - ik);
+                size_t max_j = std::min(block_size, a_column_count - jk);
+                size_t max_k = std::min(block_size, b_column_count - kk);
+
+                for (size_t i = 0; i < max_i; ++i) {
+                    double* c_row = c_ptr + (ik + i) * b_column_count + kk;
+                    const double* a_row = a_ptr + (ik + i) * a_column_count + jk;
+
+                    for (size_t j = 0; j < max_j; ++j) {
+                        double a_coeff = a_row[j];
+                        const double* b_row = b_ptr + (jk + j) * b_column_count + kk;
+                        double* c_block = c_row;
+
+                        size_t k = 0;
+                        // Векторная обработка блока
+                        while (k < max_k) {
+                            // Устанавливаем активную длину для типа double с LMUL=2 (8 элементов за раз)
+                            size_t vl = __riscv_vsetvl_e64m2(max_k - k);
+
+                            // Загружаем вектор из B
+                            vfloat64m2_t v_b = __riscv_vle64_v_f64m2(b_row + k, vl);
+                            // Загружаем текущий вектор из C
+                            vfloat64m2_t v_c = __riscv_vle64_v_f64m2(c_block + k, vl);
+
+                            // v_c = v_c + a_coeff * v_b  (FMA)
+                            vfloat64m2_t v_res = __riscv_vfmacc_vf_f64m2(v_c, a_coeff, v_b, vl);
+
+                            // Сохраняем результат обратно в C
+                            __riscv_vse64_v_f64m2(c_block + k, v_res, vl);
+
+                            k += vl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // bad on board
 // void matrix_product_row_block_scalar_par(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count){
 //     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
