@@ -148,7 +148,6 @@ void matrix_product_rvv(const std::vector<double>& a,
                         size_t a_row_count,
                         size_t a_column_count,
                         size_t b_column_count) {
-    const size_t block_size = kBlockSize; // например, 64
 
     // Получаем сырые указатели с restrict для гарантии отсутствия алиасинга
     const double* __restrict a_ptr = a.data();
