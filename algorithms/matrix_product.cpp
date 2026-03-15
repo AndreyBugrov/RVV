@@ -156,27 +156,23 @@ void matrix_product_rvv(const std::vector<double>& a,
     double* __restrict c_ptr = c.data();
 
     #pragma omp parallel for shared(a_ptr, b_ptr, c_ptr, a_row_count, a_column_count, b_column_count, block_size)
-    for (size_t ik = 0; ik < a_row_count; ik += block_size) {
-        for (size_t jk = 0; jk < a_column_count; jk += block_size) {
-            for (size_t kk = 0; kk < b_column_count; kk += block_size) {
-                size_t max_i = std::min(block_size, a_row_count - ik);
-                size_t max_j = std::min(block_size, a_column_count - jk);
-                size_t max_k = std::min(block_size, b_column_count - kk);
-
-                for (size_t i = 0; i < max_i; ++i) {
+    for(size_t ik = 0; ik < a_row_count; ik += kBlockSize){
+        for(size_t jk = 0; jk < a_column_count; jk += kBlockSize){
+            for(size_t kk = 0; kk < b_column_count; kk += kBlockSize){
+                for(size_t i = 0; i < kBlockSize; ++i){
                     double* c_row = c_ptr + (ik + i) * b_column_count + kk;
                     const double* a_row = a_ptr + (ik + i) * a_column_count + jk;
 
-                    for (size_t j = 0; j < max_j; ++j) {
+                    for (size_t j = 0; j < kBlockSize; ++j) {
                         double a_coeff = a_row[j];
                         const double* b_row = b_ptr + (jk + j) * b_column_count + kk;
                         double* c_block = c_row;
 
                         size_t k = 0;
                         // Векторная обработка блока
-                        while (k < max_k) {
+                        while (k < kBlockSize) {
                             // Устанавливаем активную длину для типа double с LMUL=2 (8 элементов за раз)
-                            size_t vl = __riscv_vsetvl_e64m2(max_k - k);
+                            size_t vl = __riscv_vsetvl_e64m2(kBlockSize - k);
 
                             // Загружаем вектор из B
                             vfloat64m2_t v_b = __riscv_vle64_v_f64m2(b_row + k, vl);
