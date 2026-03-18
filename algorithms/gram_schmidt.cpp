@@ -22,7 +22,7 @@ void proj_simd(const num_type* projected, const num_type* mapped_vec, num_type* 
 void proj_unrolling(const num_type* projected, const num_type* mapped_vec, num_type* projection, size_t length){
     num_type a_b = inner_dot_product_unrolling(projected, mapped_vec, length);
     num_type b_b = inner_dot_product_unrolling(mapped_vec, mapped_vec, length);
-    inner_multiply_vector_by_number_unrolling(mapped_vec, projection, a_b/b_b, length);
+    inner_multiply_vector_by_number(mapped_vec, projection, a_b/b_b, length);
 }
 
 vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>& vec_system){

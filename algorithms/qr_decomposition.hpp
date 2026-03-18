@@ -6,12 +6,9 @@
 #include "gram_schmidt.hpp"  // Gram-Schmidt process, normalize_vector, vector_norm
 #include "matrix_product.hpp" // matrix product
 #include "matrix_operations.hpp"  // transpose matrix
-#include "outer_product.hpp" // outer product
 #include "householder.hpp" // householder operations
 
 using std::vector;
-
-const num_type kAlmostZero = 1e-12;
 
 using matrix_product_function = std::function<void(const vector_num&, const vector_num&, vector_num&, size_t, size_t, size_t)>;
 using orthogonalization_function = std::function<vector_num(vector_num&, size_t, size_t)>;

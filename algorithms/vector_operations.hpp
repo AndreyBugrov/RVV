@@ -23,13 +23,12 @@ bool is_vector_zero(const vector<num_type>& vec);
 void sub_vector_from_vector_inplace_vector(vector<num_type>& minuend, const vector<num_type>& subtrahend);
 void sub_vector_from_vector_inplace(num_type* minuend, const num_type* subtrahend, size_t length);
 void sub_vector_from_vector_inplace_simd(num_type* minuend, const num_type* subtrahend, size_t length);
-void sub_vector_from_vector_inplace_unrolling(num_type* minuend, const num_type* subtrahend, size_t length);
+void sub_vector_from_vector_inplace_unrolling(num_type* __restrict minuend, const num_type* __restrict subtrahend, size_t length);
 
 vector<num_type> multiply_vector_by_number(const vector<num_type>& vec, num_type number);
 void inner_multiply_vector_by_number(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
 void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
-void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
-void inner_multiply_vector_by_number_unrolling_par(const num_type* vec, num_type* multiplied_vec, num_type number, size_t length);
+void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* multiplied_vec, num_type number, size_t length);
 
 void matrix_multiply_vector_by_number_optimal(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length);
 

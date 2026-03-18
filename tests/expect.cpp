@@ -13,4 +13,3 @@ ExpectationResult expect::expect_false(bool expression) noexcept {
     }
     return ExpectationResult(false, "Expected: false statement. Actual: true");
 }
-

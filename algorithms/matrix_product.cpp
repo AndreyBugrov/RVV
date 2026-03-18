@@ -95,22 +95,6 @@ void matrix_product_row_block_par(const vector<num_type>& a, const vector<num_ty
     }
 }
 
-void product(num_type a_coeff, const num_type __restrict__* start_b_index, num_type __restrict__* start_c_index){
-    num_type coef[kUnrollCoefficient];
-
-    for(size_t k = 0; k < kBlockSize / kUnrollCoefficient; k+=kUnrollCoefficient){
-        coef[0] = a_coeff * start_b_index[k];
-        coef[1] = a_coeff * start_b_index[k + 1];
-        coef[2] = a_coeff * start_b_index[k + 2];
-        coef[3] = a_coeff * start_b_index[k + 3];
-
-        start_c_index[k] += coef[0];
-        start_c_index[k + 1] += coef[1];
-        start_c_index[k + 2] += coef[2];
-        start_c_index[k + 3] += coef[3];
-    }
-}
-
 void matrix_product_row_block_unrolling_par(const vector<num_type>& a, const vector<num_type>& b, vector<num_type>& c, size_t a_row_count, size_t a_column_count, size_t b_column_count) {
     check_length(a.size(), b.size(), c.size(), a_row_count, a_column_count, b_column_count);
     size_t ik, jk, kk, i, j, k;

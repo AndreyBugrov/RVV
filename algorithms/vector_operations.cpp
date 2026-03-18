@@ -48,19 +48,6 @@ void sub_vector_from_vector_inplace_simd(num_type* minuend, const num_type* subt
     }
 }
 
-// void sub_vector_from_vector_inplace_unrolling(num_type* minuend, const num_type* subtrahend, size_t length){
-//     size_t reduced_length = length - length % kUnrollCoefficient;
-//     for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
-//         minuend[i] = minuend[i] - subtrahend[i];
-//         minuend[i+1] = minuend[i+1] - subtrahend[i+1];
-//         minuend[i+2] = minuend[i+2] - subtrahend[i+2];
-//         minuend[i+3] = minuend[i+3] - subtrahend[i+3];
-//     }
-//     for(size_t i = reduced_length; i < length; ++i){
-//         minuend[i] -= subtrahend[i];
-//     }
-// }
-
 void sub_vector_from_vector_inplace_unrolling(num_type* __restrict minuend, const num_type* __restrict subtrahend, size_t length){
     #ifdef RISCV_ARCH
         size_t i = 0;
@@ -128,17 +115,6 @@ void inner_multiply_vector_by_number_unrolling(const num_type*__attribute__((ali
             multiplied_vec[i] = vec[i] * number;
         }
     #endif
-}
-
-void inner_multiply_vector_by_number_unrolling_par(const num_type* __restrict__ vec, num_type* __restrict__ multiplied_vec, num_type number, size_t length){
-    size_t i;
-    #pragma omp parallel for shared(multiplied_vec, vec, number, length, kUnrollCoefficient) private(i)
-    for(i=0;i<length;i+=kUnrollCoefficient){
-        multiplied_vec[i] = vec[i] * number;
-        multiplied_vec[i+1] = vec[i+1] * number;
-        multiplied_vec[i+2] = vec[i+2] * number;
-        multiplied_vec[i+3] = vec[i+3] * number;
-    }
 }
 
 void inner_element_wise_multiply_vector_by_vector_unrolling(const num_type* a, const num_type* b, num_type* result, size_t length){
