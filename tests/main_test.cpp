@@ -60,8 +60,9 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRow, "row simple matrix product"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kRowScalar, "row matrix product with unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "block row matrix product"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "block row matrix product with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrolling, "block row matrix product with unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockPar, "parallel block row matrix product without unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrollingPar, "parallel block row matrix product with unrolling"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -91,12 +92,13 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "QR decomposition with half-unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kDoubleUnrolling, "QR decomposition with full unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "QR decomposition with block matrix product"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockScalar, "QR decomposition with optimal block matrix product"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrolling, "QR decomposition with optimal block matrix product"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kInline, "QR decomposition with inlining"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kMatrix, "QR decomposition full matrix"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholder, "QR decomposition with Householder reflection"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholderUnrolling, "QR decomposition with unrolled Householder reflection"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockPar, "parallel QR decomposition with block matrix product"),
+                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrollingPar, "parallel QR decomposition with block matrix product with unrolling"),
             }
         ),
     };

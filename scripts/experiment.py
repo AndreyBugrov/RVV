@@ -17,7 +17,8 @@ OPERATIONS = {'vector': 'vec_p', 'matrix': 'mat_p', 'gram_schmidt': 'gs_p', 'qr'
 OPTIMIZATIONS = {'simple': 'sim', 'std': 'std', 'row': 'row_sim', 'dot': 'dot', 'simd': 'simd',
                  'hl_opt': 'hlo', 'intrinsic': 'int', 'll_opt': 'llo', 'full_row': 'row_row',
                  'unrolling': 'urol', 'double_unrolling': 'drol', 'block': 'block', 'inline': 'inl', 'matrix': 'matr',
-                 'hh_sim': 'hh_sim', 'hh_unrolling': 'hh_urol', 'inline_parallel': 'inl_par'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized, hh - householder
+                 'hh_sim': 'hh_sim', 'hh_unrolling': 'hh_urol', 'inline_parallel': 'inl_par',
+                 'inline_unrolling_parallel': 'inl_urol_par', 'full_unrolling': 'frol'} # scalar means based on optimal scalar product, hl_opt - hi-level optimized, hh - householder
 
 
 def terminate_experiment(error_msg: str):
@@ -112,7 +113,7 @@ def full_experiment_pass(compilation_profile: str, plot_format: str, function_na
                          exp_count: int, device_name: str, output_dir: str, suffix: str, base_title: str,
                          dot_title: str, no_plotting: bool, no_recompile: bool, eigen_path: Path | None):
     if not function_names_set:
-        abort_with_message('Function names set is empty')
+        abort_with_message('Function names set generated from input args is empty')
     LOGGER.info("Start of preprocessing phase")
     check_output_dir(output_dir)
     bin_path = get_binary_path(compilation_profile, device_name, compilation_type="experiment", eigen_path=eigen_path, no_recompile=no_recompile)
@@ -162,7 +163,8 @@ def _create_function_dict() -> dict[str, set[str]]:
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['block'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['dot'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['inline'], OPERATIONS['qr'] + '_' + OPTIMIZATIONS['matrix'],
                                  OPERATIONS['qr'] + '_' + OPTIMIZATIONS['hh_sim'], f"{OPERATIONS['qr']}_{OPTIMIZATIONS['hh_unrolling']}",
-                                 f"{OPERATIONS['qr']}_{OPTIMIZATIONS['inline_parallel']}",}
+                                 f"{OPERATIONS['qr']}_{OPTIMIZATIONS['inline_parallel']}", f"{OPERATIONS['qr']}_{OPTIMIZATIONS['inline_unrolling_parallel']}",
+                                 f"{OPERATIONS['qr']}_{OPTIMIZATIONS['full_unrolling']}",}
     # add support for optimizations
     for key in OPTIMIZATIONS.keys():
         function_names_dict[key] = set()

@@ -48,13 +48,27 @@ void sub_vector_from_vector_inplace_simd(num_type* minuend, const num_type* subt
     }
 }
 
-void sub_vector_from_vector_inplace_unrolling(num_type* minuend, const num_type* subtrahend, size_t length){
-    for(size_t i=0;i<length;i+=4){
-        minuend[i] -= subtrahend[i];
-        minuend[i+1] -= subtrahend[i+1];
-        minuend[i+2] -= subtrahend[i+2];
-        minuend[i+3] -= subtrahend[i+3];
-    }
+void sub_vector_from_vector_inplace_unrolling(num_type* __restrict minuend, const num_type* __restrict subtrahend, size_t length){
+    #ifdef RISCV_ARCH
+        size_t i = 0;
+        // Используем LMUL = 2 (vfloat64m2_t). Можно изменить на m1, m4, m8 для большей длины.
+        // vsetvl_e64m1 автоматически выбирает подходящее количество элементов для данного LMUL.
+        while (i < length) {
+            size_t vl = __riscv_vsetvl_e64m2(length - i);
+            vfloat64m2_t vec_min = __riscv_vle64_v_f64m2(minuend + i, vl);
+            vfloat64m2_t vec_sub = __riscv_vle64_v_f64m2(subtrahend + i, vl);
+            vfloat64m2_t vec_res = __riscv_vfsub_vv_f64m2(vec_min, vec_sub, vl);
+            __riscv_vse64_v_f64m2(minuend + i, vec_res, vl);
+            i += vl;
+        }
+    #else
+        minuend = static_cast<num_type*>(__builtin_assume_aligned(minuend, 64));
+        subtrahend = static_cast<const num_type*>(__builtin_assume_aligned(subtrahend, 64));
+        #pragma GCC ivdep
+        for(size_t i = 0; i < length; ++i){
+            minuend[i] -= subtrahend[i];
+        }
+    #endif
 }
 
 vector<num_type> multiply_vector_by_number(const vector<num_type>& vec, num_type number){
@@ -78,28 +92,29 @@ void inner_multiply_vector_by_number_simd(const num_type* vec, num_type* mutipli
     }
 }
 
-void inner_multiply_vector_by_number_unrolling(const num_type* vec, num_type* mutiplied_vec, num_type number, size_t length){
-    size_t reduced_length = length - length % kUnrollCoefficient;
-    for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
-        mutiplied_vec[i] = vec[i] * number;
-        mutiplied_vec[i+1] = vec[i+1] * number;
-        mutiplied_vec[i+2] = vec[i+2] * number;
-        mutiplied_vec[i+3] = vec[i+3] * number;
-    }
-    for(size_t i = reduced_length; i < length; ++i){
-        mutiplied_vec[i] = vec[i] * number;
-    }
-}
-
-void inner_multiply_vector_by_number_unrolling_par(const num_type* __restrict__ vec, num_type* __restrict__ multiplied_vec, num_type number, size_t length){
-    size_t i;
-    #pragma omp parallel for shared(multiplied_vec, vec, number, length, kUnrollCoefficient) private(i)
-    for(i=0;i<length;i+=kUnrollCoefficient){
-        multiplied_vec[i] = vec[i] * number;
-        multiplied_vec[i+1] = vec[i+1] * number;
-        multiplied_vec[i+2] = vec[i+2] * number;
-        multiplied_vec[i+3] = vec[i+3] * number;
-    }
+void inner_multiply_vector_by_number_unrolling(const num_type*__attribute__((aligned(32))) vec, num_type*__attribute__((aligned(32))) multiplied_vec, num_type number, size_t length){
+    #ifdef RISCV_ARCH
+        size_t i = 0;
+        // LMUL = 2 → работаем с типом vfloat64m2_t (8 double за раз)
+        while (i < length) {
+            size_t vl = __riscv_vsetvl_e64m2(length - i); // активная длина для данного LMUL
+            vfloat64m2_t v_vec = __riscv_vle64_v_f64m2(vec + i, vl);          // загружаем вектор
+            vfloat64m2_t v_res = __riscv_vfmul_vf_f64m2(v_vec, number, vl);   // умножаем на скаляр
+            __riscv_vse64_v_f64m2(multiplied_vec + i, v_res, vl);             // сохраняем результат
+            i += vl;
+        }
+    #else
+        size_t reduced_length = length - length % kUnrollCoefficient;
+        for(size_t i = 0; i < reduced_length; i += kUnrollCoefficient){
+            multiplied_vec[i] = vec[i] * number;
+            multiplied_vec[i+1] = vec[i+1] * number;
+            multiplied_vec[i+2] = vec[i+2] * number;
+            multiplied_vec[i+3] = vec[i+3] * number;
+        }
+        for(size_t i = reduced_length; i < length; ++i){
+            multiplied_vec[i] = vec[i] * number;
+        }
+    #endif
 }
 
 void inner_element_wise_multiply_vector_by_vector_unrolling(const num_type* a, const num_type* b, num_type* result, size_t length){

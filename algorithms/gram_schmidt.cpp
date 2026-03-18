@@ -22,7 +22,7 @@ void proj_simd(const num_type* projected, const num_type* mapped_vec, num_type* 
 void proj_unrolling(const num_type* projected, const num_type* mapped_vec, num_type* projection, size_t length){
     num_type a_b = inner_dot_product_unrolling(projected, mapped_vec, length);
     num_type b_b = inner_dot_product_unrolling(mapped_vec, mapped_vec, length);
-    inner_multiply_vector_by_number_unrolling(mapped_vec, projection, a_b/b_b, length);
+    inner_multiply_vector_by_number(mapped_vec, projection, a_b/b_b, length);
 }
 
 vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>& vec_system){
@@ -94,11 +94,15 @@ vector_num gram_schmidt_matrix_inline_common(vector_num& transposed_matrix, size
 
 
 vector_num gram_schmidt_matrix_inline(vector_num& transposed_matrix, size_t row_count, size_t column_count){
-    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace, inner_multiply_vector_by_number_unrolling);
+    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace, inner_multiply_vector_by_number);
 }
 
 vector_num gram_schmidt_matrix_inline_par(vector_num& transposed_matrix, size_t row_count, size_t column_count){
-    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace, inner_multiply_vector_by_number_unrolling, true);
+    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace, inner_multiply_vector_by_number, true);
+}
+
+vector_num gram_schmidt_matrix_inline_unrolling_par(vector_num& transposed_matrix, size_t row_count, size_t column_count){
+    return gram_schmidt_matrix_inline_common(transposed_matrix, row_count, column_count, inner_dot_product_unrolling, sub_vector_from_vector_inplace_unrolling, inner_multiply_vector_by_number_unrolling, true);
 }
 
 void vector_matrix_product(const num_type* vec, const num_type* transposed_matrix, num_type* result_vec, size_t row_count, size_t column_count){  

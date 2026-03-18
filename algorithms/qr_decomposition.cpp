@@ -30,20 +30,16 @@ void QR_decomposition_block(const vector<num_type>& matrix, vector<num_type>& Q_
     QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_unrolling, matrix_product_row_block);
 }
 
-void QR_decomposition_block_scalar(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
-    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_unrolling, matrix_product_row_block_scalar);
+void QR_decomposition_block_unrolling(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_unrolling, matrix_product_row_block_unrolling);
 }
 
-void QR_decomposition_block_scalar_inline(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
-    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline, matrix_product_row_block_scalar);
+void QR_decomposition_block_unrolling_inline(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline, matrix_product_row_block_unrolling);
 }
 
 void QR_decomposition_full_matrix(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
-    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_full_matrix, matrix_product_row_block_scalar);
-}
-
-void QR_decomposition_block_inline_par(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
-    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline_par, matrix_product_row_block_par);
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_full_matrix, matrix_product_row_block_unrolling);
 }
 
 void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count) {
@@ -52,6 +48,18 @@ void QR_decomposition_base_householder(const vector_num& matrix, vector_num& Q_m
 
 void QR_decomposition_householder_unrolling(const vector_num& matrix, vector_num& Q_matrix, vector_num& R_matrix, size_t row_count, size_t column_count) {
     QR_decomposition_householder_common(matrix, Q_matrix, R_matrix, row_count, column_count, recalculate_q_matrix_unrolling, recalculate_r_matrix_unrolling);
+}
+
+void QR_decomposition_block_inline_par(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline_par, matrix_product_row_block_par);
+}
+
+void QR_decomposition_block_unrolling_par(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline_par, matrix_product_row_block_unrolling_par);
+}
+
+void QR_decomposition_full_unrolling_par(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count){
+    QR_decomposition_matrix_common(matrix, Q_matrix, R_matrix, row_count, column_count, gram_schmidt_matrix_inline_unrolling_par, matrix_product_row_block_unrolling_par);
 }
 
 void QR_decomposition_non_matrix_common(const vector<num_type>& matrix, vector<num_type>& Q_matrix, vector<num_type>& R_matrix, size_t row_count, size_t column_count, matrix_product_function matrix_foo){
