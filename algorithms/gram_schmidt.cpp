@@ -25,12 +25,6 @@ void proj_unrolling(const num_type* projected, const num_type* mapped_vec, num_t
     inner_multiply_vector_by_number(mapped_vec, projection, a_b/b_b, length);
 }
 
-void proj_test(const num_type* projected, const num_type* mapped_vec, num_type* projection, size_t length){
-    num_type a_b = inner_dot_product_unrolling(projected, mapped_vec, length);
-    num_type b_b = inner_dot_product_unrolling(mapped_vec, mapped_vec, length);
-    inner_multiply_vector_by_number_unrolling(mapped_vec, projection, a_b/b_b, length);
-}
-
 vector<vector<num_type>> gram_schmidt_base_simple(const vector<vector<num_type>>& vec_system){
     if(vec_system.size()==0){
         return vec_system;
@@ -65,16 +59,9 @@ vector_num gram_schmidt_matrix_unrolling(vector_num& transposed_matrix, size_t r
     return gram_schmidt_matrix_common(transposed_matrix, row_count, column_count, proj_unrolling, sub_vector_from_vector_inplace);
 }
 
-vector_num gram_schmidt_test(vector_num& transposed_matrix, size_t row_count, size_t column_count){
-    // applying sub_vector_from_vector_inplace_simd instead of sub_vector_from_vector_inplace does not lead to any change
-    // autovectorization is not applied
-    return gram_schmidt_matrix_common(transposed_matrix, row_count, column_count, proj_test, sub_vector_from_vector_inplace_unrolling);
-}
-
 vector_num gram_schmidt_matrix_common(vector_num& transposed_matrix, size_t row_count, size_t column_count, proj_function proj_foo, sub_function sub_foo){
     check_matrix(transposed_matrix, row_count, column_count);
     vector_num orthogonal_matrix = transposed_matrix;
-    #pragma omp parallel for shared(orthogonal_matrix, row_count, column_count, sub_foo, proj_foo)
     for(size_t vec_index=0;vec_index<row_count;++vec_index){
         for(size_t proj_index=0;proj_index<vec_index;++proj_index){
             num_type* projection = new num_type[column_count];
