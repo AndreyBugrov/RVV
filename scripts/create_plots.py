@@ -6,7 +6,7 @@ from common_defs import abort_with_message, import_module_by_name, TIME_NAME, RE
 LOGGER = logging.getLogger(__name__)
 
 
-COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "olive", "sienna", "lime", "gold", "deepskyblue", "lightsalmon", "midnightblue", "darkred", "cyan", "deeppink"]
+COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "olive", "sienna", "lime", "gold", "deepskyblue", "deeppink", "midnightblue", "darkred", "fuchsia"]
 QR_OPTIMIZATION_LIST = {
     "qr_d_sim_": "Базовый алгоритм",
     "qr_d_row_sim_": "Строчное умножение матриц",
@@ -14,8 +14,8 @@ QR_OPTIMIZATION_LIST = {
     "qr_d_simd_": "SIMD в процессе Грама-Шмидта",
     "qr_d_urol_": "Развёртка цикла в процессе Грама-Шмидта",
     "qr_d_drol_": "Развёртка цикла в обеих подзадачах",
-    "qr_d_block_": "Блочное умножение без размотки цикла",
-    "qr_d_dot_": "Блочное умножение с размоткой цикла",
+    "qr_d_block_": "Блочное умножение без развёртки цикла",
+    "qr_d_dot_": "Блочное умножение с развёрткой цикла",
     "qr_d_inl_sim_": "Уменьшение умножений в процессе Грама-Шмидта",
     "qr_d_matr_" : "Векторно-матричные операции в процессе Грама-Шмидта",
     "qr_d_hh_sim_" : "Базовые отражения Хаусхолдера",
