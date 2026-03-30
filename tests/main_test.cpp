@@ -98,7 +98,8 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholder, "QR decomposition with Householder reflection"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholderUnrolling, "QR decomposition with unrolled Householder reflection"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockPar, "parallel QR decomposition with block matrix product"),
-                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrollingPar, "parallel QR decomposition with block matrix product with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrollingPar, "parallel QR decomposition with block matrix product with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kFullBlock, "full block parallel QR decomposition"),
             }
         ),
     };

@@ -35,6 +35,7 @@ enum class FunctionOptimizationType{
     kBlockPar,
     kBlockUnrollingPar,
     kFullUnrolling,
+    kFullBlock,
     kInline,
     kMatrix,
     kUnsafe,

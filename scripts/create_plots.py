@@ -6,7 +6,7 @@ from common_defs import abort_with_message, import_module_by_name, TIME_NAME, RE
 LOGGER = logging.getLogger(__name__)
 
 
-COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "olive", "sienna", "lime", "gold", "deepskyblue", "deeppink", "midnightblue", "darkred", "fuchsia"]
+COLOR_LIST = ["blue", "red", "forestgreen", "darkorange", "blueviolet", "lightpink", "olive", "sienna", "lime", "gold", "deepskyblue", "deeppink", "midnightblue", "darkred", "fuchsia", "royalblue"]
 QR_OPTIMIZATION_LIST = {
     "qr_d_sim_": "Базовый алгоритм",
     "qr_d_row_sim_": "Строчное умножение матриц",
@@ -23,6 +23,7 @@ QR_OPTIMIZATION_LIST = {
     "qr_d_inl_par_": "Параллельность наилучшей из вышеописанных реализаций",
     "qr_d_inl_urol_par_": "Параллельность с развёрткой цикла в умножении матриц",
     "qr_d_frol_": "Параллельность с развёрткой цикла в обеих подзадачах",
+    "qr_d_full_block": "Полная блочная реализация",
 }
 
 

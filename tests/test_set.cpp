@@ -568,6 +568,9 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
     case FunctionOptimizationType::kFullUnrolling:
         foo = QR_decomposition_full_unrolling_par;
         break;
+    case FunctionOptimizationType::kFullBlock:
+        foo = QR_decomposition_full_block;
+        break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }

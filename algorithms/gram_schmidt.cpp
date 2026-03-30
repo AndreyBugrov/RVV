@@ -143,3 +143,87 @@ void check_matrix(vector_num& transposed_matrix, size_t row_count, size_t column
         throw Exception(ErrorType::kIncorrectLengthRatio, generate_string("Matrix row count (", row_count, ") is more than matrix column count (", column_count, ")"));
     }
 }
+
+vector_num block_gram_schmidt_matrix_inline_common(
+    vector_num& transposed_matrix,
+    size_t row_count,
+    size_t column_count,
+    dot_product_function dot_foo,
+    sub_function sub_foo,
+    number_mult_function mult_foo,
+    size_t block_size,
+    bool enable_parallel = false)
+{
+    check_matrix(transposed_matrix, row_count, column_count);
+    vector_num orthogonal_matrix = transposed_matrix;
+    vector_num dot_product_results(row_count, 0.0); // квадраты норм ортогональных векторов
+
+    // Обрабатываем блоки последовательно
+    for (size_t block_start = 0; block_start < row_count; block_start += block_size) {
+        size_t block_end = block_start + block_size;
+
+        // Шаг 1: ортогонализация векторов текущего блока относительно всех предыдущих векторов
+        // (индексы 0..block_start-1). Для каждого i из блока вычитаем проекции на все j < block_start.
+        #pragma omp parallel for if (enable_parallel)
+        for (size_t vec_index = block_start; vec_index < block_end; ++vec_index) {
+            for (size_t proj_index = 0; proj_index < block_start; ++proj_index) {
+                // Вычисляем множитель проекции: (q_i, q_j) / (q_j, q_j)
+                num_type dot_result = dot_foo(&orthogonal_matrix[vec_index * column_count],
+                                           &orthogonal_matrix[proj_index * column_count],
+                                           column_count);
+                num_type multiplier = dot_result / dot_product_results[proj_index];
+
+                // Вычитаем multiplier * q_j из q_i
+                num_type* projection = new num_type[column_count];
+                mult_foo(&orthogonal_matrix[proj_index * column_count], projection, multiplier, column_count);
+                sub_foo(&orthogonal_matrix[vec_index * column_count], projection, column_count);
+                delete[] projection;
+            }
+        }
+
+        // // Шаг 2: ортогонализация внутри блока (классический Грама-Шмидт)
+        // // Векторы обрабатываются последовательно, чтобы использовать уже ортогонализованные векторы.
+        // for (size_t i = block_start; i < block_end; ++i) {
+        //     // Вычитаем проекции на уже обработанные векторы внутри блока (j от block_start до i-1)
+        //     for (size_t j = block_start; j < i; ++j) {
+        //         num_type dot_val = dot_foo(&orthogonal_matrix[i * column_count],
+        //                                    &orthogonal_matrix[j * column_count],
+        //                                    column_count);
+        //         num_type multiplier = dot_val / dot_product_results[j];
+
+        //         num_type* projection = new num_type[column_count];
+        //         mult_foo(&orthogonal_matrix[j * column_count], projection, multiplier, column_count);
+        //         sub_foo(&orthogonal_matrix[i * column_count], projection, column_count);
+        //         delete[] projection;
+        //     }
+        //     // Сохраняем квадрат нормы ортогонального вектора для дальнейшего использования
+        //     dot_product_results[i] = dot_foo(&orthogonal_matrix[i * column_count],
+        //                                      &orthogonal_matrix[i * column_count],
+        //                                      column_count);
+        // }
+    }
+
+    return orthogonal_matrix;
+}
+
+/**
+ * Обёртка для блочной версии с фиксированным размером блока (например, 64) и включённой параллелизацией.
+ * Использует специализированные функции с развёртыванием циклов.
+ */
+vector_num gram_schmidt_block(
+    vector_num& transposed_matrix,
+    size_t row_count,
+    size_t column_count)
+{
+    // Размер блока можно подобрать экспериментально или вычислить на основе размера кэша.
+    // Для простоты используем 100.
+    return block_gram_schmidt_matrix_inline_common(
+        transposed_matrix,
+        row_count,
+        column_count,
+        inner_dot_product_unrolling,      // предположительно определённые функции
+        sub_vector_from_vector_inplace_unrolling,
+        inner_multiply_vector_by_number_unrolling,
+        kBlockSize,
+        true);                            // включить параллелизм
+}
