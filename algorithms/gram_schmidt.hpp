@@ -34,17 +34,6 @@ vector_num gram_schmidt_matrix_inline_common(vector_num& transposed_matrix, size
 
 void check_matrix(vector_num& transposed_matrix, size_t row_count, size_t column_count);
 
-vector_num block_gram_schmidt_matrix_inline_common(
-    vector_num& transposed_matrix,
-    size_t row_count,
-    size_t column_count,
-    dot_product_function dot_foo,
-    sub_function sub_foo,
-    number_mult_function mult_foo,
-    size_t block_size,
-    bool enable_parallel);
+vector_num block_gram_schmidt_matrix_inline_common(vector_num& transposed_matrix, size_t row_count, size_t column_count, dot_product_function dot_foo, sub_function sub_foo, number_mult_function mult_foo, size_t block_size, bool enable_parallel);
 
-vector_num gram_schmidt_block(
-    vector_num& transposed_matrix,
-    size_t row_count,
-    size_t column_count);
+vector_num gram_schmidt_block(vector_num& transposed_matrix, size_t row_count, size_t column_count);
