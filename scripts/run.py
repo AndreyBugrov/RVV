@@ -107,7 +107,7 @@ if __name__ == '__main__':
     parent_plotting_parser = argparse.ArgumentParser(add_help=False)
     parent_plotting_parser.add_argument('--plot-format', help="Plot format", choices=["png", "pdf", "svg"], default="png")
     parent_plotting_parser.add_argument('--dot-title', help="Dot product plot title", default="Скалярное произведение векторов")
-    parent_plotting_parser.add_argument('--base-title', help="Base algorithms plot title", default="Оптимизации QR-разложения")
+    parent_plotting_parser.add_argument('--base-title', help="Base algorithms plot title", default="Оптимизации QR-разложения на Banana Pi F3. Ox - измерение квадратной матрицы, Oy - ")
     parent_plotting_parser.add_argument('--no-plotting', help="Do not create plots", default=False, action="store_true")
 
     parent_optimization_parser = argparse.ArgumentParser(add_help=False)

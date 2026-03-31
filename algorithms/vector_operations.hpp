@@ -12,6 +12,8 @@
 
 using std::vector;
 
+const size_t kBlockSize = 100;
+
 num_type get_vector_norm(const vector<num_type>& vec);
 num_type get_vector_norm(const num_type* vec, size_t length);
 

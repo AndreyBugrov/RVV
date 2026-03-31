@@ -49,6 +49,7 @@ enum class FunctionIndex{
     kQRInlinePar,
     kQRInlineUnrollingPar,
     kQRFullUnrolling,
+    kQRFullBlock,
     kQREnd, // end
 };
 

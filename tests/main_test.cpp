@@ -79,7 +79,8 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "matrix-based Gram-Schmidt process with OpenMP SIMD"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "matrix-based Gram-Schmidt process with unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kMatrix, "matrix-based Gram-Schmidt process with full matrix support"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrollingPar, "Parallel matrix-based Gram-Schmidt process with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrollingPar, "parallel matrix-based Gram-Schmidt process with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "parallel block Gram-Schmidt process with unrolling"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
@@ -98,7 +99,8 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholder, "QR decomposition with Householder reflection"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kHouseholderUnrolling, "QR decomposition with unrolled Householder reflection"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockPar, "parallel QR decomposition with block matrix product"),
-                // pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrollingPar, "parallel QR decomposition with block matrix product with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlockUnrollingPar, "parallel QR decomposition with block matrix product with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kFullBlock, "full block parallel QR decomposition"),
             }
         ),
     };

@@ -113,6 +113,7 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
         foo = matrix_product_row_block_par;
         break;
     case FunctionOptimizationType::kBlockUnrollingPar:
+        std::cout<<"\nblock parallel\n";
         foo = matrix_product_row_block_unrolling_par;
         break;
     default:
@@ -125,7 +126,8 @@ void block_matrix_filling(const TestFunctionInputExtended& input, size_t& a_row_
 bool do_block_matrix_product_immediately(FunctionOptimizationType function_type, AlgebraObjectVersion object_version){
     bool acceptable_type = (function_type == FunctionOptimizationType::kBlock ||
         function_type == FunctionOptimizationType::kBlockUnrolling ||
-        function_type == FunctionOptimizationType::kBlockPar);
+        function_type == FunctionOptimizationType::kBlockPar ||
+        function_type == FunctionOptimizationType::kBlockUnrollingPar);
     bool acceptable_version = (object_version == AlgebraObjectVersion::kGeneral ||
         object_version == AlgebraObjectVersion::kIdentity ||
         object_version == AlgebraObjectVersion::kZero);
@@ -359,6 +361,21 @@ ExpectationResult test_gram_schmidt_matrix(TestFunctionInputExtended input){
     case FunctionOptimizationType::kUnrollingPar:
         foo = gram_schmidt_matrix_inline_par;
         break;
+    case FunctionOptimizationType::kBlock:
+        foo = gram_schmidt_block;
+        if(input.algebra_object_version != AlgebraObjectVersion::kEmpty){
+            row_count = generate_rand_length(input.min_length / kUnrollCoefficient, input.max_length / kUnrollCoefficient);
+            row_count *= kUnrollCoefficient;
+            if(input.algebra_object_version == AlgebraObjectVersion::kIncorrect){
+                column_count = generate_rand_length(input.min_length, row_count - 1);
+                resize_and_generate_matrix(transposed_matrix, row_count, column_count);
+            }else{
+                column_count = generate_rand_length(row_count / kUnrollCoefficient, input.max_length / kUnrollCoefficient); // to prevent linear dependence of vectors
+                column_count *= kUnrollCoefficient;
+                resize_and_generate_matrix(transposed_matrix, row_count, column_count, input.algebra_object_version, input.min_value, input.max_value);
+            }
+        }
+        break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Unsupported FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
     }
@@ -567,6 +584,9 @@ ExpectationResult test_qr_decomposition(TestFunctionInputExtended input){
         break;
     case FunctionOptimizationType::kFullUnrolling:
         foo = QR_decomposition_full_unrolling_par;
+        break;
+    case FunctionOptimizationType::kFullBlock:
+        foo = QR_decomposition_full_block;
         break;
     default:
         throw Exception(ErrorType::kUnexpectedCase, generate_string("Wrong FunctionOptimizationType index: ", static_cast<int>(input.function_type)));
