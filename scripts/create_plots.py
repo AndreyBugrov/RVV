@@ -56,7 +56,7 @@ def _get_size_list(result_directory: Path, mat_names: list[str], gs_names: list[
         return []
 
 
-def _plot_step_graph(y_dict: dict, x_list: list[int], title: str, x_label: str, y_label: str, plot_file_path: Path):
+def _plot_step_graph(y_dict: dict, x_list: list[int], title: str, x_label: str, y_label: str, plot_file_path: Path, add_legend: bool):
     pd = import_module_by_name("pandas")
     y_df = pd.DataFrame.from_dict(y_dict)
     plt = import_module_by_name("matplotlib.pyplot")
@@ -69,7 +69,8 @@ def _plot_step_graph(y_dict: dict, x_list: list[int], title: str, x_label: str, 
     ax.ticklabel_format(style='sci', axis='x', useMathText=True)
     ax.locator_params(axis='x', min_n_ticks=10)
     ax.locator_params(axis='y', min_n_ticks=10)
-    ax.legend(loc="upper left")
+    if add_legend:
+        ax.legend(loc="upper left")
     plt.savefig(plot_file_path, bbox_inches="tight", format=plot_file_path.suffix[1:])
     LOGGER.info(f"Plot was saved to {plot_file_path}")
     plt.cla()
@@ -77,7 +78,7 @@ def _plot_step_graph(y_dict: dict, x_list: list[int], title: str, x_label: str, 
 
 def _plot_times_graph(times_dict: dict, step_list: list[int], title: str, plot_dir_path: Path, format: str):
     plot_path = plot_dir_path / f"times.{format}"
-    _plot_step_graph(times_dict, step_list, title, "Количество элементов", "Время работы, секунды", plot_path)
+    _plot_step_graph(times_dict, step_list, title, "Измерение квадратной матрицы", "Время работы, секунды", plot_path, True)
 
 
 def _get_relative_times_dict(times_dict: dict, ref_times_dict: dict):
@@ -92,7 +93,7 @@ def _get_relative_times_dict(times_dict: dict, ref_times_dict: dict):
 def _plot_relative_times_graph(times_dict: dict, ref_times_dict: dict, step_list: list[int], title: str, plot_dir_path: Path, format: str):
     relative_times_dict = _get_relative_times_dict(times_dict, ref_times_dict)
     plot_path = plot_dir_path / f"relative_times.{format}"
-    _plot_step_graph(relative_times_dict, step_list, title, "Количество элементов", "Отношение времени работы к библиотеке Eigen", plot_path)
+    _plot_step_graph(relative_times_dict, step_list, title, "Измерение квадратной матрицы", "Отношение времени работы к библиотеке Eigen", plot_path, False)
 
 
 def _add_time_series_to_times_dict(column_names: list[str], path_item: Path, file_name: str, time_name: str, ref_time_name: str, times_dict: dict, ref_times_dict: dict):

@@ -79,7 +79,8 @@ void fill_tasks(std::vector<TestTask>& tasks){
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kSimd, "matrix-based Gram-Schmidt process with OpenMP SIMD"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrolling, "matrix-based Gram-Schmidt process with unrolling"),
                 pair<FunctionOptimizationType, string>(FunctionOptimizationType::kMatrix, "matrix-based Gram-Schmidt process with full matrix support"),
-                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrollingPar, "Parallel matrix-based Gram-Schmidt process with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kUnrollingPar, "parallel matrix-based Gram-Schmidt process with unrolling"),
+                pair<FunctionOptimizationType, string>(FunctionOptimizationType::kBlock, "parallel block Gram-Schmidt process with unrolling"),
             }
         ),
         pair<object_indexes, map<FunctionOptimizationType, string>>(
