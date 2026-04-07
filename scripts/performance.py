@@ -29,7 +29,7 @@ def _run_performance_binary(perf_bin_name: str, args: list[str]):
 def _get_perf_data(bin_path: Path, function_name: str, exp_count: int, compilation_profile: str, device_name: str, result_directory: Path) -> Path:
     sizes = get_current_sizes_by_operation_class(QR_ROW_LENGTH, OPERATIONS["qr"])
     perf_data_path = result_directory / f"{compilation_profile}_{function_name}_{device_name}_perf.data"
-    args = f'perf record -F 99 -e cpu-clock -g --call-graph fp -o "{perf_data_path}" -- "{bin_path}" {exp_count} {function_name} {sizes} experiments.log perf'
+    args = f'perf record -F 99 -e cpu-clock -g --call-graph dwarf,16834 -o "{perf_data_path}" -- "{bin_path}" {exp_count} {function_name} {sizes} experiments.log perf'
     _run_performance_binary("Perf record", args)
     return perf_data_path
 
