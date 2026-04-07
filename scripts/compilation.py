@@ -87,7 +87,7 @@ def get_specific_options_line(compilation_profile: str, compilation_type: str, d
         return specific_options
     specific_options +=  f"-I {eigen_path}"
     if compilation_type == "perf":
-        specific_options += " -g --fsynchronous-unwind-tables"
+        specific_options += " -g --fasynchronous-unwind-tables"
     return specific_options
 
 
