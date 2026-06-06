@@ -55,22 +55,27 @@ def _get_size_list(result_directory: Path, mat_names: list[str], gs_names: list[
         LOGGER.warning(f"There is no supported non-vector results files in \"{result_directory}\" directory")
         return []
 
-
 def _plot_step_graph(y_dict: dict, x_list: list[int], title: str, x_label: str, y_label: str, plot_file_path: Path, add_legend: bool):
     pd = import_module_by_name("pandas")
     y_df = pd.DataFrame.from_dict(y_dict)
     plt = import_module_by_name("matplotlib.pyplot")
+
     _, ax = plt.subplots(figsize=(10, 8), dpi=100)
+    
     for plot_index, column in enumerate(y_df.columns):
         ax.plot(x_list, y_df[column], color=COLOR_LIST[plot_index], label=column)
+    
     ax.set_title(title, fontsize=15)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.ticklabel_format(style='sci', axis='x', useMathText=True)
     ax.locator_params(axis='x', min_n_ticks=10)
     ax.locator_params(axis='y', min_n_ticks=10)
+    
+    add_legend = True
     if add_legend:
-        ax.legend(loc="upper left")
+        ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5), fontsize=18, borderaxespad=0)  # legend is to the right on the charts
+
     plt.savefig(plot_file_path, bbox_inches="tight", format=plot_file_path.suffix[1:])
     LOGGER.info(f"Plot was saved to {plot_file_path}")
     plt.cla()
